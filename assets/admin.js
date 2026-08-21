@@ -71,6 +71,50 @@
         return output.save({useObjectStreams: false});
     }
 
+    function newUploadId() {
+        if (window.crypto && window.crypto.randomUUID) {
+            return window.crypto.randomUUID().replace(/-/g, '');
+        }
+        return Date.now().toString(16) + Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2);
+    }
+
+    async function responseFailure(response, fallback) {
+        var detail = '';
+        try {
+            detail = (await response.text()).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 240);
+        } catch (ignored) {
+            detail = '';
+        }
+        return new Error(fallback + ' HTTP ' + response.status + (detail ? ': ' + detail : ''));
+    }
+
+    async function uploadInChunks(bytes) {
+        var chunkSize = 512 * 1024;
+        var total = Math.ceil(bytes.length / chunkSize);
+        var uploadId = newUploadId();
+        for (var index = 0; index < total; index += 1) {
+            progress.textContent = config.messages.uploading + ' ' + (index + 1) + ' of ' + total + '...';
+            var url = new window.URL(config.chunkUploadUrl, window.location.href);
+            url.searchParams.set('upload_id', uploadId);
+            url.searchParams.set('index', index);
+            url.searchParams.set('total', total);
+            var response = await window.fetch(url.toString(), {
+                method: 'POST',
+                body: bytes.slice(index * chunkSize, Math.min((index + 1) * chunkSize, bytes.length)),
+                credentials: 'same-origin',
+                headers: {'Content-Type': 'application/octet-stream'}
+            });
+            if (!response.ok) {
+                throw await responseFailure(response, 'Chunk ' + (index + 1) + ' upload failed.');
+            }
+            var result = await response.json();
+            if (!result.success) {
+                throw new Error('Chunk ' + (index + 1) + ' was rejected by WordPress.');
+            }
+        }
+        return {uploadId: uploadId, total: total};
+    }
+
     filesPicker.addEventListener('change', renderSelection);
     folderPicker.addEventListener('change', renderSelection);
     form.addEventListener('submit', async function (event) {
@@ -96,19 +140,23 @@
 
         try {
             var bytes = await createBrowserPreview(files);
-            var data = new window.FormData(form);
-            data.delete('components[]');
-            data.delete('folder_components[]');
-            data.append('merged_preview', new window.Blob([bytes], {type: 'application/pdf'}), 'bulletin-preview.pdf');
+            var upload = await uploadInChunks(bytes);
+            progress.textContent = 'Finalizing private preview...';
+            var data = new window.URLSearchParams();
+            data.append('action', 'cbp_finalize_browser_preview');
+            data.append('_wpnonce', config.finalizeNonce);
+            data.append('bulletin_date', form.querySelector('[name="bulletin_date"]').value);
+            data.append('upload_id', upload.uploadId);
+            data.append('total', upload.total);
             data.append('component_manifest', JSON.stringify(files.map(fileLabel)));
-            var response = await window.fetch(form.action, {
+            var response = await window.fetch(config.finalizeUrl, {
                 method: 'POST',
                 body: data,
                 credentials: 'same-origin',
                 redirect: 'follow'
             });
             if (!response.ok) {
-                throw new Error('WordPress rejected the generated preview.');
+                throw await responseFailure(response, 'WordPress could not finalize the generated preview.');
             }
             window.location.assign(response.url);
         } catch (error) {

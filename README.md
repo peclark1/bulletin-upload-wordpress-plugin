@@ -27,7 +27,7 @@ This lets the workflow be exercised on the live WordPress installation without c
 - WordPress 6.2 or later
 - PHP 7.4 or later
 
-No server PDF program is required. When qpdf or pdfunite is unavailable, the bundled MIT-licensed pdf-lib 1.17.1 library assembles the bulletin in the administrator's browser and uploads only the finished private preview. qpdf or pdfunite is still used automatically when available.
+No server PDF program is required. When qpdf or pdfunite is unavailable, the bundled MIT-licensed pdf-lib 1.17.1 library assembles the bulletin in the administrator's browser. The finished preview is uploaded in small authenticated chunks, avoiding shared-host request-size limits. qpdf or pdfunite is still used automatically when available.
 
 ## Install for testing
 

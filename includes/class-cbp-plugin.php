@@ -25,6 +25,8 @@ final class CBP_Plugin
         add_action('admin_post_cbp_save_covers', array($this, 'save_covers'));
         add_action('admin_post_cbp_create_preview', array($this, 'create_preview'));
         add_action('admin_post_cbp_get_cover', array($this, 'get_cover'));
+        add_action('admin_post_cbp_upload_chunk', array($this, 'upload_chunk'));
+        add_action('admin_post_cbp_finalize_browser_preview', array($this, 'finalize_browser_preview'));
         add_action('admin_post_cbp_view_preview', array($this, 'view_preview'));
         add_action('admin_post_cbp_publish', array($this, 'publish'));
         add_action('admin_post_cbp_discard', array($this, 'discard'));
@@ -81,9 +83,13 @@ final class CBP_Plugin
             'browserMerge' => $browser_merge,
             'frontCoverUrl' => wp_nonce_url(admin_url('admin-post.php?action=cbp_get_cover&cover=front'), 'cbp_get_cover'),
             'backCoverUrl' => wp_nonce_url(admin_url('admin-post.php?action=cbp_get_cover&cover=back'), 'cbp_get_cover'),
+            'chunkUploadUrl' => wp_nonce_url(admin_url('admin-post.php?action=cbp_upload_chunk'), 'cbp_upload_chunk'),
+            'finalizeUrl' => admin_url('admin-post.php'),
+            'finalizeNonce' => wp_create_nonce('cbp_finalize_browser_preview'),
             'messages' => array(
                 'choosePdf' => __('Choose at least one weekly PDF file or an entire folder containing PDF files.', 'church-bulletin-publisher'),
                 'building' => __('Building PDF in your browser...', 'church-bulletin-publisher'),
+                'uploading' => __('Uploading private preview chunk', 'church-bulletin-publisher'),
                 'failed' => __('The browser could not build the PDF preview.', 'church-bulletin-publisher'),
             ),
         ));
@@ -321,6 +327,81 @@ final class CBP_Plugin
         exit;
     }
 
+    public function upload_chunk()
+    {
+        $this->authorize();
+        check_admin_referer('cbp_upload_chunk');
+        $upload_id = isset($_GET['upload_id']) ? sanitize_key(wp_unslash($_GET['upload_id'])) : '';
+        $index = isset($_GET['index']) ? absint($_GET['index']) : -1;
+        $total = isset($_GET['total']) ? absint($_GET['total']) : 0;
+        if (! preg_match('/^[a-f0-9]{20,64}$/', $upload_id) || $total < 1 || $total > 400 || $index < 0 || $index >= $total) {
+            wp_send_json_error(array('message' => __('Invalid preview chunk request.', 'church-bulletin-publisher')), 400);
+        }
+
+        $body = file_get_contents('php://input');
+        if ($body === false || strlen($body) < 1 || strlen($body) > MB_IN_BYTES) {
+            wp_send_json_error(array('message' => __('Preview chunk was empty or too large.', 'church-bulletin-publisher')), 400);
+        }
+
+        CBP_Storage::ensure_directories();
+        $directory = $this->chunk_directory($upload_id);
+        if (! wp_mkdir_p($directory)) {
+            wp_send_json_error(array('message' => __('Could not create private chunk storage.', 'church-bulletin-publisher')), 500);
+        }
+        $path = trailingslashit($directory) . sprintf('chunk-%04d.bin', $index);
+        if (file_put_contents($path, $body, LOCK_EX) !== strlen($body)) {
+            wp_send_json_error(array('message' => __('Could not store a preview chunk.', 'church-bulletin-publisher')), 500);
+        }
+        wp_send_json_success(array('index' => $index));
+    }
+
+    public function finalize_browser_preview()
+    {
+        $this->authorize();
+        check_admin_referer('cbp_finalize_browser_preview');
+        $date = isset($_POST['bulletin_date']) ? sanitize_text_field(wp_unslash($_POST['bulletin_date'])) : '';
+        $upload_id = isset($_POST['upload_id']) ? sanitize_key(wp_unslash($_POST['upload_id'])) : '';
+        $total = isset($_POST['total']) ? absint($_POST['total']) : 0;
+        if (! $this->valid_date($date) || ! preg_match('/^[a-f0-9]{20,64}$/', $upload_id) || $total < 1 || $total > 400) {
+            wp_send_json_error(array('message' => __('Invalid preview completion request.', 'church-bulletin-publisher')), 400);
+        }
+
+        $chunk_directory = $this->chunk_directory($upload_id);
+        $job = CBP_Storage::create_job_directory(get_current_user_id());
+        if (is_wp_error($job)) {
+            wp_send_json_error(array('message' => $job->get_error_message()), 500);
+        }
+        $output = trailingslashit($job) . 'preview.pdf';
+        $stream = fopen($output, 'wb');
+        if (! $stream) {
+            CBP_Storage::delete_tree($job);
+            wp_send_json_error(array('message' => __('Could not create the private preview file.', 'church-bulletin-publisher')), 500);
+        }
+
+        for ($index = 0; $index < $total; $index++) {
+            $chunk = trailingslashit($chunk_directory) . sprintf('chunk-%04d.bin', $index);
+            $input = is_readable($chunk) ? fopen($chunk, 'rb') : false;
+            if (! $input) {
+                fclose($stream);
+                CBP_Storage::delete_tree($job);
+                wp_send_json_error(array('message' => sprintf(__('Preview chunk %d is missing.', 'church-bulletin-publisher'), $index + 1)), 400);
+            }
+            stream_copy_to_stream($input, $stream);
+            fclose($input);
+        }
+        fclose($stream);
+
+        $limit = (int) apply_filters('cbp_max_merged_pdf_bytes', 100 * MB_IN_BYTES);
+        if (filesize($output) > $limit || ! CBP_PDF_Merger::is_pdf($output)) {
+            CBP_Storage::delete_tree($job);
+            CBP_Storage::delete_tree($chunk_directory);
+            wp_send_json_error(array('message' => __('The completed preview was too large or was not a valid PDF.', 'church-bulletin-publisher')), 400);
+        }
+
+        CBP_Storage::delete_tree($chunk_directory);
+        $this->store_preview($date, $job, $output, $this->manifest_from_request());
+    }
+
     public function view_preview()
     {
         $this->authorize();
@@ -454,6 +535,26 @@ final class CBP_Plugin
     private function preview_key()
     {
         return 'cbp_preview_' . get_current_user_id();
+    }
+
+    private function chunk_directory($upload_id)
+    {
+        return trailingslashit(CBP_Storage::private_root()) . 'chunks/' . get_current_user_id() . '/' . $upload_id;
+    }
+
+    private function manifest_from_request()
+    {
+        $manifest = array(__('Front cover', 'church-bulletin-publisher'));
+        $labels = isset($_POST['component_manifest']) ? json_decode(wp_unslash($_POST['component_manifest']), true) : array();
+        if (is_array($labels)) {
+            foreach (array_slice($labels, 0, 100) as $label) {
+                if (is_string($label) && $label !== '') {
+                    $manifest[] = sanitize_text_field($label);
+                }
+            }
+        }
+        $manifest[] = __('Back cover', 'church-bulletin-publisher');
+        return $manifest;
     }
 
     private function store_preview($date, $job, $output, array $manifest)
