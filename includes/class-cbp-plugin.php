@@ -24,6 +24,7 @@ final class CBP_Plugin
         add_action('admin_enqueue_scripts', array($this, 'admin_assets'));
         add_action('admin_post_cbp_save_covers', array($this, 'save_covers'));
         add_action('admin_post_cbp_create_preview', array($this, 'create_preview'));
+        add_action('admin_post_cbp_get_cover', array($this, 'get_cover'));
         add_action('admin_post_cbp_view_preview', array($this, 'view_preview'));
         add_action('admin_post_cbp_publish', array($this, 'publish'));
         add_action('admin_post_cbp_discard', array($this, 'discard'));
@@ -68,8 +69,24 @@ final class CBP_Plugin
         if ($hook !== 'toplevel_page_church-bulletin-publisher') {
             return;
         }
+        $browser_merge = is_wp_error(CBP_PDF_Merger::diagnostic());
+        $dependencies = array();
+        if ($browser_merge) {
+            wp_enqueue_script('cbp-pdf-lib', CBP_URL . 'vendor/pdf-lib/pdf-lib.min.js', array(), '1.17.1', true);
+            $dependencies[] = 'cbp-pdf-lib';
+        }
         wp_enqueue_style('cbp-admin', CBP_URL . 'assets/admin.css', array(), CBP_VERSION);
-        wp_enqueue_script('cbp-admin', CBP_URL . 'assets/admin.js', array(), CBP_VERSION, true);
+        wp_enqueue_script('cbp-admin', CBP_URL . 'assets/admin.js', $dependencies, CBP_VERSION, true);
+        wp_localize_script('cbp-admin', 'cbpAdmin', array(
+            'browserMerge' => $browser_merge,
+            'frontCoverUrl' => wp_nonce_url(admin_url('admin-post.php?action=cbp_get_cover&cover=front'), 'cbp_get_cover'),
+            'backCoverUrl' => wp_nonce_url(admin_url('admin-post.php?action=cbp_get_cover&cover=back'), 'cbp_get_cover'),
+            'messages' => array(
+                'choosePdf' => __('Choose at least one weekly PDF file or an entire folder containing PDF files.', 'church-bulletin-publisher'),
+                'building' => __('Building PDF in your browser...', 'church-bulletin-publisher'),
+                'failed' => __('The browser could not build the PDF preview.', 'church-bulletin-publisher'),
+            ),
+        ));
     }
 
     public function render_admin()
@@ -109,7 +126,7 @@ final class CBP_Plugin
                 <section class="cbp-card">
                     <h2><?php esc_html_e('2. Create private preview', 'church-bulletin-publisher'); ?></h2>
                     <?php if (is_wp_error($diagnostic)) : ?>
-                        <div class="notice notice-error inline"><p><?php echo esc_html($diagnostic->get_error_message()); ?></p></div>
+                        <div class="notice notice-info inline"><p><?php esc_html_e('Browser PDF merger ready. No server PDF utility is required.', 'church-bulletin-publisher'); ?></p></div>
                     <?php else : ?>
                         <p class="description"><?php echo esc_html(sprintf(__('PDF merger detected: %s', 'church-bulletin-publisher'), $diagnostic['name'])); ?></p>
                     <?php endif; ?>
@@ -128,7 +145,8 @@ final class CBP_Plugin
                         </label>
                         <p class="description"><?php esc_html_e('Use this option for a dated Google Drive folder. Weekly Pages are placed before Inserts; files within each group use filename order.', 'church-bulletin-publisher'); ?></p>
                         <ol id="cbp-file-list" class="cbp-file-list"></ol>
-                        <?php submit_button(__('Create Preview', 'church-bulletin-publisher'), 'primary', 'submit', false, is_wp_error($diagnostic) ? array('disabled' => 'disabled') : array()); ?>
+                        <p id="cbp-progress" class="description" role="status" aria-live="polite"></p>
+                        <?php submit_button(__('Create Preview', 'church-bulletin-publisher'), 'primary', 'submit', false); ?>
                     </form>
                 </section>
             </div>
@@ -207,6 +225,27 @@ final class CBP_Plugin
             $this->redirect('error', $job->get_error_message());
         }
 
+        if (! empty($_FILES['merged_preview']['name'])) {
+            $limit = (int) apply_filters('cbp_max_merged_pdf_bytes', 100 * MB_IN_BYTES);
+            $output = $this->save_uploaded_pdf($_FILES['merged_preview'], $job, 'preview.pdf', $limit);
+            if (is_wp_error($output)) {
+                CBP_Storage::delete_tree($job);
+                $this->redirect('error', $output->get_error_message());
+            }
+
+            $manifest = array(__('Front cover', 'church-bulletin-publisher'));
+            $labels = isset($_POST['component_manifest']) ? json_decode(wp_unslash($_POST['component_manifest']), true) : array();
+            if (is_array($labels)) {
+                foreach (array_slice($labels, 0, 100) as $label) {
+                    if (is_string($label) && $label !== '') {
+                        $manifest[] = sanitize_text_field($label);
+                    }
+                }
+            }
+            $manifest[] = __('Back cover', 'church-bulletin-publisher');
+            $this->store_preview($date, $job, $output, $manifest);
+        }
+
         $uploads = array_merge(
             $this->normalize_uploads(isset($_FILES['components']) ? $_FILES['components'] : array()),
             $this->normalize_uploads(isset($_FILES['folder_components']) ? $_FILES['folder_components'] : array())
@@ -257,15 +296,29 @@ final class CBP_Plugin
             $this->redirect('error', $merged->get_error_message());
         }
 
-        $this->discard_preview();
-        set_transient($this->preview_key(), array(
-            'date' => $date,
-            'path' => $output,
-            'job' => $job,
-            'sha256' => hash_file('sha256', $output),
-            'manifest' => $manifest,
-        ), self::PREVIEW_TTL);
-        $this->redirect('success', __('Private preview created. Review it before publishing.', 'church-bulletin-publisher'));
+        $this->store_preview($date, $job, $output, $manifest);
+    }
+
+    public function get_cover()
+    {
+        $this->authorize();
+        check_admin_referer('cbp_get_cover');
+        $which = isset($_GET['cover']) ? sanitize_key(wp_unslash($_GET['cover'])) : '';
+        $settings = $this->settings();
+        $path = $which === 'front' ? $settings['front_cover'] : ($which === 'back' ? $settings['back_cover'] : '');
+        if (! CBP_PDF_Merger::is_pdf($path)) {
+            wp_die(
+                esc_html__('Cover template not found.', 'church-bulletin-publisher'),
+                esc_html__('Cover unavailable', 'church-bulletin-publisher'),
+                array('response' => 404)
+            );
+        }
+        nocache_headers();
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . ($which === 'front' ? 'front-cover.pdf' : 'back-cover.pdf') . '"');
+        header('Content-Length: ' . filesize($path));
+        readfile($path);
+        exit;
     }
 
     public function view_preview()
@@ -355,12 +408,14 @@ final class CBP_Plugin
         return '<table class="church-bulletins"><thead><tr><th>' . esc_html__('Weekly Bulletins', 'church-bulletin-publisher') . '</th></tr></thead><tbody>' . $rows . '</tbody></table>';
     }
 
-    private function save_uploaded_pdf($file, $directory, $filename)
+    private function save_uploaded_pdf($file, $directory, $filename, $limit = null)
     {
         if (! isset($file['error']) || (int) $file['error'] !== UPLOAD_ERR_OK || empty($file['tmp_name']) || ! is_uploaded_file($file['tmp_name'])) {
             return new WP_Error('cbp_upload', __('A PDF upload did not complete successfully.', 'church-bulletin-publisher'));
         }
-        $limit = (int) apply_filters('cbp_max_pdf_bytes', 25 * MB_IN_BYTES);
+        if ($limit === null) {
+            $limit = (int) apply_filters('cbp_max_pdf_bytes', 25 * MB_IN_BYTES);
+        }
         if ((int) $file['size'] > $limit || ! CBP_PDF_Merger::is_pdf($file['tmp_name'])) {
             return new WP_Error('cbp_pdf_upload', __('An uploaded file was too large or was not a valid PDF.', 'church-bulletin-publisher'));
         }
@@ -399,6 +454,19 @@ final class CBP_Plugin
     private function preview_key()
     {
         return 'cbp_preview_' . get_current_user_id();
+    }
+
+    private function store_preview($date, $job, $output, array $manifest)
+    {
+        $this->discard_preview();
+        set_transient($this->preview_key(), array(
+            'date' => $date,
+            'path' => $output,
+            'job' => $job,
+            'sha256' => hash_file('sha256', $output),
+            'manifest' => $manifest,
+        ), self::PREVIEW_TTL);
+        $this->redirect('success', __('Private preview created. Review it before publishing.', 'church-bulletin-publisher'));
     }
 
     private function get_preview()

@@ -15,10 +15,10 @@ Preview PDFs are served through an authenticated WordPress action. The private d
 
 ## Request flow
 
-1. Browser folder picker uploads only PDFs from the selected local/Google Drive folder.
-2. WordPress validates administrator capability, nonce, file size, extension, and `%PDF-` signature.
-3. Components are sorted with Weekly Pages first and Inserts second; natural filename order is used within each group.
-4. The server invokes qpdf or pdfunite using escaped arguments.
+1. The browser accepts one or more PDFs or all PDFs from a selected local/Google Drive folder.
+2. Components are sorted with Weekly Pages first and Inserts second; natural filename order is used within each group.
+3. When the server lacks qpdf and pdfunite, the bundled pdf-lib library fetches the authenticated cover templates and assembles the preview in the browser.
+4. WordPress validates administrator capability, nonce, file size, and `%PDF-` signature before storing the finished preview. When qpdf or pdfunite is available, the original server-side merge path remains available.
 5. The preview path and SHA-256 are held in a user-specific transient for 48 hours.
 6. The administrator views the preview through an authenticated streaming endpoint.
 7. Publish verifies the SHA-256 and atomically moves a copy into the isolated test tree.
@@ -28,8 +28,8 @@ Preview PDFs are served through an authenticated WordPress action. The private d
 
 Production publishing should be enabled only after:
 
-- HostGator diagnostics find a working merger.
-- The supplied known-good sample merges correctly on HostGator.
+- The bundled browser merger loads successfully on HostGator.
+- The supplied known-good sample merges correctly in the administrator's browser.
 - Folder selection is tested in the browsers used by the administrator.
 - The private preview URL is inaccessible when logged out.
 - Repeat publication creates a recoverable backup.

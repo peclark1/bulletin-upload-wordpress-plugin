@@ -26,10 +26,8 @@ This lets the workflow be exercised on the live WordPress installation without c
 
 - WordPress 6.2 or later
 - PHP 7.4 or later
-- PHP `proc_open()` enabled
-- `qpdf` or `pdfunite` installed on the server
 
-The administration screen reports which PDF merger it finds. A bundled PHP merger can be added later if HostGator provides neither utility.
+No server PDF program is required. When qpdf or pdfunite is unavailable, the bundled MIT-licensed pdf-lib 1.17.1 library assembles the bulletin in the administrator's browser and uploads only the finished private preview. qpdf or pdfunite is still used automatically when available.
 
 ## Install for testing
 
