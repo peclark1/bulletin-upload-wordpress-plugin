@@ -1,0 +1,54 @@
+.cbp-wrap {
+    max-width: 1180px;
+}
+
+.cbp-mode {
+    margin: 16px 0;
+    padding: 12px 16px;
+    border-left: 4px solid #2271b1;
+    background: #fff;
+}
+
+.cbp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.cbp-card {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #c3c4c7;
+    background: #fff;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+
+.cbp-card label {
+    display: block;
+    margin: 14px 0 6px;
+    font-weight: 600;
+}
+
+.cbp-card input[type="file"],
+.cbp-card input[type="date"] {
+    display: block;
+    margin-top: 6px;
+}
+
+.cbp-file-list {
+    max-height: 180px;
+    overflow: auto;
+}
+
+.cbp-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.cbp-actions form,
+.cbp-actions p.submit {
+    margin: 0;
+    padding: 0;
+}
