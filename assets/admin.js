@@ -1,16 +1,23 @@
 (function () {
     'use strict';
 
-    var picker = document.getElementById('cbp-folder');
+    var filesPicker = document.getElementById('cbp-files');
+    var folderPicker = document.getElementById('cbp-folder');
+    var form = document.getElementById('cbp-preview-form');
     var list = document.getElementById('cbp-file-list');
-    if (!picker || !list) {
+    if (!filesPicker || !folderPicker || !form || !list) {
         return;
     }
 
-    picker.addEventListener('change', function () {
+    function selectedPdfs() {
+        return Array.prototype.slice.call(filesPicker.files)
+            .concat(Array.prototype.slice.call(folderPicker.files))
+            .filter(function (file) { return /\.pdf$/i.test(file.name); });
+    }
+
+    function renderSelection() {
         list.replaceChildren();
-        Array.prototype.slice.call(picker.files)
-            .filter(function (file) { return /\.pdf$/i.test(file.name); })
+        selectedPdfs()
             .sort(function (a, b) {
                 return (a.webkitRelativePath || a.name).localeCompare(b.webkitRelativePath || b.name, undefined, {numeric: true});
             })
@@ -19,5 +26,15 @@
                 item.textContent = file.webkitRelativePath || file.name;
                 list.appendChild(item);
             });
+    }
+
+    filesPicker.addEventListener('change', renderSelection);
+    folderPicker.addEventListener('change', renderSelection);
+    form.addEventListener('submit', function (event) {
+        if (selectedPdfs().length === 0) {
+            event.preventDefault();
+            window.alert('Choose at least one weekly PDF file or an entire folder containing PDF files.');
+            filesPicker.focus();
+        }
     });
 }());

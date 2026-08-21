@@ -119,10 +119,14 @@ final class CBP_Plugin
                         <label><?php esc_html_e('Bulletin Sunday', 'church-bulletin-publisher'); ?>
                             <input type="date" name="bulletin_date" required>
                         </label>
-                        <label><?php esc_html_e('Weekly folder', 'church-bulletin-publisher'); ?>
-                            <input id="cbp-folder" type="file" name="components[]" accept="application/pdf,.pdf" webkitdirectory directory multiple required>
+                        <label><?php esc_html_e('Weekly PDF file(s)', 'church-bulletin-publisher'); ?>
+                            <input id="cbp-files" type="file" name="components[]" accept="application/pdf,.pdf" multiple>
                         </label>
-                        <p class="description"><?php esc_html_e('Select the dated Google Drive folder. Weekly Pages are placed before Inserts; files within each group use filename order.', 'church-bulletin-publisher'); ?></p>
+                        <p class="description"><?php esc_html_e('Choose one PDF or several PDFs directly.', 'church-bulletin-publisher'); ?></p>
+                        <label><?php esc_html_e('Or choose an entire weekly folder', 'church-bulletin-publisher'); ?>
+                            <input id="cbp-folder" type="file" name="folder_components[]" accept="application/pdf,.pdf" webkitdirectory directory multiple>
+                        </label>
+                        <p class="description"><?php esc_html_e('Use this option for a dated Google Drive folder. Weekly Pages are placed before Inserts; files within each group use filename order.', 'church-bulletin-publisher'); ?></p>
                         <ol id="cbp-file-list" class="cbp-file-list"></ol>
                         <?php submit_button(__('Create Preview', 'church-bulletin-publisher'), 'primary', 'submit', false, is_wp_error($diagnostic) ? array('disabled' => 'disabled') : array()); ?>
                     </form>
@@ -203,7 +207,10 @@ final class CBP_Plugin
             $this->redirect('error', $job->get_error_message());
         }
 
-        $uploads = $this->normalize_uploads(isset($_FILES['components']) ? $_FILES['components'] : array());
+        $uploads = array_merge(
+            $this->normalize_uploads(isset($_FILES['components']) ? $_FILES['components'] : array()),
+            $this->normalize_uploads(isset($_FILES['folder_components']) ? $_FILES['folder_components'] : array())
+        );
         $components = array();
         foreach ($uploads as $index => $upload) {
             $relative = sanitize_text_field(wp_unslash($upload['name']));
@@ -224,7 +231,7 @@ final class CBP_Plugin
 
         if (! $components) {
             CBP_Storage::delete_tree($job);
-            $this->redirect('error', __('The selected folder did not contain any PDF files.', 'church-bulletin-publisher'));
+            $this->redirect('error', __('Select at least one PDF file or a folder containing PDF files.', 'church-bulletin-publisher'));
         }
 
         usort($components, function ($a, $b) {
