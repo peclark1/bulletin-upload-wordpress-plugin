@@ -7,11 +7,14 @@ The plugin uses a narrow test area instead of a full WordPress staging clone.
 | Data | Test location | Production location |
 |---|---|---|
 | Unfinished previews | `wp-content/bulletin-publisher-private/` | Same private area |
-| Published test PDFs | `wp-content/uploads/bulletin-publisher-test/` | Not used in v0.1 |
-| Existing live PDFs | Never written by v0.1 | `wp-content/bulletins/YYYY/` |
-| Listing page | Draft `Bulletin Publisher Test` page | Existing Bulletins page later |
+| Published test PDFs | `wp-content/uploads/bulletin-publisher-test/` | Not used by live listing |
+| Published live PDFs | Never written by test action | `wp-content/bulletins/YYYY/` |
+| Listing page | Draft `Bulletin Publisher Test` page | Existing Bulletins page with `[church_bulletins]` |
+| Initial live-tree backup | N/A | `wp-content/bulletin-publisher-private/live-backups/` |
+| Replaced live-file backups | N/A | `wp-content/bulletin-publisher-private/live-replacements/` |
+| Production audit log | N/A | `wp-content/bulletin-publisher-private/audit/production-audit.jsonl` |
 
-Preview PDFs are served through an authenticated WordPress action. The private directory contains Apache deny rules and cannot be browsed.
+Preview PDFs and production safety data remain under the protected private tree. The private directory contains Apache deny rules and cannot be browsed directly.
 
 ## Request flow
 
@@ -21,21 +24,33 @@ Preview PDFs are served through an authenticated WordPress action. The private d
 4. The browser uploads the finished PDF in 512 KiB authenticated chunks; WordPress reassembles and validates it in private storage. This avoids shared-host request-size limits. When qpdf or pdfunite is available, the original server-side merge path remains available.
 5. The preview path and SHA-256 are held in a user-specific transient for 48 hours.
 6. The administrator views the preview through an authenticated streaming endpoint.
-7. Publish verifies the SHA-256 and atomically moves a copy into the isolated test tree.
-8. The shortcode scans only the selected test or live tree and renders dated links newest-first.
+7. **Publish to Test Area** re-verifies the preview hash and atomically writes to the isolated test tree.
+8. **Publish LIVE Bulletin** requires an explicit checkbox plus confirmation dialog, re-verifies the preview hash, ensures the initial live-tree backup exists, backs up any same-date live file, and atomically writes to `wp-content/bulletins/YYYY/`.
+9. Production actions are appended to the protected JSON-lines audit log.
+10. The shortcode scans only the selected test or live tree and renders dated links newest-first.
 
-## Production cutover checklist
+## Production cutover status
 
-Production publishing should be enabled only after:
+Verified during the test phase:
 
-- The bundled browser merger loads successfully on HostGator.
-- The supplied known-good sample merges correctly in the administrator's browser.
-- Folder selection is tested in the browsers used by the administrator.
-- The private preview URL is inaccessible when logged out.
-- Repeat publication creates a recoverable backup.
+- The bundled browser merger loads successfully on the live HostGator WordPress installation.
+- The known-good sample merges correctly in the administrator's browser.
+- Weekly-folder selection works as intended.
+- The private preview workflow and draft test listing operate correctly.
+- Repeat test publication creates recoverable backups.
 - The draft listing page shows correct dates and links.
-- The existing `wp-content/bulletins` directory is backed up.
-- A live-mode confirmation control and audit log are implemented.
-- The existing page is changed only by replacing its manual table with `[church_bulletins]`.
+
+Implemented in version 0.2:
+
+- Guarded live publishing to `wp-content/bulletins/YYYY/`.
+- SHA-256 re-verification immediately before live publication.
+- Automatic one-time protected backup of the existing live bulletin tree before the first live write.
+- Protected backup of an existing same-date bulletin before replacement.
+- Production audit log.
+- Separate test and live publication controls.
+
+Final deliberate cutover step:
+
+- Replace the existing public Bulletins page's manual table with `[church_bulletins]` only after one live PDF has been published and its direct URL has been verified.
 
 No staging-site database push is needed for this rollout.
