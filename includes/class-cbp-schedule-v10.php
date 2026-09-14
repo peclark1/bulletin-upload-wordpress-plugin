@@ -26,6 +26,14 @@ final class CBP_Schedule_V10
     private function __construct()
     {
         add_action('shutdown', array($this, 'postprocess_review'));
+        // Also repair previously approved data at read time, so installing this
+        // version fixes the front-end display without requiring re-approval.
+        add_filter('option_' . CBP_Schedule::WEEKLY_OPTION, array(__CLASS__, 'repair_option'));
+    }
+
+    public static function repair_option($weekly)
+    {
+        return is_array($weekly) ? self::repair_weekly($weekly) : $weekly;
     }
 
     public function postprocess_review()
