@@ -1,0 +1,13 @@
+{
+  "name": "peclark1/church-bulletin-publisher",
+  "description": "WordPress bulletin publishing workflow for St. Peter and St. Mary's.",
+  "type": "wordpress-plugin",
+  "require": {
+    "php": ">=7.4",
+    "smalot/pdfparser": "2.12.5"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true
+  }
+}
