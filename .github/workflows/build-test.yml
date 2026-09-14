@@ -26,13 +26,17 @@ jobs:
         run: find . -path './vendor' -prune -o -name '*.php' -print0 | xargs -0 -n1 php -l
 
       - name: Build ZIP
+        id: build
         run: |
           make zip
-          cp ../church-bulletin-publisher-0.4.0-test1.zip ./church-bulletin-publisher-0.4.0-test1.zip
+          VERSION=$(sed -n 's/^[[:space:]]*\* Version:[[:space:]]*//p' bulletin-upload-wordpress-plugin.php | head -n 1)
+          ZIP_NAME="church-bulletin-publisher-${VERSION}.zip"
+          cp "../${ZIP_NAME}" "./${ZIP_NAME}"
+          echo "zip_name=${ZIP_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Upload test ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: church-bulletin-publisher-0.4.0-test1
-          path: church-bulletin-publisher-0.4.0-test1.zip
+          name: ${{ steps.build.outputs.zip_name }}
+          path: ${{ steps.build.outputs.zip_name }}
           if-no-files-found: error
