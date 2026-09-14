@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Church Bulletin Publisher
  * Description: Builds private bulletin previews, extracts reviewed parish schedules and weekly events, and publishes approved bulletins.
- * Version: 0.4.0-test10
+ * Version: 0.4.0-test11
  * Author: St. Mary's and St. Peter the Apostle Parishes
  * Requires at least: 6.2
  * Requires PHP: 7.4
@@ -14,7 +14,7 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-define('CBP_VERSION', '0.4.0-test10');
+define('CBP_VERSION', '0.4.0-test11');
 define('CBP_FILE', __FILE__);
 define('CBP_DIR', plugin_dir_path(__FILE__));
 define('CBP_URL', plugin_dir_url(__FILE__));
