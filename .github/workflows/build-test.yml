@@ -1,0 +1,38 @@
+name: Build test plugin ZIP
+
+on:
+  push:
+    branches:
+      - feature/php-schedule-review
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+
+      - name: Install production dependencies
+        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+
+      - name: Lint plugin PHP
+        run: find . -path './vendor' -prune -o -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Build ZIP
+        run: |
+          make zip
+          cp ../church-bulletin-publisher-0.4.0-test1.zip ./church-bulletin-publisher-0.4.0-test1.zip
+
+      - name: Upload test ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: church-bulletin-publisher-0.4.0-test1
+          path: church-bulletin-publisher-0.4.0-test1.zip
+          if-no-files-found: error
