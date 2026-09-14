@@ -8,7 +8,7 @@ if (! defined('ABSPATH')) {
  * Guided staff workflow:
  *  1. cover templates (normally unchanged)
  *  2. select the weekly bulletin files -> preview starts automatically
- *  3. extraction starts automatically -> staff reviews and approves
+ *  3. extraction starts automatically -> staff reviews PDF + generated data
  *  4. publishing is enabled only for the exact approved preview
  */
 final class CBP_Workflow_V11
@@ -75,7 +75,7 @@ final class CBP_Workflow_V11
 
         $this->redirect(
             'error',
-            __('Review and approve the extracted website information in Step 3 before publishing this bulletin.', 'church-bulletin-publisher')
+            __('Review both the PDF Preview and the generated website information in Step 3 before publishing this bulletin.', 'church-bulletin-publisher')
         );
     }
 
@@ -86,7 +86,6 @@ final class CBP_Workflow_V11
         }
 
         $preview = get_transient($this->preview_key());
-        $review = get_transient($this->review_key());
         $approved = $this->approved_for_preview($preview);
 
         // Auto-extraction must happen only as the direct continuation of a newly
@@ -120,6 +119,65 @@ final class CBP_Workflow_V11
             var date = form ? form.querySelector('[name="bulletin_date"]') : null;
             var autoStarted = false;
 
+            function ensureBusyNotice() {
+                var existing = document.getElementById('cbp-busy-notice');
+                if (existing) {
+                    return existing;
+                }
+                if (!form) {
+                    return null;
+                }
+
+                var notice = document.createElement('div');
+                notice.id = 'cbp-busy-notice';
+                notice.setAttribute('role', 'status');
+                notice.setAttribute('aria-live', 'polite');
+                notice.style.display = 'none';
+                notice.style.margin = '18px 0';
+                notice.style.padding = '18px 20px';
+                notice.style.border = '1px solid #72aee6';
+                notice.style.borderLeft = '5px solid #2271b1';
+                notice.style.background = '#f0f6fc';
+                notice.style.boxShadow = '0 1px 2px rgba(0,0,0,.05)';
+                notice.style.fontSize = '17px';
+                notice.style.fontWeight = '700';
+                notice.style.lineHeight = '1.4';
+
+                var spinner = document.createElement('span');
+                spinner.className = 'spinner is-active';
+                spinner.style.float = 'none';
+                spinner.style.margin = '0 10px 0 0';
+                spinner.style.verticalAlign = 'middle';
+                notice.appendChild(spinner);
+
+                var text = document.createElement('span');
+                text.className = 'cbp-busy-text';
+                notice.appendChild(text);
+
+                var fileList = document.getElementById('cbp-file-list');
+                if (fileList && fileList.parentNode) {
+                    fileList.parentNode.insertBefore(notice, fileList);
+                } else {
+                    form.insertBefore(notice, form.firstChild);
+                }
+                return notice;
+            }
+
+            function showBusy(message) {
+                var notice = ensureBusyNotice();
+                if (!notice) {
+                    return;
+                }
+                var text = notice.querySelector('.cbp-busy-text');
+                if (text) {
+                    text.textContent = message;
+                }
+                notice.style.display = 'block';
+                if (progress) {
+                    progress.textContent = message;
+                }
+            }
+
             function selectedPdfCount() {
                 var count = 0;
                 [files, folder].forEach(function (input) {
@@ -140,9 +198,7 @@ final class CBP_Workflow_V11
                     return;
                 }
                 autoStarted = true;
-                if (progress) {
-                    progress.textContent = 'Files selected. Building the private preview automatically...';
-                }
+                showBusy('Please wait while I generate the PDF Preview...');
                 window.setTimeout(function () {
                     if (typeof form.requestSubmit === 'function') {
                         form.requestSubmit();
@@ -179,27 +235,59 @@ final class CBP_Workflow_V11
                     note.textContent = 'Choose the bulletin Sunday and PDF file(s). Preview creation and website extraction start automatically.';
                     form.insertBefore(note, form.firstChild);
                 }
+                ensureBusyNotice();
             }
 
             var preview = document.querySelector('.cbp-preview');
             if (preview) {
                 var heading = preview.querySelector('h2');
                 if (heading) {
-                    heading.textContent = '3. Review and approve';
+                    heading.textContent = '3. Review PDF Preview and Generated Schedule';
+                }
+
+                if (!preview.querySelector('.cbp-review-checklist')) {
+                    var checklist = document.createElement('div');
+                    checklist.className = 'notice notice-warning inline cbp-review-checklist';
+                    checklist.style.margin = '14px 0 18px';
+                    checklist.innerHTML = '<p style="font-size:15px;line-height:1.55;"><strong>Before approving Step 3, please review BOTH:</strong><br>1. Open <strong>View PDF Preview</strong> and confirm the finished bulletin looks correct.<br>2. Review the generated Mass times, Rosary, Adoration, Reconciliation, and parish events below. Correct or delete anything that does not match the bulletin.<br><strong>Only approve after both reviews are complete.</strong></p>';
+                    if (heading) {
+                        heading.insertAdjacentElement('afterend', checklist);
+                    } else {
+                        preview.insertBefore(checklist, preview.firstChild);
+                    }
                 }
 
                 var reviewPanel = preview.querySelector('.cbp-schedule-review');
                 if (reviewPanel) {
                     var reviewHeading = reviewPanel.querySelector('h2');
                     if (reviewHeading) {
-                        reviewHeading.textContent = 'Website schedule and weekly calendar';
+                        reviewHeading.textContent = 'Generated website schedule and weekly calendar';
+                    }
+
+                    var confirm = reviewPanel.querySelector('input[name="confirm_schedule"]');
+                    var confirmLabel = confirm ? confirm.closest('label') : null;
+                    if (confirm && confirmLabel) {
+                        while (confirmLabel.firstChild) {
+                            confirmLabel.removeChild(confirmLabel.firstChild);
+                        }
+                        confirmLabel.appendChild(confirm);
+                        confirmLabel.appendChild(document.createTextNode(' I reviewed the PDF Preview and the generated schedule/events, corrected anything needed, and approve this website update.'));
+                    }
+
+                    var approvalButton = reviewPanel.querySelector('form[action*="admin-post.php"] input[type="submit"]');
+                    var buttons = reviewPanel.querySelectorAll('input[type="submit"]');
+                    if (buttons.length) {
+                        approvalButton = buttons[buttons.length - 1];
+                    }
+                    if (approvalButton) {
+                        approvalButton.value = 'Approve PDF Review & Website Information';
                     }
                 }
 
                 if (approved && !preview.querySelector('.cbp-approved-message')) {
                     var approvedMessage = document.createElement('div');
                     approvedMessage.className = 'notice notice-success inline cbp-approved-message';
-                    approvedMessage.innerHTML = '<p><strong>Website information approved.</strong> Continue to Step 4 to publish the bulletin PDF.</p>';
+                    approvedMessage.innerHTML = '<p><strong>PDF Preview and website information approved.</strong> Continue to Step 4 to publish the bulletin PDF.</p>';
                     var actions = preview.querySelector('.cbp-actions');
                     if (actions) {
                         actions.insertAdjacentElement('beforebegin', approvedMessage);
@@ -216,9 +304,9 @@ final class CBP_Workflow_V11
                 var instruction = document.createElement('p');
                 instruction.className = approved ? 'description' : 'notice notice-info inline';
                 if (approved) {
-                    instruction.textContent = 'The extracted website information is approved for this exact preview. Choose test or live publication below.';
+                    instruction.textContent = 'The PDF Preview and generated website information were approved for this exact preview. Choose test or live publication below.';
                 } else {
-                    instruction.innerHTML = '<span style="display:block;padding:8px 12px;">Approve the extracted website information in Step 3 before publishing.</span>';
+                    instruction.innerHTML = '<span style="display:block;padding:8px 12px;">Review the PDF Preview and generated schedule/events in Step 3, then approve them before publishing.</span>';
                 }
                 step4.appendChild(instruction);
 
@@ -248,15 +336,13 @@ final class CBP_Workflow_V11
 
             var mode = document.querySelector('.cbp-mode');
             if (mode) {
-                mode.innerHTML = '<strong>Guided bulletin workflow:</strong> upload → automatic preview & extraction → review & approve → publish.';
+                mode.innerHTML = '<strong>Guided bulletin workflow:</strong> upload → automatic PDF Preview & extraction → review PDF + generated website information → approve → publish.';
             }
 
             // Use the existing extraction endpoint rather than duplicating parser
             // logic. This also preserves all V2–V10 post-processing hooks.
             if (autoExtract) {
-                if (progress) {
-                    progress.textContent = 'Preview complete. Extracting website information automatically...';
-                }
+                showBusy('PDF Preview complete. Please wait while I generate the website schedule and weekly events...');
                 window.setTimeout(function () {
                     window.location.assign(extractUrl);
                 }, 180);
@@ -284,11 +370,6 @@ final class CBP_Workflow_V11
     private function preview_key()
     {
         return 'cbp_preview_' . get_current_user_id();
-    }
-
-    private function review_key()
-    {
-        return 'cbp_schedule_review_' . get_current_user_id();
     }
 
     private function approval_key()
