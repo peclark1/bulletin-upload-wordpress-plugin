@@ -104,6 +104,11 @@ final class CBP_Site_Displays
         }
 
         $events = isset($weekly['events']) && is_array($weekly['events']) ? $weekly['events'] : array();
+        // Defensive cleanup for already-approved data: if an event exists as a
+        // proper range plus separate endpoint rows, render only the range.
+        if (class_exists('CBP_Schedule_V8')) {
+            $events = CBP_Schedule_V8::collapse_range_duplicates($events);
+        }
         if ($mode === 'compact') {
             $events = $this->upcoming_rows($events);
         }
