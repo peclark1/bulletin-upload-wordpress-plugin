@@ -5,11 +5,13 @@ if (! defined('ABSPATH')) {
 }
 
 /**
- * Homepage presentation for the standing parish schedule.
+ * Homepage presentation for the parish schedule.
  *
  * Re-registers [church_mass_schedule] after CBP_Schedule so mode="home"
- * gets the polished two-card layout used on the parish homepage. Other modes
- * continue to use the original CBP_Schedule renderer.
+ * gets the polished two-card layout used on the parish homepage. For weekend
+ * Masses, prefer the approved dated weekly calendar so the homepage matches
+ * the detailed Mass page immediately after bulletin approval. Fall back to the
+ * standing recurring schedule when no upcoming dated weekend Mass is present.
  */
 final class CBP_Home_Schedule
 {
@@ -42,6 +44,7 @@ final class CBP_Home_Schedule
             get_option(CBP_Schedule::OPTION, array()),
             CBP_Schedule::defaults()
         );
+        $schedule = $this->apply_upcoming_weekend_masses($schedule);
 
         wp_enqueue_style(
             'cbp-site-displays',
@@ -85,6 +88,81 @@ final class CBP_Home_Schedule
         </div>
         <?php
         return ob_get_clean();
+    }
+
+    private function apply_upcoming_weekend_masses(array $schedule)
+    {
+        $weekly = wp_parse_args(
+            get_option(CBP_Schedule::WEEKLY_OPTION, array()),
+            CBP_Schedule::weekly_defaults()
+        );
+
+        if (empty($weekly['masses']) || ! is_array($weekly['masses'])) {
+            return $schedule;
+        }
+
+        $today = wp_date('Y-m-d');
+        $found = array(
+            'st_peter_saturday' => false,
+            'st_peter_sunday' => false,
+            'st_mary_sunday' => false,
+        );
+
+        foreach ($weekly['masses'] as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $date = isset($row['date']) ? sanitize_text_field($row['date']) : '';
+            $time = isset($row['time']) ? sanitize_text_field($row['time']) : '';
+            $location = isset($row['location']) ? sanitize_text_field($row['location']) : '';
+
+            if ($time === '' || ! $this->valid_date($date) || $date < $today) {
+                continue;
+            }
+
+            $timestamp = strtotime($date . ' 12:00:00');
+            if (! $timestamp) {
+                continue;
+            }
+
+            $day = (int) wp_date('N', $timestamp);
+            if ($day !== 6 && $day !== 7) {
+                continue;
+            }
+
+            $where = strtolower(str_replace(array('’', '\''), '', $location));
+            $is_peter = strpos($where, 'peter') !== false;
+            $is_mary = strpos($where, 'mary') !== false;
+
+            if ($day === 6 && $is_peter && ! $found['st_peter_saturday']) {
+                $schedule['st_peter_saturday'] = $time;
+                $found['st_peter_saturday'] = true;
+                continue;
+            }
+
+            if ($day === 7 && $is_peter && ! $found['st_peter_sunday']) {
+                $schedule['st_peter_sunday'] = $time;
+                $found['st_peter_sunday'] = true;
+                continue;
+            }
+
+            if ($day === 7 && $is_mary && ! $found['st_mary_sunday']) {
+                $schedule['st_mary_sunday'] = $time;
+                $found['st_mary_sunday'] = true;
+            }
+        }
+
+        return $schedule;
+    }
+
+    private function valid_date($date)
+    {
+        if (! is_string($date) || $date === '') {
+            return false;
+        }
+        $parsed = DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+        return $parsed && $parsed->format('Y-m-d') === $date;
     }
 
     private function promote_pending_schedule()
