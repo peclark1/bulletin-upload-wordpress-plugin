@@ -52,6 +52,26 @@ This keeps test publications isolated from the live bulletin tree.
 
 No server PDF program is required. When qpdf or pdfunite is unavailable, the bundled MIT-licensed pdf-lib 1.17.1 library assembles the bulletin in the administrator's browser. The finished preview is uploaded in small authenticated chunks, avoiding shared-host request-size limits. qpdf or pdfunite is still used automatically when available.
 
+## Build the WordPress install ZIP
+
+From the repository directory, run:
+
+```bash
+make
+```
+
+or equivalently:
+
+```bash
+make zip
+```
+
+The Makefile reads the plugin version automatically from `bulletin-upload-wordpress-plugin.php` and creates a WordPress-ready archive one directory above the repository, for example:
+
+`../church-bulletin-publisher-0.3.2.zip`
+
+The builder excludes `.git`, `.github`, and local ZIP/desktop metadata files. Use `make clean` to remove the generated package and `make info` to show the detected version and output path.
+
 ## Install / upgrade
 
 1. Install the plugin ZIP in WordPress and activate it.

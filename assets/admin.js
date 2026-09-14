@@ -7,6 +7,8 @@
     var list = document.getElementById('cbp-file-list');
     var progress = document.getElementById('cbp-progress');
     var config = window.cbpAdmin || {};
+    var selectionPreviewUrls = [];
+    var coverPreviewUrls = {front: '', back: ''};
     if (!filesPicker || !folderPicker || !form || !list || !progress) {
         return;
     }
@@ -30,14 +32,132 @@
             });
     }
 
+    function revokeSelectionPreviewUrls() {
+        selectionPreviewUrls.forEach(function (url) {
+            window.URL.revokeObjectURL(url);
+        });
+        selectionPreviewUrls = [];
+    }
+
+    function thumbnailPdfUrl(url) {
+        return url + '#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0';
+    }
+
+    function createPdfThumbnail(sourceUrl, label, linkLabel) {
+        var card = document.createElement('div');
+        card.className = 'cbp-pdf-thumb';
+
+        var viewer = document.createElement('object');
+        viewer.className = 'cbp-pdf-thumb-viewer';
+        viewer.type = 'application/pdf';
+        viewer.data = thumbnailPdfUrl(sourceUrl);
+        viewer.setAttribute('aria-label', label);
+
+        var fallback = document.createElement('span');
+        fallback.className = 'cbp-pdf-thumb-fallback';
+        fallback.textContent = 'PDF';
+        viewer.appendChild(fallback);
+        card.appendChild(viewer);
+
+        var caption = document.createElement('div');
+        caption.className = 'cbp-pdf-thumb-caption';
+        caption.textContent = label;
+        card.appendChild(caption);
+
+        var open = document.createElement('a');
+        open.className = 'cbp-pdf-thumb-open';
+        open.href = sourceUrl;
+        open.target = '_blank';
+        open.rel = 'noopener';
+        open.textContent = linkLabel || 'Open PDF';
+        card.appendChild(open);
+
+        return card;
+    }
+
     function renderSelection() {
+        revokeSelectionPreviewUrls();
         list.replaceChildren();
         orderedPdfs()
             .forEach(function (file) {
                 var item = document.createElement('li');
-                item.textContent = fileLabel(file);
+                item.className = 'cbp-file-preview-item';
+                var objectUrl = window.URL.createObjectURL(file);
+                selectionPreviewUrls.push(objectUrl);
+                item.appendChild(createPdfThumbnail(objectUrl, fileLabel(file), 'Open selected PDF'));
                 list.appendChild(item);
             });
+    }
+
+    function existingCoverIsPdf(input) {
+        var label = input.closest('label');
+        var description = label ? label.nextElementSibling : null;
+        return !!(description && /\.pdf$/i.test(description.textContent.trim()));
+    }
+
+    function coverPreviewContainer(input) {
+        var label = input.closest('label');
+        var description = label ? label.nextElementSibling : null;
+        if (!description) {
+            return null;
+        }
+
+        var container = description.nextElementSibling;
+        if (!container || !container.classList.contains('cbp-cover-preview')) {
+            container = document.createElement('div');
+            container.className = 'cbp-cover-preview';
+            description.insertAdjacentElement('afterend', container);
+        }
+        return container;
+    }
+
+    function renderCoverPreview(which, input, savedUrl, title) {
+        var container = coverPreviewContainer(input);
+        if (!container) {
+            return;
+        }
+
+        if (coverPreviewUrls[which]) {
+            window.URL.revokeObjectURL(coverPreviewUrls[which]);
+            coverPreviewUrls[which] = '';
+        }
+
+        container.replaceChildren();
+        var selected = Array.prototype.slice.call(input.files || []).find(function (file) {
+            return /\.pdf$/i.test(file.name);
+        });
+        if (selected) {
+            coverPreviewUrls[which] = window.URL.createObjectURL(selected);
+            container.appendChild(createPdfThumbnail(
+                coverPreviewUrls[which],
+                'New ' + title + ': ' + selected.name,
+                'Open selected PDF'
+            ));
+            return;
+        }
+
+        if (savedUrl && existingCoverIsPdf(input)) {
+            container.appendChild(createPdfThumbnail(savedUrl, 'Current ' + title, 'Open current PDF'));
+        }
+    }
+
+    function initializeCoverPreviews() {
+        var front = document.querySelector('input[name="front_cover"]');
+        var back = document.querySelector('input[name="back_cover"]');
+
+        if (front) {
+            renderCoverPreview('front', front, config.frontCoverUrl, 'front cover');
+            front.addEventListener('change', function () {
+                renderCoverPreview('front', front, config.frontCoverUrl, 'front cover');
+            });
+        }
+
+        if (back) {
+            renderCoverPreview('back', back, config.backCoverUrl, 'back cover');
+            back.addEventListener('change', function () {
+                renderCoverPreview('back', back, config.backCoverUrl, 'back cover');
+            });
+        }
     }
 
     async function fetchPdf(url) {
@@ -115,6 +235,7 @@
         return {uploadId: uploadId, total: total};
     }
 
+    initializeCoverPreviews();
     filesPicker.addEventListener('change', renderSelection);
     folderPicker.addEventListener('change', renderSelection);
     form.addEventListener('submit', async function (event) {
@@ -167,5 +288,14 @@
                 button.value = oldLabel;
             }
         }
+    });
+
+    window.addEventListener('beforeunload', function () {
+        revokeSelectionPreviewUrls();
+        Object.keys(coverPreviewUrls).forEach(function (which) {
+            if (coverPreviewUrls[which]) {
+                window.URL.revokeObjectURL(coverPreviewUrls[which]);
+            }
+        });
     });
 }());
