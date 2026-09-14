@@ -89,19 +89,21 @@ final class CBP_Workflow_V11
         $review = get_transient($this->review_key());
         $approved = $this->approved_for_preview($preview);
 
-        // A just-created preview should always be re-extracted, even if a stale
-        // review transient from an earlier build happens to exist for the same
-        // user. Otherwise, also recover automatically if a preview exists but
-        // its review transient has expired.
+        // Auto-extraction must happen only as the direct continuation of a newly
+        // created preview. An older preview can remain in the transient for two
+        // days, so merely opening the Bulletin Publisher page must never launch
+        // an extraction by itself.
         $message = isset($_GET['cbp_message']) ? sanitize_text_field(wp_unslash($_GET['cbp_message'])) : '';
         $fresh_preview = stripos($message, 'Private preview created') !== false;
-        $has_review = is_array($review) && (! empty($review['candidates']) || ! empty($review['error']));
-        $auto_extract = is_array($preview) && ! $approved && ($fresh_preview || ! $has_review);
+        $auto_extract = is_array($preview) && ! $approved && $fresh_preview;
 
-        $extract_url = wp_nonce_url(
-            admin_url('admin-post.php?action=cbp_extract_schedule'),
-            'cbp_extract_schedule'
-        );
+        // wp_nonce_url() HTML-escapes ampersands for use in markup. This URL is
+        // passed to JavaScript instead, so build an unescaped query string or
+        // WordPress will receive "amp;_wpnonce" and reject it as expired.
+        $extract_url = add_query_arg(array(
+            'action' => 'cbp_extract_schedule',
+            '_wpnonce' => wp_create_nonce('cbp_extract_schedule'),
+        ), admin_url('admin-post.php'));
         ?>
         <script>
         (function () {
