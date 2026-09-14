@@ -58,8 +58,8 @@ final class CBP_Site_Displays
                     <h3><?php esc_html_e('This Week’s Masses', 'church-bulletin-publisher'); ?></h3>
                     <?php
                     echo ! empty($masses)
-                        ? $this->render_rows($masses, $mode === 'compact' ? 4 : 0, 'mass') // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                        : $this->empty_message(__('No dated Masses were approved for this week.', 'church-bulletin-publisher')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                        ? $this->render_rows($masses, $mode === 'compact' ? 4 : 0, 'mass')
+                        : $this->empty_message(__('No dated Masses were approved for this week.', 'church-bulletin-publisher'));
                     ?>
                 </section>
                 <section class="cbp-site-card cbp-site-card--warm">
@@ -67,8 +67,8 @@ final class CBP_Site_Displays
                     <h3><?php esc_html_e('Reconciliation, Rosary & Adoration', 'church-bulletin-publisher'); ?></h3>
                     <?php
                     echo ! empty($devotions)
-                        ? $this->render_rows($devotions, $mode === 'compact' ? 4 : 0, 'devotion') // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                        : $this->empty_message(__('No additional prayer or sacramental times were approved for this week.', 'church-bulletin-publisher')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                        ? $this->render_rows($devotions, $mode === 'compact' ? 4 : 0, 'devotion')
+                        : $this->empty_message(__('No additional prayer or sacramental times were approved for this week.', 'church-bulletin-publisher'));
                     ?>
                 </section>
             </div>
@@ -105,7 +105,8 @@ final class CBP_Site_Displays
 
         $events = isset($weekly['events']) && is_array($weekly['events']) ? $weekly['events'] : array();
         // Defensive cleanup for already-approved data: if an event exists as a
-        // proper range plus separate endpoint rows, render only the range.
+        // proper range plus separate endpoint rows, render only the range, and
+        // strip parser-only leading connectors such as "& Bible Study".
         if (class_exists('CBP_Schedule_V8')) {
             $events = CBP_Schedule_V8::collapse_range_duplicates($events);
         }
@@ -130,8 +131,8 @@ final class CBP_Site_Displays
             <?php endif; ?>
             <?php
             echo ! empty($events)
-                ? $this->render_rows($events, 0, 'event') // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                : $this->empty_message(__('No parish events were approved for this week.', 'church-bulletin-publisher')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                ? $this->render_rows($events, 0, 'event')
+                : $this->empty_message(__('No parish events were approved for this week.', 'church-bulletin-publisher'));
             ?>
         </div>
         <?php
@@ -187,6 +188,9 @@ final class CBP_Site_Displays
             $time = isset($row['time']) ? sanitize_text_field($row['time']) : '';
             $location = isset($row['location']) ? sanitize_text_field($row['location']) : '';
             $title = isset($row['title']) ? sanitize_text_field($row['title']) : '';
+            if ($kind === 'event' && class_exists('CBP_Schedule_V8')) {
+                $title = CBP_Schedule_V8::clean_event_title($title);
+            }
             $description = isset($row['description']) ? sanitize_text_field($row['description']) : '';
 
             $html .= '<div class="cbp-site-item cbp-site-item--' . esc_attr($kind) . '">';
