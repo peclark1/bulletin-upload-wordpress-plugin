@@ -5,9 +5,8 @@ if (! defined('ABSPATH')) {
 }
 
 /**
- * Collapses duplicate event rows created when one bulletin line contains a
- * start/end time range. Earlier recovery passes can legitimately see both the
- * range and its endpoint times. Keep the range as the canonical event.
+ * Cleans up duplicate/fragmented event rows created when bulletin lines contain
+ * multiple times or time ranges.
  */
 final class CBP_Schedule_V8
 {
@@ -84,8 +83,26 @@ final class CBP_Schedule_V8
             }, ARRAY_FILTER_USE_BOTH));
         }
 
+        // Multi-time lines such as "10:00 am & 6:30 pm Bible Study" can leave
+        // a connector attached to the title of the first recovered row. Strip
+        // only leading separator/conjunction artifacts; legitimate ampersands
+        // inside names (e.g. "Burger & Beer") are preserved.
+        foreach ($rows as &$row) {
+            if (isset($row['title'])) {
+                $row['title'] = self::clean_event_title($row['title']);
+            }
+        }
+        unset($row);
+
         usort($rows, array(__CLASS__, 'sort_rows'));
         return $rows;
+    }
+
+    public static function clean_event_title($title)
+    {
+        $title = trim((string) $title);
+        $title = preg_replace('/^(?:(?:&|\+|\/|,|;|:|[-–—])\s*|and\s+)+/iu', '', $title);
+        return trim((string) $title);
     }
 
     private static function same_event($a, $b)
@@ -104,15 +121,12 @@ final class CBP_Schedule_V8
             return false;
         }
 
-        // When available, identical source descriptions make this especially
-        // safe. If descriptions differ, the date/location/title identity is
-        // still enough for the endpoint-vs-range rule below.
         return true;
     }
 
     private static function normalize_title($title)
     {
-        $title = strtolower(trim((string) $title));
+        $title = strtolower(self::clean_event_title($title));
         $title = preg_replace('/[^a-z0-9]+/', ' ', $title);
         return trim((string) $title);
     }
