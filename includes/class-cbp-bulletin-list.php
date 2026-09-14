@@ -26,6 +26,25 @@ final class CBP_Bulletin_List
     private function __construct()
     {
         add_shortcode('church_bulletins', array($this, 'render'));
+
+        // Early staging versions placed the two-column CSS in a Gutenberg
+        // Custom HTML block without <style> tags, causing the CSS itself to be
+        // printed above the bulletin list. The shortcode now handles its own
+        // layout, so suppress that known legacy block if it is still present.
+        add_filter('render_block', array($this, 'strip_legacy_column_css_block'), 10, 2);
+    }
+
+    public function strip_legacy_column_css_block($block_content, $block)
+    {
+        if (
+            isset($block['blockName'])
+            && $block['blockName'] === 'core/html'
+            && strpos($block_content, '.bulletin-two-columns{columns:2 280px;column-gap:42px;column-fill:balance}') !== false
+        ) {
+            return '';
+        }
+
+        return $block_content;
     }
 
     public function render($attributes)
