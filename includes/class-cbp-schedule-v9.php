@@ -25,8 +25,12 @@ final class CBP_Schedule_V9
 
     private function __construct()
     {
-        // Run after V8 range/title cleanup.
+        // Run after V8 range/title cleanup on newly extracted review data.
         add_action('shutdown', array($this, 'postprocess_review'));
+
+        // Also clean already-approved weekly data at read time so installing the
+        // fix immediately removes stale fragment rows from the public shortcode.
+        add_filter('option_' . CBP_Schedule::WEEKLY_OPTION, array($this, 'filter_weekly_option'));
     }
 
     public function postprocess_review()
@@ -47,6 +51,16 @@ final class CBP_Schedule_V9
 
         $review['weekly']['events'] = self::filter_worship_fragments($review['weekly']['events']);
         set_transient($this->review_key(), $review, self::REVIEW_TTL);
+    }
+
+    public function filter_weekly_option($weekly)
+    {
+        if (! is_array($weekly) || empty($weekly['events']) || ! is_array($weekly['events'])) {
+            return $weekly;
+        }
+
+        $weekly['events'] = self::filter_worship_fragments($weekly['events']);
+        return $weekly;
     }
 
     public static function filter_worship_fragments(array $rows)
@@ -71,8 +85,7 @@ final class CBP_Schedule_V9
         $title = isset($row['title']) ? trim((string) $row['title']) : '';
         $description = isset($row['description']) ? trim((string) $row['description']) : '';
 
-        // A complete worship row is already excluded upstream when it still
-        // contains its heading word. Keep that safeguard here as well.
+        // Worship items never belong in the general parish-events bucket.
         $combined = $title . ' ' . $description;
         if (preg_match('/\b(?:adoration|rosary|reconciliation|confession|mass)\b/iu', $combined)) {
             return true;
