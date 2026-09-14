@@ -197,6 +197,12 @@ final class CBP_Site_Displays
             if ($location !== '') {
                 $html .= '<span class="cbp-site-location">' . esc_html($location) . '</span>';
             }
+            if ($kind === 'event') {
+                $note = $this->event_note($description);
+                if ($note !== '') {
+                    $html .= '<span class="cbp-site-detail">' . esc_html($note) . '</span>';
+                }
+            }
             $html .= '</div></div>';
         }
         if ($current_date !== null) {
@@ -204,6 +210,18 @@ final class CBP_Site_Displays
         }
         $html .= '</div>';
         return $html;
+    }
+
+    private function event_note($description)
+    {
+        $description = (string) $description;
+        if ($description === '') {
+            return '';
+        }
+        if (preg_match('/\(([^)]*(?:call|contact)[^)]*(?:office|location|sign[- ]?up|details?)[^)]*)\)/iu', $description, $m)) {
+            return '(' . trim($m[1]) . ')';
+        }
+        return '';
     }
 
     private function upcoming_rows(array $rows)
