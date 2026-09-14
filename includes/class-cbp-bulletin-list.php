@@ -34,7 +34,7 @@ final class CBP_Bulletin_List
             array(
                 'mode' => 'live',
                 'limit' => 60,
-                'columns' => 1,
+                'columns' => 2,
             ),
             $attributes,
             'church_bulletins'
