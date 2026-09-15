@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Church Bulletin Publisher
  * Description: Builds private bulletin previews, extracts reviewed parish schedules and weekly events, and publishes approved bulletins.
- * Version: 0.4.0-test23
+ * Version: 0.4.0-test24
  * Author: St. Mary's and St. Peter the Apostle Parishes
  * Requires at least: 6.2
  * Requires PHP: 7.4
@@ -14,7 +14,7 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-define('CBP_VERSION', '0.4.0-test23');
+define('CBP_VERSION', '0.4.0-test24');
 define('CBP_FILE', __FILE__);
 define('CBP_DIR', plugin_dir_path(__FILE__));
 define('CBP_URL', plugin_dir_url(__FILE__));
@@ -37,6 +37,27 @@ if (! class_exists('Smalot\\PdfParser\\Parser')) {
         }
     });
 }
+
+/**
+ * Bridge the prototype's existing fixed page colors to the Kadence global
+ * palette. This lets the parish experiment in Appearance > Customize without
+ * rewriting every Gutenberg block first. New plugin displays use the palette
+ * variables directly; this stylesheet handles the older page markup.
+ */
+function cbp_enqueue_site_palette_bridge()
+{
+    if (is_admin()) {
+        return;
+    }
+
+    wp_enqueue_style(
+        'cbp-site-palette',
+        CBP_URL . 'assets/site-palette.css',
+        array(),
+        CBP_VERSION
+    );
+}
+add_action('wp_enqueue_scripts', 'cbp_enqueue_site_palette_bridge', 20);
 
 require_once CBP_DIR . 'includes/class-cbp-storage.php';
 require_once CBP_DIR . 'includes/class-cbp-pdf-merger.php';
