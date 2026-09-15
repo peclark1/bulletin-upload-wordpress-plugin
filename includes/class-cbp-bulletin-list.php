@@ -54,6 +54,7 @@ final class CBP_Bulletin_List
                 'mode' => 'live',
                 'limit' => 60,
                 'columns' => 2,
+                'featured' => 'yes',
             ),
             $attributes,
             'church_bulletins'
@@ -62,6 +63,7 @@ final class CBP_Bulletin_List
         $test_mode = $attributes['mode'] === 'test';
         $limit = max(1, min(200, absint($attributes['limit'])));
         $columns = max(1, min(4, absint($attributes['columns'])));
+        $show_featured = strtolower((string) $attributes['featured']) !== 'no';
         $root = CBP_Storage::published_root($test_mode);
         $url = CBP_Storage::published_url($test_mode);
         $files = glob(trailingslashit($root) . '[0-9][0-9][0-9][0-9]/[0-9][0-9][0-9][0-9][0-9][0-9]bulletin.pdf');
@@ -93,27 +95,41 @@ final class CBP_Bulletin_List
             return '<p>' . esc_html__('No bulletins have been published yet.', 'church-bulletin-publisher') . '</p>';
         }
 
+        $html = '<div class="cbp-bulletin-list">';
+
+        if ($show_featured) {
+            $html .= $this->render_featured($items[0]);
+            $items = array_slice($items, 1);
+        }
+
+        if (! $items) {
+            return $html . '</div>';
+        }
+
+        $list_title = $show_featured
+            ? esc_html__('Previous Bulletins', 'church-bulletin-publisher')
+            : esc_html__('Weekly Bulletins', 'church-bulletin-publisher');
+
         if ($columns <= 1) {
             $rows = '';
             foreach ($items as $item) {
                 $rows .= '<tr><td><a target="_blank" rel="noopener" href="' . esc_url($item['href']) . '">' . esc_html($item['label']) . '</a></td></tr>';
             }
 
-            return '<table class="church-bulletins"><thead><tr><th>'
-                . esc_html__('Weekly Bulletins', 'church-bulletin-publisher')
+            $html .= '<table class="church-bulletins"><thead><tr><th>'
+                . $list_title
                 . '</th></tr></thead><tbody>' . $rows . '</tbody></table>';
+
+            return $html . '</div>';
         }
 
-        // Split top-to-bottom into nearly equal columns. With 15 bulletins and
-        // two columns this produces 8 in the first column and 7 in the second.
+        // Split top-to-bottom into nearly equal columns.
         $columns = min($columns, count($items));
         $per_column = (int) ceil(count($items) / $columns);
         $chunks = array_chunk($items, $per_column);
 
-        $html = '<div class="church-bulletins church-bulletins--columns">';
-        $html .= '<div style="text-align:center;font-weight:600;margin-bottom:14px;">'
-            . esc_html__('Weekly Bulletins', 'church-bulletin-publisher')
-            . '</div>';
+        $html .= '<div class="church-bulletins church-bulletins--columns">';
+        $html .= '<div class="cbp-bulletin-list__archive-title">' . $list_title . '</div>';
         $html .= '<div style="display:flex;flex-wrap:wrap;gap:0 42px;align-items:flex-start;">';
 
         foreach ($chunks as $chunk) {
@@ -126,7 +142,31 @@ final class CBP_Bulletin_List
             $html .= '</div>';
         }
 
+        $html .= '</div></div></div>';
+        return $html;
+    }
+
+    private function render_featured($item)
+    {
+        $href = esc_url($item['href']);
+        $label = esc_html($item['label']);
+        $aria = esc_attr(sprintf(__('Open bulletin for %s', 'church-bulletin-publisher'), $item['label']));
+
+        $html = '<div class="cbp-featured-bulletin">';
+        $html .= '<a class="cbp-featured-bulletin__cover" target="_blank" rel="noopener" href="' . $href . '" aria-label="' . $aria . '">';
+        $html .= '<span class="cbp-featured-bulletin__cover-kicker">' . esc_html__('Weekly Bulletin', 'church-bulletin-publisher') . '</span>';
+        $html .= '<span class="cbp-featured-bulletin__cover-title">' . esc_html__('St. Peter the Apostle', 'church-bulletin-publisher') . '<br>&amp; ' . esc_html__('St. Mary’s Two Inlets', 'church-bulletin-publisher') . '</span>';
+        $html .= '<span class="cbp-featured-bulletin__cover-date">' . $label . '</span>';
+        $html .= '<span class="cbp-featured-bulletin__pdf">PDF</span>';
+        $html .= '</a>';
+
+        $html .= '<div class="cbp-featured-bulletin__body">';
+        $html .= '<div class="cbp-featured-bulletin__eyebrow">' . esc_html__('Latest Edition', 'church-bulletin-publisher') . '</div>';
+        $html .= '<h3>' . $label . '</h3>';
+        $html .= '<p>' . esc_html__('Open this week’s bulletin for Mass schedules, parish announcements, events, faith formation, and news from both church communities.', 'church-bulletin-publisher') . '</p>';
+        $html .= '<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" target="_blank" rel="noopener" href="' . $href . '">' . esc_html__('Read This Week’s Bulletin', 'church-bulletin-publisher') . '</a></div>';
         $html .= '</div></div>';
+
         return $html;
     }
 }
