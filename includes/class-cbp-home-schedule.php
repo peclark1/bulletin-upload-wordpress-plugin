@@ -36,7 +36,17 @@ final class CBP_Home_Schedule
         $mode = sanitize_key($atts['mode']);
 
         if ($mode !== 'home') {
-            return CBP_Schedule::instance()->schedule_shortcode($atts);
+            $html = CBP_Schedule::instance()->schedule_shortcode($atts);
+            return str_replace(
+                array(
+                    'St. Mary’s Mission • Two Inlets',
+                    "St. Mary's Mission • Two Inlets",
+                    'St. Mary’s Mission',
+                    "St. Mary's Mission",
+                ),
+                'St. Mary’s Two Inlets',
+                $html
+            );
         }
 
         $this->promote_pending_schedule();
@@ -68,7 +78,7 @@ final class CBP_Home_Schedule
 
                 <section class="cbp-home-mass-card cbp-home-mass-card--warm">
                     <p class="cbp-home-mass-eyebrow"><?php esc_html_e('TWO INLETS', 'church-bulletin-publisher'); ?></p>
-                    <h3><?php esc_html_e('St. Mary’s Mission', 'church-bulletin-publisher'); ?></h3>
+                    <h3><?php esc_html_e('St. Mary’s Two Inlets', 'church-bulletin-publisher'); ?></h3>
                     <p class="cbp-home-mass-times">
                         <strong><?php esc_html_e('Sunday', 'church-bulletin-publisher'); ?> • <?php echo esc_html($schedule['st_mary_sunday']); ?></strong>
                     </p>
