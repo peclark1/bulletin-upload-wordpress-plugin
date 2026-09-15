@@ -1,5 +1,6 @@
 .cbp-site-view,
-.cbp-home-mass-schedule {
+.cbp-home-mass-schedule,
+.cbp-bulletin-list {
     --cbp-brand: var(--global-palette2, #243b63);
     --cbp-strong: var(--global-palette3, #29364a);
     --cbp-body: var(--global-palette4, #465267);
@@ -55,6 +56,21 @@
 .cbp-home-prayer-item strong,.cbp-home-prayer-item span{display:block}
 .cbp-home-prayer-item span{margin-top:2px;color:var(--cbp-body);font-weight:400}
 
+.cbp-bulletin-list{color:var(--cbp-body)}
+.cbp-featured-bulletin{display:grid;grid-template-columns:minmax(210px,0.72fr) minmax(0,1.55fr);gap:34px;align-items:stretch;margin:0 0 30px;padding:22px;background:var(--cbp-surface);border:1px solid var(--cbp-border);border-radius:12px}
+.cbp-featured-bulletin__cover{position:relative;min-height:255px;padding:30px 24px;display:flex;flex-direction:column;justify-content:center;text-align:center;text-decoration:none;background:var(--cbp-brand);border-radius:8px;box-shadow:0 7px 18px rgba(0,0,0,.12);overflow:hidden}
+.cbp-featured-bulletin__cover:before{content:"";position:absolute;inset:14px;border:1px solid color-mix(in srgb,var(--cbp-surface) 32%,transparent);border-radius:5px;pointer-events:none}
+.cbp-featured-bulletin__cover-kicker{position:relative;z-index:1;margin-bottom:22px;color:var(--cbp-accent);font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
+.cbp-featured-bulletin__cover-title{position:relative;z-index:1;color:var(--cbp-surface);font-size:22px;font-weight:700;line-height:1.35}
+.cbp-featured-bulletin__cover-date{position:relative;z-index:1;margin-top:22px;color:var(--cbp-surface);font-size:15px;line-height:1.4}
+.cbp-featured-bulletin__pdf{position:absolute;right:18px;bottom:15px;z-index:1;color:var(--cbp-surface);font-size:10px;font-weight:700;letter-spacing:1px;opacity:.8}
+.cbp-featured-bulletin__body{display:flex;flex-direction:column;justify-content:center;padding:14px 14px 14px 2px}
+.cbp-featured-bulletin__eyebrow{margin-bottom:7px;color:var(--cbp-accent);font-size:12px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase}
+.cbp-featured-bulletin__body h3{margin:0 0 12px;color:var(--cbp-brand);font-size:30px;line-height:1.2}
+.cbp-featured-bulletin__body p{margin:0 0 22px;color:var(--cbp-body);font-size:16px;line-height:1.6}
+.cbp-featured-bulletin__body .wp-block-button{margin:0}
+.cbp-bulletin-list__archive-title{text-align:center;font-weight:700;margin:2px 0 16px;color:var(--cbp-brand)}
+
 @media(max-width:760px){
     .cbp-site-grid--two,.cbp-mass-schedule--full,.cbp-mass-schedule--home,.cbp-home-mass-grid,.cbp-home-prayer-grid{grid-template-columns:1fr}
     .cbp-site-item,.cbp-parish-events.cbp-site-view--compact .cbp-site-item{grid-template-columns:1fr;gap:3px}
@@ -66,4 +82,8 @@
     .cbp-home-mass-eyebrow{margin-bottom:20px}
     .cbp-home-mass-card h3{font-size:25px}
     .cbp-home-mass-times{font-size:18px}
+    .cbp-featured-bulletin{grid-template-columns:1fr;gap:22px;padding:18px}
+    .cbp-featured-bulletin__cover{min-height:220px}
+    .cbp-featured-bulletin__body{padding:4px 4px 8px}
+    .cbp-featured-bulletin__body h3{font-size:26px}
 }
