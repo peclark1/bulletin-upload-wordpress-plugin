@@ -154,22 +154,32 @@ final class CBP_Bulletin_List
     private function render_featured($item)
     {
         $href = esc_url($item['href']);
+        $preview_href = esc_url($item['href'] . '#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0');
         $label = esc_html($item['label']);
         $aria = esc_attr(sprintf(__('Open bulletin for %s', 'church-bulletin-publisher'), $item['label']));
 
-        $html = '<div class="cbp-featured-bulletin">';
-        $html .= '<a class="cbp-featured-bulletin__cover" target="_blank" rel="noopener" href="' . $href . '" aria-label="' . $aria . '">';
-        $html .= '<span class="cbp-featured-bulletin__cover-kicker">' . esc_html__('Weekly Bulletin', 'church-bulletin-publisher') . '</span>';
-        $html .= '<span class="cbp-featured-bulletin__cover-title">' . esc_html__('St. Peter the Apostle', 'church-bulletin-publisher') . '<br>&amp; ' . esc_html__('St. Mary’s Two Inlets', 'church-bulletin-publisher') . '</span>';
-        $html .= '<span class="cbp-featured-bulletin__cover-date">' . $label . '</span>';
-        $html .= '<span class="cbp-featured-bulletin__pdf">PDF</span>';
+        $html = '<div class="cbp-featured-bulletin cbp-featured-bulletin--document">';
+        $html .= '<div class="cbp-featured-bulletin__preview">';
+        $html .= '<div class="cbp-featured-bulletin__paper">';
+        $html .= '<object class="cbp-featured-bulletin__viewer" type="application/pdf" data="' . $preview_href . '" aria-label="' . $aria . '">';
+        $html .= '<div class="cbp-featured-bulletin__fallback">';
+        $html .= '<span>' . esc_html__('Weekly Bulletin', 'church-bulletin-publisher') . '</span>';
+        $html .= '<strong>' . $label . '</strong>';
+        $html .= '<span>PDF</span>';
+        $html .= '</div>';
+        $html .= '</object>';
+        $html .= '<a class="cbp-featured-bulletin__preview-link" target="_blank" rel="noopener" href="' . $href . '" aria-label="' . $aria . '">';
+        $html .= '<span class="cbp-featured-bulletin__preview-action">' . esc_html__('Open Bulletin PDF', 'church-bulletin-publisher') . '</span>';
         $html .= '</a>';
+        $html .= '</div>';
+        $html .= '<div class="cbp-featured-bulletin__preview-caption">' . esc_html__('Click the bulletin cover to open the PDF', 'church-bulletin-publisher') . '</div>';
+        $html .= '</div>';
 
         $html .= '<div class="cbp-featured-bulletin__body">';
         $html .= '<div class="cbp-featured-bulletin__eyebrow">' . esc_html__('Latest Edition', 'church-bulletin-publisher') . '</div>';
         $html .= '<h3>' . $label . '</h3>';
         $html .= '<p>' . esc_html__('Open this week’s bulletin for Mass schedules, parish announcements, events, faith formation, and news from both church communities.', 'church-bulletin-publisher') . '</p>';
-        $html .= '<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" target="_blank" rel="noopener" href="' . $href . '">' . esc_html__('Read This Week’s Bulletin', 'church-bulletin-publisher') . '</a></div>';
+        $html .= '<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" target="_blank" rel="noopener" href="' . $href . '">' . esc_html__('Open Bulletin PDF', 'church-bulletin-publisher') . '</a></div>';
         $html .= '</div></div>';
 
         return $html;
@@ -181,6 +191,13 @@ final class CBP_Bulletin_List
             'cbp-site-displays',
             CBP_URL . 'assets/frontend.css',
             array(),
+            CBP_VERSION
+        );
+
+        wp_enqueue_style(
+            'cbp-bulletin-featured',
+            CBP_URL . 'assets/bulletin-featured.css',
+            array('cbp-site-displays'),
             CBP_VERSION
         );
     }
