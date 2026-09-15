@@ -95,6 +95,11 @@ final class CBP_Bulletin_List
             return '<p>' . esc_html__('No bulletins have been published yet.', 'church-bulletin-publisher') . '</p>';
         }
 
+        // Unlike the schedule shortcodes, the bulletin list can appear on a
+        // page by itself. Enqueue the shared front-end stylesheet here so the
+        // featured bulletin card never renders as unstyled inline text.
+        $this->enqueue_assets();
+
         $html = '<div class="cbp-bulletin-list">';
 
         if ($show_featured) {
@@ -168,5 +173,15 @@ final class CBP_Bulletin_List
         $html .= '</div></div>';
 
         return $html;
+    }
+
+    private function enqueue_assets()
+    {
+        wp_enqueue_style(
+            'cbp-site-displays',
+            CBP_URL . 'assets/frontend.css',
+            array(),
+            CBP_VERSION
+        );
     }
 }
