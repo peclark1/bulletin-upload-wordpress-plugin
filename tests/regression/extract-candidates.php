@@ -6,6 +6,9 @@
  * This does not create or bless regression expectations. It only exposes the
  * PDF text that the bundled parser sees so fixtures can be reviewed by a human
  * before promotion into tests/fixtures.
+ *
+ * The generated text is a review artifact only; regression expectations remain
+ * hand-reviewed and are never generated automatically from parser output.
  */
 
 $root = dirname(__DIR__, 2);
