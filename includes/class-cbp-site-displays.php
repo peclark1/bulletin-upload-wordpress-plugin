@@ -206,6 +206,9 @@ final class CBP_Site_Displays
             if ($location !== '') {
                 $html .= '<span class="cbp-site-location">' . esc_html($location) . '</span>';
             }
+            if ($kind === 'mass' && $this->has_mass_intention($title, $description)) {
+                $html .= '<span class="cbp-site-intention"><strong>' . esc_html__('Intention:', 'church-bulletin-publisher') . '</strong> ' . esc_html($description) . '</span>';
+            }
             if ($kind === 'event') {
                 $note = $this->event_note($description);
                 if ($note !== '') {
@@ -219,6 +222,16 @@ final class CBP_Site_Displays
         }
         $html .= '</div>';
         return $html;
+    }
+
+    private function has_mass_intention($title, $description)
+    {
+        $title = trim((string) $title);
+        $description = trim((string) $description);
+        if ($description === '' || strcasecmp($title, 'No Mass') === 0) {
+            return false;
+        }
+        return (bool) preg_match('/\bMass$/i', $title);
     }
 
     private function event_note($description)
