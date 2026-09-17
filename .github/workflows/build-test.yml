@@ -31,6 +31,14 @@ jobs:
           php tests/regression/run.php
           php tests/regression/run-candidates.php
 
+      - name: Upload candidate regression diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: candidate-regression-diagnostics
+          path: tests/regression-output/*.actual.json
+          if-no-files-found: ignore
+
       - name: Build ZIP
         id: build
         run: |
