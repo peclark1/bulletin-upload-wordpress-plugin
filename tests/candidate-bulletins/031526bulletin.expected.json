@@ -1,1 +1,45 @@
-{"name":"March 15, 2026 regression","bulletin_date":"2026-03-15","current_schedule":{"st_peter_saturday":"5:00 PM","st_peter_sunday":"9:00 AM","st_mary_sunday":"11:00 AM","reconciliation":"Saturday 3:30 PM–4:30 PM","adoration":"Wednesday 5:30 PM–8:00 PM; Thursday 6:00 AM–5:00 PM"},"expected":{"candidates":{"st_peter_saturday":"5:00 PM","st_peter_sunday":"9:00 AM","st_mary_sunday":"11:00 AM","reconciliation":"Saturday 3:30 PM–4:30 PM","adoration":"Wednesday 5:30 PM–8:00 PM; Thursday 6:00 AM–5:00 PM"},"counts":{"masses":7},"masses":[{"date":"2026-03-17","time":"5:30 PM","location":"St. Peter","title":"Mass","description":"† Patty Shepersky"},{"date":"2026-03-18","time":"12:10 PM","location":"St. Peter","title":"Mass","description":"† Norman Georgina, Sr."},{"date":"2026-03-19","time":"8:30 AM","location":"St. Mary’s","title":"Mass","description":"† Barbara Raygor"},{"date":"2026-03-20","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"Melissa Williams Family"},{"date":"2026-03-21","time":"5:00 PM","location":"St. Peter","title":"Mass","description":"Healing for Mike Baumgartner"},{"date":"2026-03-22","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"For the People"},{"date":"2026-03-22","time":"11:00 AM","location":"St. Mary’s","title":"Mass","description":"† Mary Schmitz"}],"devotions_required":[{"date":"2026-03-18","time":"5:30 PM–8:00 PM","location":"St. Peter","title":"Adoration"},{"date":"2026-03-19","time":"6:00 AM–5:00 PM","location":"St. Peter","title":"Adoration"},{"date":"2026-03-21","time":"3:30 PM–4:30 PM","title":"Reconciliation"}],"events_required":[{"date":"2026-03-16","time":"5:00 PM","location":"St. Peter","title_contains":"St. Vincent de Paul"},{"date":"2026-03-17","time":"5:30 PM","location":"St. Peter","title_contains":"Peter’s Table"},{"date":"2026-03-20","time":"5:00 PM","location":"St. Peter","title_contains":"Stations of the Cross"}],"livestream_contains":["Sunday Mass & Rosary are live streamed at stpeterpr.org"]}}
+{
+  "name": "March 15, 2026 Lent schedule with healing and family intentions",
+  "bulletin_date": "2026-03-15",
+  "notes": "Human-reviewed from the original March 15 bulletin. Covers deceased, family, healing and For-the-People intentions, Lent reconciliation hours, and a discrepancy between the recurring Adoration wording and one weekly event entry.",
+  "current_schedule": {
+    "st_peter_saturday": "5:00 PM",
+    "st_peter_sunday": "9:00 AM",
+    "st_mary_sunday": "11:00 AM",
+    "reconciliation": "Saturday 3:30 PM–4:30 PM",
+    "adoration": "Wednesday 5:30 PM–8:00 PM; Thursday 6:00 AM–5:00 PM"
+  },
+  "expected": {
+    "candidates": {
+      "st_peter_saturday": "5:00 PM",
+      "st_peter_sunday": "9:00 AM",
+      "st_mary_sunday": "11:00 AM",
+      "reconciliation": "Saturday 3:30 PM–4:30 PM",
+      "adoration": "Wednesday 5:30 PM–8:00 PM; Thursday 6:00 AM–5:00 PM"
+    },
+    "counts": {"masses": 7},
+    "masses": [
+      {"date":"2026-03-17","time":"5:30 PM","location":"St. Peter","title":"Mass","description":"† Patty Shepersky"},
+      {"date":"2026-03-18","time":"12:10 PM","location":"St. Peter","title":"Mass","description":"† Norman Georgina, Sr."},
+      {"date":"2026-03-19","time":"8:30 AM","location":"St. Mary’s","title":"Mass","description":"† Barbara Raygor"},
+      {"date":"2026-03-20","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"Melissa Williams Family"},
+      {"date":"2026-03-21","time":"5:00 PM","location":"St. Peter","title":"Mass","description":"Healing for Mike Baumgartner"},
+      {"date":"2026-03-22","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"For the People"},
+      {"date":"2026-03-22","time":"11:00 AM","location":"St. Mary’s","title":"Mass","description":"† Mary Schmitz"}
+    ],
+    "devotions_required": [
+      {"date":"2026-03-18","time":"5:30 PM–8:30 PM","location":"St. Peter","title":"Adoration"},
+      {"date":"2026-03-19","time":"6:00 AM–5:00 PM","location":"St. Peter","title":"Adoration"},
+      {"date":"2026-03-21","time":"3:30 PM–4:30 PM","title":"Reconciliation"},
+      {"date":"2026-03-22","time":"8:30 AM","location":"St. Peter","title":"Rosary"},
+      {"date":"2026-03-22","time":"10:30 AM","location":"St. Mary’s","title":"Rosary"}
+    ],
+    "events_required": [
+      {"date":"2026-03-16","time":"5:00 PM","location":"St. Peter","title_contains":"St. Vincent de Paul"},
+      {"date":"2026-03-17","time":"9:00 AM","location":"St. Peter","title_contains":"Quilt Group"},
+      {"date":"2026-03-20","time":"5:00 PM","location":"St. Mary’s","title_contains":"Stations of the Cross"},
+      {"date":"2026-03-22","location":"St. Peter","title_contains":"Knights of Columbus Bingo"}
+    ],
+    "livestream_contains": ["Sunday Mass & Rosary are live streamed at stpeterpr.org"]
+  }
+}

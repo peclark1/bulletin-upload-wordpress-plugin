@@ -1,1 +1,46 @@
-{"name":"February 22, 2026 Lent schedule and Divine Mercy exclusion","bulletin_date":"2026-02-22","notes":"Human-reviewed from the original February 22 bulletin PDF. Covers a full weekday Mass schedule, living and deceased intentions, Lenten events, and a Divine Mercy Hour that must not become a Mass.","current_schedule":{"st_peter_saturday":"5:00 PM","st_peter_sunday":"9:00 AM","st_mary_sunday":"11:00 AM","reconciliation":"Saturday 3:30 PM–4:30 PM","adoration":"Wednesday 5:30 PM–8:00 PM; Thursday 6:00 AM–5:00 PM"},"expected":{"candidates":{"st_peter_saturday":"5:00 PM","st_peter_sunday":"9:00 AM","st_mary_sunday":"11:00 AM","reconciliation":"Saturday 3:30 PM–4:30 PM","adoration":"Wednesday 5:30 PM–8:00 PM; Thursday 6:00 AM–5:00 PM"},"counts":{"masses":7},"masses":[{"date":"2026-02-24","time":"5:30 PM","location":"St. Peter","title":"Mass","description":"† JoAnn Carrier"},{"date":"2026-02-25","time":"12:10 PM","location":"St. Peter","title":"Mass","description":"In honor of Sr. Bernadette Marie"},{"date":"2026-02-26","time":"8:30 AM","location":"St. Mary’s","title":"Mass","description":"† Annette Mullen"},{"date":"2026-02-27","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"† John Graham"},{"date":"2026-02-28","time":"5:00 PM","location":"St. Peter","title":"Mass","description":"† Izzy Mahowald"},{"date":"2026-03-01","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"For the People"},{"date":"2026-03-01","time":"11:00 AM","location":"St. Mary’s","title":"Mass","description":"† Buster Eischens"}],"devotions_required":[{"date":"2026-02-25","time":"5:30 PM–8:00 PM","location":"St. Peter","title":"Adoration"},{"date":"2026-02-26","time":"6:00 AM–5:00 PM","location":"St. Peter","title":"Adoration"},{"date":"2026-02-28","time":"3:30 PM–4:30 PM","title":"Reconciliation"}],"events_required":[{"date":"2026-02-23","time":"6:00 PM","location":"St. Peter","title_contains":"Alpha"},{"date":"2026-02-23","time":"7:00 PM","location":"St. Mary’s","title_contains":"Guild"},{"date":"2026-02-27","time":"5:00 PM","location":"St. Mary’s","title_contains":"Stations of the Cross"}],"livestream_contains":["Sunday Mass & Rosary are live streamed at stpeterpr.org"]}}
+{
+  "name": "February 22, 2026 Lent schedule with honor intention and Divine Mercy Hour",
+  "bulletin_date": "2026-02-22",
+  "notes": "Human-reviewed from the original February 22 bulletin. Covers a living/honor intention, Lent reconciliation hours, Stations of the Cross, ordinary school-year weekend Masses, and Divine Mercy Hour that must not become a Mass.",
+  "current_schedule": {
+    "st_peter_saturday": "5:00 PM",
+    "st_peter_sunday": "9:00 AM",
+    "st_mary_sunday": "11:00 AM",
+    "reconciliation": "Saturday 3:30 PM–4:30 PM",
+    "adoration": "Wednesday 5:30 PM–8:00 PM; Thursday 6:00 AM–5:00 PM"
+  },
+  "expected": {
+    "candidates": {
+      "st_peter_saturday": "5:00 PM",
+      "st_peter_sunday": "9:00 AM",
+      "st_mary_sunday": "11:00 AM",
+      "reconciliation": "Saturday 3:30 PM–4:30 PM",
+      "adoration": "Wednesday 5:30 PM–8:00 PM; Thursday 6:00 AM–5:00 PM"
+    },
+    "counts": {"masses": 7},
+    "masses": [
+      {"date":"2026-02-24","time":"5:30 PM","location":"St. Peter","title":"Mass","description":"† JoAnn Carrier"},
+      {"date":"2026-02-25","time":"12:10 PM","location":"St. Peter","title":"Mass","description":"In honor of Sr. Bernadette Marie"},
+      {"date":"2026-02-26","time":"8:30 AM","location":"St. Mary’s","title":"Mass","description":"† Annette Mullen"},
+      {"date":"2026-02-27","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"† John Graham"},
+      {"date":"2026-02-28","time":"5:00 PM","location":"St. Peter","title":"Mass","description":"† Izzy Mahowald"},
+      {"date":"2026-03-01","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"For the People"},
+      {"date":"2026-03-01","time":"11:00 AM","location":"St. Mary’s","title":"Mass","description":"† Buster Eischens"}
+    ],
+    "devotions_required": [
+      {"date":"2026-02-25","time":"5:30 PM–8:00 PM","location":"St. Peter","title":"Adoration"},
+      {"date":"2026-02-26","time":"6:00 AM–5:00 PM","location":"St. Peter","title":"Adoration"},
+      {"date":"2026-02-28","time":"3:30 PM–4:30 PM","title":"Reconciliation"},
+      {"date":"2026-03-01","time":"8:30 AM","location":"St. Peter","title":"Rosary"},
+      {"date":"2026-03-01","time":"10:30 AM","location":"St. Mary’s","title":"Rosary"},
+      {"date":"2026-03-01","time":"3:00 PM","location":"St. Peter","title_contains":"Divine Mercy"}
+    ],
+    "events_required": [
+      {"date":"2026-02-23","time":"6:00 PM","location":"St. Peter","title_contains":"Alpha"},
+      {"date":"2026-02-24","time":"1:30 PM","location":"St. Peter","title_contains":"Lenten Book Study"},
+      {"date":"2026-02-27","time":"5:00 PM","location":"St. Mary’s","title_contains":"Stations of the Cross"},
+      {"date":"2026-02-27","time":"5:00 PM","location":"St. Peter","title_contains":"Stations of the Cross"}
+    ],
+    "livestream_contains": ["Sunday Mass & Rosary are live streamed at stpeterpr.org"]
+  }
+}

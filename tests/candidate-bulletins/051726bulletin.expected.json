@@ -1,1 +1,48 @@
-{"name":"May 17, 2026 transition to summer Sunday Mass times","bulletin_date":"2026-05-17","current_schedule":{"st_peter_saturday":"5:00 PM","st_peter_sunday":"9:00 AM","st_mary_sunday":"11:00 AM","reconciliation":"Saturday 4:00 PM–4:30 PM","adoration":"Thursday 6:00 AM–5:00 PM"},"expected":{"candidates":{"st_peter_saturday":"5:00 PM","st_peter_sunday":"8:30 AM","st_mary_sunday":"10:30 AM","reconciliation":"Saturday 4:00 PM–4:30 PM","adoration":"Thursday 6:00 AM–5:00 PM"},"counts":{"masses":7},"masses":[{"date":"2026-05-19","time":"5:30 PM","location":"St. Peter","title":"Mass","description":"† Richard Tandsater"},{"date":"2026-05-20","time":"12:10 PM","location":"St. Peter","title":"Mass","description":"In Thanksgiving for Bob Shepard"},{"date":"2026-05-21","time":"8:30 AM","location":"St. Mary’s","title":"Mass","description":"† Kimberly Wettels"},{"date":"2026-05-22","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"† Ronald Arthur Wells"},{"date":"2026-05-23","time":"5:00 PM","location":"St. Peter","title":"Mass","description":"Healing for Landon Stubbs"},{"date":"2026-05-24","time":"8:30 AM","location":"St. Peter","title":"Mass","description":"† Ed Hrubsky"},{"date":"2026-05-24","time":"10:30 AM","location":"St. Mary’s","title":"Mass","description":"For the People"}],"devotions_required":[{"date":"2026-05-21","time":"6:00 AM–5:00 PM","location":"St. Peter","title":"Adoration"},{"date":"2026-05-23","time":"4:00 PM–4:30 PM","title":"Reconciliation"}],"events_required":[{"date":"2026-05-19","time":"7:00 PM","location":"St. Mary’s","title_contains":"Young Adult Scripture Study"},{"date":"2026-05-20","time":"10:30 AM","title_contains":"Crystal Brook"},{"date":"2026-05-20","time":"3:00 PM","location":"St. Peter","title_contains":"Cemetery Cleanup"}],"livestream_contains":["Sunday Mass & Rosary are live streamed at stpeterpr.org"],"warning_contains":["St. Peter Sunday Mass is currently 9:00 AM"]}}
+{
+  "name": "May 17, 2026 transition to summer Mass and Adoration schedule",
+  "bulletin_date": "2026-05-17",
+  "notes": "Human-reviewed from the original May 17 bulletin. Covers the explicit Summer Mass / Adoration Schedule effective May 24 through September 6, a living healing intention, a Thanksgiving intention, and an off-site Liturgy of the Word that must not become a Mass.",
+  "current_schedule": {
+    "st_peter_saturday": "5:00 PM",
+    "st_peter_sunday": "9:00 AM",
+    "st_mary_sunday": "11:00 AM",
+    "reconciliation": "Saturday 4:00 PM–4:30 PM",
+    "adoration": "Wednesday 5:30 PM–8:00 PM; Thursday 6:00 AM–5:00 PM"
+  },
+  "expected": {
+    "candidates": {
+      "st_peter_saturday": "5:00 PM",
+      "st_peter_sunday": "8:30 AM",
+      "st_mary_sunday": "10:30 AM",
+      "reconciliation": "Saturday 4:00 PM–4:30 PM",
+      "adoration": "Thursday 6:00 AM–4:00 PM"
+    },
+    "counts": {"masses": 7},
+    "masses": [
+      {"date":"2026-05-19","time":"5:30 PM","location":"St. Peter","title":"Mass","description":"† Richard Tandsater"},
+      {"date":"2026-05-20","time":"12:10 PM","location":"St. Peter","title":"Mass","description":"In Thanksgiving for Bob Shepard"},
+      {"date":"2026-05-21","time":"8:30 AM","location":"St. Mary’s","title":"Mass","description":"† Kimberly Wettels"},
+      {"date":"2026-05-22","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"† Ronald Arthur Wells"},
+      {"date":"2026-05-23","time":"5:00 PM","location":"St. Peter","title":"Mass","description":"Healing for Landon Stubbs"},
+      {"date":"2026-05-24","time":"8:30 AM","location":"St. Peter","title":"Mass","description":"† Ed Hrubsky"},
+      {"date":"2026-05-24","time":"10:30 AM","location":"St. Mary’s","title":"Mass","description":"For the People"}
+    ],
+    "devotions_required": [
+      {"date":"2026-05-21","time":"6:00 AM–5:00 PM","location":"St. Peter","title":"Adoration"},
+      {"date":"2026-05-23","time":"4:00 PM–4:30 PM","title":"Reconciliation"},
+      {"date":"2026-05-24","time":"8:00 AM","location":"St. Peter","title":"Rosary"},
+      {"date":"2026-05-24","time":"10:00 AM","location":"St. Mary’s","title":"Rosary"}
+    ],
+    "events_required": [
+      {"date":"2026-05-19","time":"9:00 AM","location":"St. Peter","title_contains":"Quilt Group"},
+      {"date":"2026-05-20","time":"10:30 AM","title_contains":"Crystal Brook"},
+      {"date":"2026-05-20","time":"3:00 PM","title_contains":"Cemetery Cleanup"},
+      {"date":"2026-05-24","location":"St. Peter","title_contains":"Coffee & Rolls"}
+    ],
+    "livestream_contains": ["Sunday Mass & Rosary are live streamed at stpeterpr.org"],
+    "warning_contains": [
+      "St. Peter Sunday Mass is currently 9:00 AM",
+      "St. Mary’s Sunday Mass is currently 11:00 AM"
+    ]
+  }
+}

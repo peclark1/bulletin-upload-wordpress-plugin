@@ -1,1 +1,44 @@
-{"name":"July 12, 2026 summer schedule with funeral Mass and off-site Liturgy","bulletin_date":"2026-07-12","current_schedule":{"st_peter_saturday":"5:00 PM","st_peter_sunday":"8:30 AM","st_mary_sunday":"10:30 AM","reconciliation":"Saturday 4:00 PM–4:30 PM","adoration":"Thursday 6:00 AM–4:00 PM"},"expected":{"candidates":{"st_peter_saturday":"5:00 PM","st_peter_sunday":"8:30 AM","st_mary_sunday":"10:30 AM","reconciliation":"Saturday 4:00 PM–4:30 PM","adoration":"Thursday 6:00 AM–4:00 PM"},"counts":{"masses":7},"masses":[{"date":"2026-07-14","time":"5:30 PM","location":"St. Peter","title":"Mass","description":"† Cynthia Wells"},{"date":"2026-07-15","time":"12:10 PM","location":"St. Peter","title":"Mass","description":"† Wayne & † Jeanne Hanson"},{"date":"2026-07-16","time":"8:30 AM","location":"St. Mary’s","title":"Mass","description":"† Betty Klaas"},{"date":"2026-07-17","time":"11:00 AM","location":"St. Peter","title":"Funeral Mass","description":"Robert “Bob” Harsha"},{"date":"2026-07-18","time":"5:00 PM","location":"St. Peter","title":"Mass","description":"† Tom Wermerskirchen"},{"date":"2026-07-19","time":"8:30 AM","location":"St. Peter","title":"Mass","description":"For the People"},{"date":"2026-07-19","time":"10:30 AM","location":"St. Mary’s","title":"Mass","description":"† Scott W. Gartner"}],"devotions_required":[{"date":"2026-07-16","time":"6:00 AM–4:00 PM","location":"St. Peter","title":"Adoration"},{"date":"2026-07-18","time":"4:00 PM–4:30 PM","title":"Reconciliation"}],"events_required":[{"date":"2026-07-15","time":"10:30 AM","title_contains":"Crystal Brook"},{"date":"2026-07-15","time":"6:00 PM","location":"St. Mary’s","title_contains":"Alpha"},{"date":"2026-07-17","time":"11:00 AM","location":"St. Peter","title_contains":"Robert"}],"livestream_contains":["Sunday Mass & Rosary are live streamed at stpeterpr.org"]}}
+{
+  "name": "July 12, 2026 summer schedule with funeral and off-site Liturgy of the Word",
+  "bulletin_date": "2026-07-12",
+  "notes": "Human-reviewed from the original July 12 bulletin. Covers a funeral, multiple deceased names in one intention, summer recurring times, and a Crystal Brook Liturgy of the Word that must remain an event rather than a Mass.",
+  "current_schedule": {
+    "st_peter_saturday": "5:00 PM",
+    "st_peter_sunday": "8:30 AM",
+    "st_mary_sunday": "10:30 AM",
+    "reconciliation": "Saturday 4:00 PM–4:30 PM",
+    "adoration": "Thursday 6:00 AM–4:00 PM"
+  },
+  "expected": {
+    "candidates": {
+      "st_peter_saturday": "5:00 PM",
+      "st_peter_sunday": "8:30 AM",
+      "st_mary_sunday": "10:30 AM",
+      "reconciliation": "Saturday 4:00 PM–4:30 PM",
+      "adoration": "Thursday 6:00 AM–4:00 PM"
+    },
+    "counts": {"masses": 7},
+    "masses": [
+      {"date":"2026-07-14","time":"5:30 PM","location":"St. Peter","title":"Mass","description":"† Cynthia Wells"},
+      {"date":"2026-07-15","time":"12:10 PM","location":"St. Peter","title":"Mass","description":"† Wayne & † Jeanne Hanson"},
+      {"date":"2026-07-16","time":"8:30 AM","location":"St. Mary’s","title":"Mass","description":"† Betty Klaas"},
+      {"date":"2026-07-17","time":"11:00 AM","location":"St. Peter","title":"Funeral Mass","description":"Robert “Bob” Harsha"},
+      {"date":"2026-07-18","time":"5:00 PM","location":"St. Peter","title":"Mass","description":"† Tom Wermerskirchen"},
+      {"date":"2026-07-19","time":"8:30 AM","location":"St. Peter","title":"Mass","description":"For the People"},
+      {"date":"2026-07-19","time":"10:30 AM","location":"St. Mary’s","title":"Mass","description":"† Scott W. Gartner"}
+    ],
+    "devotions_required": [
+      {"date":"2026-07-16","time":"6:00 AM–4:00 PM","location":"St. Peter","title":"Adoration"},
+      {"date":"2026-07-18","time":"4:00 PM–4:30 PM","title":"Reconciliation"},
+      {"date":"2026-07-19","time":"8:00 AM","location":"St. Peter","title":"Rosary"},
+      {"date":"2026-07-19","time":"10:00 AM","location":"St. Mary’s","title":"Rosary"}
+    ],
+    "events_required": [
+      {"date":"2026-07-13","time":"1:00 PM","location":"St. Peter","title_contains":"Family Guild"},
+      {"date":"2026-07-15","time":"10:30 AM","title_contains":"Crystal Brook"},
+      {"date":"2026-07-15","time":"6:00 PM","location":"St. Mary’s","title_contains":"Alpha"},
+      {"date":"2026-07-17","time":"11:00 AM","location":"St. Peter","title_contains":"Robert"}
+    ],
+    "livestream_contains": ["Sunday Mass & Rosary are live streamed at stpeterpr.org"]
+  }
+}
