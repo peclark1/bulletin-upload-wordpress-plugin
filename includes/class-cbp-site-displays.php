@@ -204,7 +204,8 @@ final class CBP_Site_Displays
                 $html .= '<strong class="cbp-site-title">' . esc_html($description) . '</strong>';
             }
             if ($location !== '') {
-                $html .= '<span class="cbp-site-location">' . esc_html($location) . '</span>';
+                $display_location = $kind === 'event' ? $location : $this->worship_location_name($location);
+                $html .= '<span class="cbp-site-location">' . esc_html($display_location) . '</span>';
             }
             if ($kind === 'mass' && $this->has_mass_intention($title, $description)) {
                 $html .= '<span class="cbp-site-intention"><strong>' . esc_html__('Intention:', 'church-bulletin-publisher') . '</strong> ' . esc_html($description) . '</span>';
@@ -222,6 +223,18 @@ final class CBP_Site_Displays
         }
         $html .= '</div>';
         return $html;
+    }
+
+    private function worship_location_name($location)
+    {
+        $location = trim((string) $location);
+        if (strcasecmp($location, 'St. Peter') === 0) {
+            return 'St. Peter Park Rapids';
+        }
+        if (in_array($location, array('St. Mary’s', "St. Mary's", 'St. Mary'), true)) {
+            return "St. Mary's Two Inlets";
+        }
+        return $location;
     }
 
     private function has_mass_intention($title, $description)
