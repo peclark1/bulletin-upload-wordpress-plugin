@@ -1,6 +1,7 @@
 .cbp-site-view,
 .cbp-home-mass-schedule,
-.cbp-bulletin-list {
+.cbp-bulletin-list,
+.cbp-online-giving {
     --cbp-brand: var(--global-palette2, #243b63);
     --cbp-strong: var(--global-palette3, #29364a);
     --cbp-body: var(--global-palette4, #465267);
@@ -58,6 +59,18 @@
 .cbp-home-prayer-item strong,.cbp-home-prayer-item span{display:block}
 .cbp-home-prayer-item span{margin-top:2px;color:var(--cbp-body);font-weight:400}
 
+
+.cbp-online-giving{max-width:1120px;margin:0 auto;padding:28px;background:var(--cbp-surface);border:1px solid var(--cbp-border);border-radius:12px;color:var(--cbp-body);box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.cbp-online-giving__intro{text-align:center;margin-bottom:22px}
+.cbp-online-giving__intro h2{margin:0 0 10px;color:var(--cbp-brand);font-size:28px;line-height:1.2}
+.cbp-online-giving__intro p{max-width:820px;margin:0 auto;color:var(--cbp-body);font-size:16px;line-height:1.6}
+.cbp-online-giving__frame-wrap{overflow:hidden;border:1px solid var(--cbp-border);border-radius:8px;background:var(--cbp-surface)}
+.cbp-online-giving__frame{display:block;width:100%;border:0;background:var(--cbp-surface)}
+.cbp-online-giving__fallback{margin:18px 0 12px;text-align:center;color:var(--cbp-subtle);font-size:14px;line-height:1.5}
+.cbp-online-giving__button-wrap{margin:0;text-align:center}
+.cbp-online-giving__button{display:inline-block;padding:13px 24px;border-radius:4px;background:var(--cbp-accent);color:#fff!important;text-decoration:none;font-weight:700}
+.cbp-online-giving__button:hover,.cbp-online-giving__button:focus{color:#fff!important;filter:brightness(.95)}
+
 .cbp-bulletin-list{color:var(--cbp-body)}
 .cbp-featured-bulletin{display:grid;grid-template-columns:minmax(210px,0.72fr) minmax(0,1.55fr);gap:34px;align-items:stretch;margin:0 0 30px;padding:22px;background:var(--cbp-surface);border:1px solid var(--cbp-border);border-radius:12px}
 .cbp-featured-bulletin__cover{position:relative;min-height:255px;padding:30px 24px;display:flex;flex-direction:column;justify-content:center;text-align:center;text-decoration:none;background:var(--cbp-brand);border-radius:8px;box-shadow:0 7px 18px rgba(0,0,0,.12);overflow:hidden}
@@ -88,4 +101,7 @@
     .cbp-featured-bulletin__cover{min-height:220px}
     .cbp-featured-bulletin__body{padding:4px 4px 8px}
     .cbp-featured-bulletin__body h3{font-size:26px}
+    .cbp-online-giving{padding:18px}
+    .cbp-online-giving__intro h2{font-size:24px}
 }
+
