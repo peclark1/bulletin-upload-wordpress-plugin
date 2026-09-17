@@ -38,24 +38,12 @@ if (! class_exists('Smalot\\PdfParser\\Parser')) {
     });
 }
 
-/**
- * Bridge the prototype's existing fixed page colors to the Kadence global
- * palette. This lets the parish experiment in Appearance > Customize without
- * rewriting every Gutenberg block first. New plugin displays use the palette
- * variables directly; this stylesheet handles the older page markup.
- */
 function cbp_enqueue_site_palette_bridge()
 {
     if (is_admin()) {
         return;
     }
-
-    wp_enqueue_style(
-        'cbp-site-palette',
-        CBP_URL . 'assets/site-palette.css',
-        array(),
-        CBP_VERSION
-    );
+    wp_enqueue_style('cbp-site-palette', CBP_URL . 'assets/site-palette.css', array(), CBP_VERSION);
 }
 add_action('wp_enqueue_scripts', 'cbp_enqueue_site_palette_bridge', 20);
 
@@ -85,6 +73,7 @@ require_once CBP_DIR . 'includes/class-cbp-schedule-v19.php';
 require_once CBP_DIR . 'includes/class-cbp-schedule-v20.php';
 require_once CBP_DIR . 'includes/class-cbp-schedule-v21.php';
 require_once CBP_DIR . 'includes/class-cbp-schedule-v22.php';
+require_once CBP_DIR . 'includes/class-cbp-schedule-v23.php';
 require_once CBP_DIR . 'includes/class-cbp-site-displays.php';
 require_once CBP_DIR . 'includes/class-cbp-home-schedule.php';
 require_once CBP_DIR . 'includes/class-cbp-bulletin-list.php';
@@ -117,6 +106,7 @@ CBP_Schedule_V19::instance();
 CBP_Schedule_V20::instance();
 CBP_Schedule_V21::instance();
 CBP_Schedule_V22::instance();
+CBP_Schedule_V23::instance();
 CBP_Site_Displays::instance();
 CBP_Home_Schedule::instance();
 CBP_Bulletin_List::instance();
