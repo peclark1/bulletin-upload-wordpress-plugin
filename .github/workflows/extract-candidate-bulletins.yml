@@ -1,0 +1,38 @@
+name: Extract candidate bulletins
+
+on:
+  push:
+    branches:
+      - feature/php-schedule-review
+    paths:
+      - 'tests/candidate-bulletins/**'
+      - 'tests/regression/extract-candidates.php'
+      - '.github/workflows/extract-candidate-bulletins.yml'
+  workflow_dispatch:
+
+jobs:
+  extract:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: xml, mbstring, zlib, iconv
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+
+      - name: Extract candidate bulletin text
+        run: php tests/regression/extract-candidates.php
+
+      - name: Upload candidate extracts
+        uses: actions/upload-artifact@v4
+        with:
+          name: candidate-bulletin-extracts
+          path: candidate-extracts/*.txt
+          if-no-files-found: error
