@@ -25,7 +25,18 @@ if ($php_start === false || $loop_start === false) {
 $helpers = substr($runner, $php_start + 5, $loop_start - ($php_start + 5));
 eval($helpers);
 
+// The historical parser layers intentionally remain PHP 7.4 compatible.
+// Keep PHP 8.3 deprecation noise out of the candidate report so semantic
+// failures are easy to read; production lint still runs separately.
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+ini_set('display_errors', '1');
+
 $candidate_root = $root . '/tests/candidate-bulletins';
+$output_root = $root . '/tests/regression-output';
+if (! is_dir($output_root)) {
+    @mkdir($output_root, 0777, true);
+}
+
 $expected_files = glob($candidate_root . '/*.expected.json');
 sort($expected_files, SORT_STRING);
 
@@ -55,6 +66,7 @@ foreach ($expected_files as $json_path) {
         continue;
     }
 
+    $actual = null;
     try {
         $actual = cbp_extract_fixture(
             $pdf_path,
@@ -64,6 +76,13 @@ foreach ($expected_files as $json_path) {
         $errors = cbp_compare_fixture($expected, $actual);
     } catch (Throwable $e) {
         $errors = array($e->getMessage());
+    }
+
+    if (is_array($actual)) {
+        file_put_contents(
+            $output_root . '/' . $name . '.actual.json',
+            json_encode($actual, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n"
+        );
     }
 
     if (empty($errors)) {
