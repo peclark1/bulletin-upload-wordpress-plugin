@@ -26,6 +26,7 @@ final class CBP_Site_Displays
     {
         add_shortcode('church_worship_week', array($this, 'worship_week_shortcode'));
         add_shortcode('church_parish_events', array($this, 'parish_events_shortcode'));
+        add_shortcode('church_online_giving', array($this, 'online_giving_shortcode'));
     }
 
     public function worship_week_shortcode($atts)
@@ -134,6 +135,46 @@ final class CBP_Site_Displays
                 ? $this->render_rows($events, 0, 'event')
                 : $this->empty_message(__('No parish events were approved for this week.', 'church-bulletin-publisher'));
             ?>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+
+    public function online_giving_shortcode($atts)
+    {
+        $atts = shortcode_atts(array(
+            'height' => '1150',
+        ), $atts, 'church_online_giving');
+        $height = absint($atts['height']);
+        if ($height < 700) {
+            $height = 700;
+        } elseif ($height > 1800) {
+            $height = 1800;
+        }
+
+        $this->enqueue_assets();
+        $giving_url = 'https://godonate.akoyago.com/northland/fund/write%20your%20parish%20city%20and%20name';
+
+        ob_start();
+        ?>
+        <div class="cbp-online-giving">
+            <div class="cbp-online-giving__intro">
+                <h2><?php esc_html_e('Secure Parish Giving', 'church-bulletin-publisher'); ?></h2>
+                <p><?php esc_html_e('Please choose “Designated purpose” and enter your city and parish name so the Foundation can direct your gift to the correct parish.', 'church-bulletin-publisher'); ?></p>
+            </div>
+            <div class="cbp-online-giving__frame-wrap">
+                <iframe
+                    class="cbp-online-giving__frame"
+                    src="<?php echo esc_url($giving_url); ?>"
+                    title="<?php echo esc_attr__('Northland Catholic Community Foundation secure parish giving', 'church-bulletin-publisher'); ?>"
+                    style="height:<?php echo esc_attr($height); ?>px"
+                    loading="eager"
+                    allow="payment *"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                ></iframe>
+            </div>
+            <p class="cbp-online-giving__fallback"><?php esc_html_e('If the secure giving form does not appear above, open the Northland Catholic Community Foundation giving page directly.', 'church-bulletin-publisher'); ?></p>
+            <p class="cbp-online-giving__button-wrap"><a class="cbp-online-giving__button" href="<?php echo esc_url($giving_url); ?>" target="_blank" rel="noreferrer noopener"><?php esc_html_e('Open Secure Giving in a New Window', 'church-bulletin-publisher'); ?></a></p>
         </div>
         <?php
         return ob_get_clean();
