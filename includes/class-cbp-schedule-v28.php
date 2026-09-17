@@ -141,7 +141,9 @@ final class CBP_Schedule_V28
         foreach ($lines as $line) {
             $line = trim((string) $line);
             if (! $started) {
-                if (preg_match('/This\s+week[^A-Za-z0-9]?s\s+Mass\s+schedule/i', $line)) {
+                // Match the actual UTF-8 curly apostrophe used by parish PDFs,
+                // as well as a straight apostrophe or apostrophe-free wording.
+                if (preg_match('/This\s+week(?:[\'’]s|s)\s+Mass\s+schedule/iu', $line)) {
                     $started = true;
                 }
                 continue;
