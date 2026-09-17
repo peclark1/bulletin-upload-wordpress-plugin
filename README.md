@@ -70,7 +70,21 @@ The Makefile reads the plugin version automatically from `bulletin-upload-wordpr
 
 `../church-bulletin-publisher-0.3.2.zip`
 
-The builder excludes `.git`, `.github`, and local ZIP/desktop metadata files. Use `make clean` to remove the generated package and `make info` to show the detected version and output path.
+The builder excludes `.git`, `.github`, regression fixtures under `tests`, and local ZIP/desktop metadata files. Use `make clean` to remove the generated package and `make info` to show the detected version and output path.
+
+## Regression testing
+
+The bulletin parser has a golden-fixture regression suite under `tests/`. Each fixture pairs a manually reviewed expected result with bulletin source material. The expected data must be derived from a human review of the bulletin rather than generated from the parser itself.
+
+Run it locally with:
+
+```bash
+make test
+```
+
+The test-build GitHub Action now runs PHP lint, then the regression suite, and only builds/uploads the WordPress ZIP when both pass. A parser regression therefore stops the artifact build before a new test ZIP is published.
+
+Original bulletin PDFs are preferred as fixtures because PDF text extraction is part of what needs testing. When automation cannot commit a binary source directly, the harness can also wrap a reviewed text fixture in a deterministic PDF so the real PDF parser is still exercised. See `tests/regression/README.md` for the fixture format and rules for adding cases.
 
 ## Install / upgrade
 
