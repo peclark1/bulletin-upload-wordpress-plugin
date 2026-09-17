@@ -8,6 +8,11 @@ on:
       - 'tests/candidate-bulletins/**'
       - 'tests/regression/extract-candidates.php'
       - '.github/workflows/extract-candidate-bulletins.yml'
+  pull_request:
+    paths:
+      - 'tests/candidate-bulletins/**'
+      - 'tests/regression/extract-candidates.php'
+      - '.github/workflows/extract-candidate-bulletins.yml'
   workflow_dispatch:
 
 jobs:
