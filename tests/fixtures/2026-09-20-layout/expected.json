@@ -1,0 +1,54 @@
+{
+  "name": "September 20, 2026 layout and schedule edge cases",
+  "bulletin_date": "2026-09-20",
+  "notes": "Sanitized fixture based on the human-reviewed September 20 bulletin structure. It retains the multiple-Mass Saturday, recurring schedule change, intention types, and the intentionally inconsistent Saturday September 25 heading.",
+  "current_schedule": {
+    "st_peter_saturday": "5:00 PM",
+    "st_peter_sunday": "8:30 AM",
+    "st_mary_sunday": "11:00 AM",
+    "reconciliation": "Saturday 8:00 AM & 4:00 PM",
+    "adoration": "Thursday 6:00 AM–1:00 PM"
+  },
+  "expected": {
+    "candidates": {
+      "st_peter_saturday": "5:00 PM",
+      "st_peter_sunday": "9:00 AM",
+      "st_mary_sunday": "11:00 AM",
+      "reconciliation": "Saturday 4:00 PM–4:30 PM",
+      "adoration": "Wednesday 5:30 PM–8:00 PM; Thursday 6:00 AM–5:00 PM"
+    },
+    "counts": {
+      "masses": 8
+    },
+    "masses": [
+      {"date":"2026-09-22","time":"5:30 PM","location":"St. Peter","title":"Mass","description":"† Weekday Intention One"},
+      {"date":"2026-09-23","time":"12:10 PM","location":"St. Peter","title":"Mass","description":"† Weekday Intention Two"},
+      {"date":"2026-09-24","time":"8:30 AM","location":"St. Mary’s","title":"Mass","description":"† Weekday Intention Three"},
+      {"date":"2026-09-25","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"† Weekday Intention Four"},
+      {"date":"2026-09-26","time":"11:00 AM","location":"St. Peter","title":"Funeral Mass","description":"Parishioner"},
+      {"date":"2026-09-26","time":"5:00 PM","location":"St. Peter","title":"Mass","description":"† Deceased Family Members"},
+      {"date":"2026-09-27","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"Sunday Intention"},
+      {"date":"2026-09-27","time":"11:00 AM","location":"St. Mary’s","title":"Mass","description":"For the People"}
+    ],
+    "devotions_required": [
+      {"date":"2026-09-23","time":"5:30 PM–8:00 PM","location":"St. Peter","title":"Adoration"},
+      {"date":"2026-09-24","time":"6:00 AM–5:00 PM","location":"St. Peter","title":"Adoration"},
+      {"date":"2026-09-26","time":"4:00 PM–4:30 PM","title":"Reconciliation"},
+      {"date":"2026-09-27","time":"8:30 AM","location":"St. Peter","title":"Rosary"},
+      {"date":"2026-09-27","time":"10:30 AM","location":"St. Mary’s","title":"Rosary"}
+    ],
+    "events_required": [
+      {"date":"2026-09-21","time":"10:00 AM","location":"St. Peter","title_contains":"Bible Study"},
+      {"date":"2026-09-22","time":"7:00 PM","location":"St. Mary’s","title_contains":"Young Adult Scripture Study"},
+      {"date":"2026-09-23","time":"6:00 PM","location":"St. Peter","title_contains":"Alpha"},
+      {"date":"2026-09-24","time":"9:00 AM","location":"St. Peter","title_contains":"Men’s Bible Study"},
+      {"date":"2026-09-27","location":"St. Peter","title_contains":"Coffee & Rolls"}
+    ],
+    "livestream_contains": ["Sunday Mass & Rosary are live streamed at stpeterpr.org"],
+    "warning_contains": [
+      "St. Peter Sunday Mass is currently 8:30 AM",
+      "St. Mary’s Sunday Mass was initially parsed as 10:00 AM",
+      "Date/day mismatch"
+    ]
+  }
+}
