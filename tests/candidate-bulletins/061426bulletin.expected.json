@@ -1,0 +1,45 @@
+{
+  "name": "June 14, 2026 summer schedule with memorial service inside Mass schedule",
+  "bulletin_date": "2026-06-14",
+  "notes": "Human-reviewed from the original June 14 bulletin. Covers stable summer recurring times and a Saturday Theresa Hauber memorial service listed within the Mass-schedule block that should remain a special service rather than contaminate recurring Mass times.",
+  "current_schedule": {
+    "st_peter_saturday": "5:00 PM",
+    "st_peter_sunday": "8:30 AM",
+    "st_mary_sunday": "10:30 AM",
+    "reconciliation": "Saturday 4:00 PM–4:30 PM",
+    "adoration": "Thursday 6:00 AM–4:00 PM"
+  },
+  "expected": {
+    "candidates": {
+      "st_peter_saturday": "5:00 PM",
+      "st_peter_sunday": "8:30 AM",
+      "st_mary_sunday": "10:30 AM",
+      "reconciliation": "Saturday 4:00 PM–4:30 PM",
+      "adoration": "Thursday 6:00 AM–4:00 PM"
+    },
+    "counts": {"masses": 8},
+    "masses": [
+      {"date":"2026-06-16","time":"5:30 PM","location":"St. Peter","title":"Mass","description":"† Cynthia Wells"},
+      {"date":"2026-06-17","time":"12:10 PM","location":"St. Peter","title":"Mass","description":"† Norman Georgina, Sr."},
+      {"date":"2026-06-18","time":"8:30 AM","location":"St. Mary’s","title":"Mass","description":"† Kimberly Wettels"},
+      {"date":"2026-06-19","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"† Thomas Meyer"},
+      {"date":"2026-06-20","time":"1:00 PM","location":"St. Peter","title":"Memorial Service","description":"† Theresa Hauber"},
+      {"date":"2026-06-20","time":"5:00 PM","location":"St. Peter","title":"Mass","description":"† Bernie Voegtle"},
+      {"date":"2026-06-21","time":"8:30 AM","location":"St. Peter","title":"Mass","description":"† Jim Mack"},
+      {"date":"2026-06-21","time":"10:30 AM","location":"St. Mary’s","title":"Mass","description":"For the People"}
+    ],
+    "devotions_required": [
+      {"date":"2026-06-18","time":"6:00 AM–4:00 PM","location":"St. Peter","title":"Adoration"},
+      {"date":"2026-06-20","time":"4:00 PM–4:30 PM","title":"Reconciliation"},
+      {"date":"2026-06-21","time":"8:00 AM","location":"St. Peter","title":"Rosary"},
+      {"date":"2026-06-21","time":"10:00 AM","location":"St. Mary’s","title":"Rosary"}
+    ],
+    "events_required": [
+      {"date":"2026-06-15","time":"5:00 PM","location":"St. Peter","title_contains":"St. Vincent de Paul"},
+      {"date":"2026-06-16","time":"5:30 PM","location":"St. Peter","title_contains":"Peter’s Table"},
+      {"date":"2026-06-17","time":"6:00 PM","location":"St. Mary’s","title_contains":"All Parish Meeting"},
+      {"date":"2026-06-20","time":"1:00 PM","location":"St. Peter","title_contains":"Theresa Hauber Memorial Service"}
+    ],
+    "livestream_contains": ["Sunday Mass & Rosary are live streamed at stpeterpr.org"]
+  }
+}

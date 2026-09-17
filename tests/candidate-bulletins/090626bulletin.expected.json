@@ -1,0 +1,48 @@
+{
+  "name": "September 6, 2026 transition back to school-year schedule with off-site Mass",
+  "bulletin_date": "2026-09-06",
+  "notes": "Human-reviewed from the original September 6 bulletin. Covers a Heritage Living Center Mass, the explicit School Year Mass & Adoration Schedule beginning September 13, and transition from summer Sunday and Adoration times.",
+  "current_schedule": {
+    "st_peter_saturday": "5:00 PM",
+    "st_peter_sunday": "8:30 AM",
+    "st_mary_sunday": "10:30 AM",
+    "reconciliation": "Saturday 4:00 PM–4:30 PM",
+    "adoration": "Thursday 6:00 AM–4:00 PM"
+  },
+  "expected": {
+    "candidates": {
+      "st_peter_saturday": "5:00 PM",
+      "st_peter_sunday": "9:00 AM",
+      "st_mary_sunday": "11:00 AM",
+      "reconciliation": "Saturday 4:00 PM–4:30 PM",
+      "adoration": "Wednesday 5:30 PM–8:00 PM; Thursday 6:00 AM–5:00 PM"
+    },
+    "counts": {"masses": 7},
+    "masses": [
+      {"date":"2026-09-08","time":"5:30 PM","location":"St. Peter","title":"Mass","description":"In Thanksgiving for Bob Shepard"},
+      {"date":"2026-09-09","time":"10:00 AM","location":"Heritage Senior Living Center","title":"Mass","description":"† Tom Wermerskirchen"},
+      {"date":"2026-09-10","time":"8:30 AM","location":"St. Mary’s","title":"Mass","description":"† Kimberly Wettels"},
+      {"date":"2026-09-11","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"Cleo & Rose Williams"},
+      {"date":"2026-09-12","time":"5:00 PM","location":"St. Peter","title":"Mass","description":"† Tom Spahn"},
+      {"date":"2026-09-13","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"For the People"},
+      {"date":"2026-09-13","time":"11:00 AM","location":"St. Mary’s","title":"Mass","description":"† Alex Schroeder"}
+    ],
+    "devotions_required": [
+      {"date":"2026-09-10","time":"6:00 AM–5:00 PM","location":"St. Peter","title":"Adoration"},
+      {"date":"2026-09-12","time":"4:00 PM–4:30 PM","title":"Reconciliation"},
+      {"date":"2026-09-13","time":"8:30 AM","location":"St. Peter","title":"Rosary"},
+      {"date":"2026-09-13","time":"10:30 AM","location":"St. Mary’s","title":"Rosary"}
+    ],
+    "events_required": [
+      {"date":"2026-09-07","time":"5:00 PM","location":"St. Peter","title_contains":"St. Vincent de Paul"},
+      {"date":"2026-09-08","time":"9:00 AM","location":"St. Peter","title_contains":"Quilt Group"},
+      {"date":"2026-09-13","location":"St. Peter","title_contains":"Confirmation"},
+      {"date":"2026-09-13","location":"St. Mary’s","title_contains":"Confirmation"}
+    ],
+    "livestream_contains": ["Sunday Mass & Rosary are live streamed at stpeterpr.org"],
+    "warning_contains": [
+      "St. Peter Sunday Mass is currently 8:30 AM",
+      "St. Mary’s Sunday Mass is currently 10:30 AM"
+    ]
+  }
+}

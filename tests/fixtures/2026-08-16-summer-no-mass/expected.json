@@ -1,0 +1,45 @@
+{
+  "name": "August 16, 2026 summer schedule with NO MASS days",
+  "bulletin_date": "2026-08-16",
+  "notes": "Sanitized fixture based on the human-reviewed August 16 bulletin. It covers summer weekend times, two explicit NO MASS days, multiple deceased intentions, a living-family intention, Thursday summer Adoration, and an off-site Liturgy of the Word that must not become a Mass.",
+  "current_schedule": {
+    "st_peter_saturday": "5:00 PM",
+    "st_peter_sunday": "8:30 AM",
+    "st_mary_sunday": "10:30 AM",
+    "reconciliation": "Saturday 4:00 PM–4:30 PM",
+    "adoration": "Thursday 6:00 AM–4:00 PM"
+  },
+  "expected": {
+    "candidates": {
+      "st_peter_saturday": "5:00 PM",
+      "st_peter_sunday": "8:30 AM",
+      "st_mary_sunday": "10:30 AM",
+      "reconciliation": "Saturday 4:00 PM–4:30 PM",
+      "adoration": "Thursday 6:00 AM–4:00 PM"
+    },
+    "counts": {"masses":7},
+    "masses": [
+      {"date":"2026-08-18","time":"5:30 PM","location":"St. Peter","title":"Mass","description":"† Weekday Intention"},
+      {"date":"2026-08-19","time":"","location":"St. Peter","title":"No Mass","description":"Wednesday, August 19th NO MASS at St. Peter's"},
+      {"date":"2026-08-20","time":"","location":"St. Mary’s","title":"No Mass","description":"Thursday, August 20th NO MASS at St. Mary's"},
+      {"date":"2026-08-21","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"Family Intention"},
+      {"date":"2026-08-22","time":"5:00 PM","location":"St. Peter","title":"Mass","description":"† Deceased One & † Deceased Two"},
+      {"date":"2026-08-23","time":"8:30 AM","location":"St. Peter","title":"Mass","description":"† Deceased Three & † Deceased Four"},
+      {"date":"2026-08-23","time":"10:30 AM","location":"St. Mary’s","title":"Mass","description":"For the People"}
+    ],
+    "devotions_required": [
+      {"date":"2026-08-20","time":"6:00 AM–4:00 PM","location":"St. Peter","title":"Adoration"},
+      {"date":"2026-08-22","time":"4:00 PM–4:30 PM","title":"Reconciliation"},
+      {"date":"2026-08-23","time":"8:00 AM","location":"St. Peter","title":"Rosary"},
+      {"date":"2026-08-23","time":"10:00 AM","location":"St. Mary’s","title":"Rosary"}
+    ],
+    "events_required": [
+      {"date":"2026-08-18","time":"9:00 AM","location":"St. Peter","title_contains":"Quilt Group"},
+      {"date":"2026-08-19","time":"10:30 AM","title_contains":"Crystal Brook"},
+      {"date":"2026-08-19","time":"6:00 PM","location":"St. Mary’s","title_contains":"Alpha"},
+      {"date":"2026-08-20","time":"10:30 AM","location":"St. Peter","title_contains":"Scripture Study"},
+      {"date":"2026-08-23","location":"St. Peter","title_contains":"Coffee & Rolls"}
+    ],
+    "livestream_contains": ["Sunday Mass & Rosary are live streamed at stpeterpr.org"]
+  }
+}

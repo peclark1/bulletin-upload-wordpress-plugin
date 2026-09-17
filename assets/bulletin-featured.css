@@ -1,0 +1,121 @@
+.cbp-featured-bulletin--document{
+    grid-template-columns:minmax(240px,.72fr) minmax(0,1.55fr);
+    align-items:center;
+}
+
+.cbp-featured-bulletin__preview{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+}
+
+.cbp-featured-bulletin__paper{
+    position:relative;
+    width:min(100%,280px);
+    aspect-ratio:8.5 / 11;
+    background:#fff;
+    border:1px solid var(--cbp-border);
+    border-radius:4px;
+    box-shadow:0 10px 24px rgba(0,0,0,.16);
+    overflow:hidden;
+}
+
+.cbp-featured-bulletin__viewer{
+    display:block;
+    width:100%;
+    height:100%;
+    border:0;
+    background:#fff;
+    pointer-events:none;
+}
+
+.cbp-featured-bulletin__fallback{
+    box-sizing:border-box;
+    width:100%;
+    height:100%;
+    padding:28px 22px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:18px;
+    text-align:center;
+    color:var(--cbp-brand);
+    background:var(--cbp-surface);
+}
+
+.cbp-featured-bulletin__fallback span:first-child{
+    color:var(--cbp-accent);
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:1.3px;
+    text-transform:uppercase;
+}
+
+.cbp-featured-bulletin__fallback strong{
+    font-size:22px;
+    line-height:1.25;
+}
+
+.cbp-featured-bulletin__fallback span:last-child{
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:1px;
+}
+
+.cbp-featured-bulletin__preview-link{
+    position:absolute;
+    inset:0;
+    z-index:3;
+    display:block;
+    text-decoration:none;
+    cursor:pointer;
+}
+
+.cbp-featured-bulletin__preview-link:focus-visible{
+    outline:3px solid var(--cbp-accent);
+    outline-offset:-4px;
+}
+
+.cbp-featured-bulletin__preview-action{
+    position:absolute;
+    left:50%;
+    bottom:14px;
+    transform:translateX(-50%);
+    padding:8px 12px;
+    border-radius:999px;
+    color:#fff;
+    background:rgba(20,35,55,.88);
+    font-size:12px;
+    font-weight:700;
+    line-height:1.1;
+    white-space:nowrap;
+    box-shadow:0 2px 8px rgba(0,0,0,.18);
+}
+
+.cbp-featured-bulletin__paper:hover .cbp-featured-bulletin__preview-action,
+.cbp-featured-bulletin__preview-link:focus-visible .cbp-featured-bulletin__preview-action{
+    background:var(--cbp-brand);
+}
+
+.cbp-featured-bulletin__preview-caption{
+    color:var(--cbp-subtle);
+    font-size:13px;
+    line-height:1.35;
+    text-align:center;
+}
+
+@media(max-width:760px){
+    .cbp-featured-bulletin--document{
+        grid-template-columns:1fr;
+    }
+
+    .cbp-featured-bulletin__paper{
+        width:min(100%,250px);
+    }
+
+    .cbp-featured-bulletin__preview-caption{
+        font-size:12px;
+    }
+}

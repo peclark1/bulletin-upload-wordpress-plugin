@@ -1,0 +1,44 @@
+{
+  "name": "August 23, 2026 late-summer schedule with one NO MASS day",
+  "bulletin_date": "2026-08-23",
+  "notes": "Human-reviewed from the original August 23 bulletin. Covers one explicit NO MASS Wednesday, a living-family intention, stable summer recurring Mass and Adoration times, and Heritage Living Center Rosary.",
+  "current_schedule": {
+    "st_peter_saturday": "5:00 PM",
+    "st_peter_sunday": "8:30 AM",
+    "st_mary_sunday": "10:30 AM",
+    "reconciliation": "Saturday 4:00 PM–4:30 PM",
+    "adoration": "Thursday 6:00 AM–4:00 PM"
+  },
+  "expected": {
+    "candidates": {
+      "st_peter_saturday": "5:00 PM",
+      "st_peter_sunday": "8:30 AM",
+      "st_mary_sunday": "10:30 AM",
+      "reconciliation": "Saturday 4:00 PM–4:30 PM",
+      "adoration": "Thursday 6:00 AM–4:00 PM"
+    },
+    "counts": {"masses": 7},
+    "masses": [
+      {"date":"2026-08-25","time":"5:30 PM","location":"St. Peter","title":"Mass","description":"† Marie Heinen"},
+      {"date":"2026-08-26","time":"","location":"St. Peter","title":"No Mass","description":"Wednesday, August 26th NO MASS at St. Peter’s"},
+      {"date":"2026-08-27","time":"8:30 AM","location":"St. Mary’s","title":"Mass","description":"† John Pence"},
+      {"date":"2026-08-28","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"Chad & Austin Doris & Family"},
+      {"date":"2026-08-29","time":"5:00 PM","location":"St. Peter","title":"Mass","description":"† Tom Wermerskirchen"},
+      {"date":"2026-08-30","time":"8:30 AM","location":"St. Peter","title":"Mass","description":"† Richard Tandsater"},
+      {"date":"2026-08-30","time":"10:30 AM","location":"St. Mary’s","title":"Mass","description":"For the People"}
+    ],
+    "devotions_required": [
+      {"date":"2026-08-27","time":"6:00 AM–4:00 PM","location":"St. Peter","title":"Adoration"},
+      {"date":"2026-08-29","time":"4:00 PM–4:30 PM","title":"Reconciliation"},
+      {"date":"2026-08-30","time":"8:00 AM","location":"St. Peter","title":"Rosary"},
+      {"date":"2026-08-30","time":"10:00 AM","location":"St. Mary’s","title":"Rosary"}
+    ],
+    "events_required": [
+      {"date":"2026-08-24","time":"10:00 AM","title_contains":"Heritage Living"},
+      {"date":"2026-08-24","time":"6:00 PM","location":"St. Peter","title_contains":"Civil Air Patrol"},
+      {"date":"2026-08-24","time":"7:00 PM","location":"St. Mary’s","title_contains":"Guild"},
+      {"date":"2026-08-30","location":"St. Peter","title_contains":"Coffee & Rolls"}
+    ],
+    "livestream_contains": ["Sunday Mass & Rosary are live streamed at stpeterpr.org"]
+  }
+}
