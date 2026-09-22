@@ -49,7 +49,7 @@ final class PFORM_Renderer
                     </div>
 
                     <?php foreach ($definition['sections'] as $section) : ?>
-                        <section class="pform-section" <?php echo self::condition_attributes(isset($section['condition']) ? $section['condition'] : null); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+                        <section class="pform-section" data-pform-section="<?php echo esc_attr($section['id']); ?>" <?php echo self::condition_attributes(isset($section['condition']) ? $section['condition'] : null); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
                             <div class="pform-section__heading">
                                 <h3><?php echo esc_html($section['title']); ?></h3>
                                 <?php if (! empty($section['description'])) : ?>
@@ -97,7 +97,7 @@ final class PFORM_Renderer
             <?php if ($field['type'] === 'radio' || $field['type'] === 'checkboxes') : ?>
                 <fieldset <?php echo $error ? 'aria-describedby="' . esc_attr($html_id . '-error') . '"' : ''; ?>>
                     <legend><?php self::label_text($field); ?></legend>
-                    <div class="pform-options <?php echo count($field['options']) > 5 ? 'pform-options--columns' : ''; ?>">
+                    <div class="pform-options <?php echo count($field['options']) > 5 ? 'pform-options--columns' : ''; ?> <?php echo $id === 'ministries' ? 'pform-options--ministries' : ''; ?>">
                         <?php foreach ($field['options'] as $option_value => $option_label) : ?>
                             <?php $option_id = $html_id . '-' . sanitize_html_class($option_value); ?>
                             <label class="pform-option" for="<?php echo esc_attr($option_id); ?>">
