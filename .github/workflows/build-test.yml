@@ -1,9 +1,10 @@
-name: Build test plugin ZIP
+name: Build WordPress plugin ZIPs
 
 on:
   push:
     branches:
-      - feature/php-schedule-review
+      - main
+      - integration/parish-forms-v0.1
   workflow_dispatch:
 
 jobs:
@@ -39,18 +40,32 @@ jobs:
           path: tests/regression-output/*.actual.json
           if-no-files-found: ignore
 
-      - name: Build ZIP
+      - name: Run Parish Forms tests
+        run: make test-parish-forms
+
+      - name: Build both plugin ZIPs
         id: build
         run: |
-          make zip
+          make plugins
           VERSION=$(sed -n 's/^[[:space:]]*\* Version:[[:space:]]*//p' bulletin-upload-wordpress-plugin.php | head -n 1)
           ZIP_NAME="church-bulletin-publisher-${VERSION}.zip"
           cp "../${ZIP_NAME}" "./${ZIP_NAME}"
+          PARISH_VERSION=$(sed -n 's/^[[:space:]]*\* Version:[[:space:]]*//p' parish-forms/parish-forms.php | head -n 1)
+          PARISH_ZIP_NAME="parish-forms-${PARISH_VERSION}.zip"
+          cp "../${PARISH_ZIP_NAME}" "./${PARISH_ZIP_NAME}"
           echo "zip_name=${ZIP_NAME}" >> "$GITHUB_OUTPUT"
+          echo "parish_zip_name=${PARISH_ZIP_NAME}" >> "$GITHUB_OUTPUT"
 
-      - name: Upload test ZIP
+      - name: Upload Bulletin Publisher ZIP
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.build.outputs.zip_name }}
           path: ${{ steps.build.outputs.zip_name }}
+          if-no-files-found: error
+
+      - name: Upload Parish Forms ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.build.outputs.parish_zip_name }}
+          path: ${{ steps.build.outputs.parish_zip_name }}
           if-no-files-found: error
