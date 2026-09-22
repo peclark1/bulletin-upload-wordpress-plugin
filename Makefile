@@ -4,7 +4,7 @@ VERSION := $(shell sed -n 's/^[[:space:]]*\* Version:[[:space:]]*//p' $(PLUGIN_F
 ZIP_NAME := church-bulletin-publisher-$(VERSION).zip
 ZIP_PATH := ../$(ZIP_NAME)
 PARISH_PLUGIN_FILE := parish-forms/parish-forms.php
-PARISH_VERSION := $(shell sed -n 's/^[[:space:]]*\\* Version:[[:space:]]*//p' $(PARISH_PLUGIN_FILE) | head -n 1)
+PARISH_VERSION := $(shell sed -n 's/^[[:space:]]*\* Version:[[:space:]]*//p' $(PARISH_PLUGIN_FILE) | head -n 1)
 PARISH_ZIP_NAME := parish-forms-$(PARISH_VERSION).zip
 PARISH_ZIP_PATH := ../$(PARISH_ZIP_NAME)
 
