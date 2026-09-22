@@ -383,3 +383,60 @@
         grid-column: span 6;
     }
 }
+
+
+/* Corrective layout pass after live theme testing. */
+.pform-grid > .pform-field--ministries,
+.pform-grid > .pform-field--other-interests {
+    grid-column: 1 / -1;
+    min-width: 0;
+}
+
+.pform-field--ministries .pform-options--ministries {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .65rem 2rem;
+}
+
+.pform-field--ministries .pform-option {
+    min-width: 0;
+}
+
+.pform-field--ministries .pform-option span {
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+.pform-repeater__item button.pform-remove {
+    display: inline-flex;
+    min-height: 38px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1rem;
+    padding: .45rem .8rem;
+    border: 1px solid #b55a5a;
+    border-radius: 5px;
+    background: #fff;
+    color: #8b1d1d;
+    font: inherit;
+    font-weight: 700;
+    line-height: 1.2;
+    text-decoration: none;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.pform-repeater__item button.pform-remove:hover,
+.pform-repeater__item button.pform-remove:focus {
+    border-color: #8b1d1d;
+    background: #fff5f5;
+    color: #6f1717;
+    text-decoration: none;
+}
+
+@media (max-width: 760px) {
+    .pform-field--ministries .pform-options--ministries {
+        grid-template-columns: 1fr;
+    }
+}
