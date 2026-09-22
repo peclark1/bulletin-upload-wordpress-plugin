@@ -1,0 +1,90 @@
+/*
+ * Kadence global-palette bridge for the existing prototype pages.
+ *
+ * The prototype was originally built with fixed hex colors. These selectors
+ * translate those known legacy values to Kadence's semantic palette slots at
+ * render time so Appearance > Customize > Colors & Fonts > Colors becomes the
+ * single place to experiment with the site's color scheme.
+ *
+ * Kadence roles used here:
+ *   palette2  Accent Alt / brand dark
+ *   palette3  Strongest text
+ *   palette4  Strong text / body
+ *   palette5  Medium text
+ *   palette6  Subtle text
+ *   palette7  Subtle background / borders
+ *   palette8  Lighter background
+ *   palette9  White / off-white
+ *   palette10 Accent Complement
+ */
+
+/* Brand blue / dark accent. */
+body [style^="color:#243b63"],
+body [style*=";color:#243b63"] {
+    color: var(--global-palette2, #243b63) !important;
+}
+body [style*="background-color:#243b63"] {
+    background-color: var(--global-palette2, #243b63) !important;
+}
+
+/* Strong and body copy. */
+body [style^="color:#29364a"],
+body [style*=";color:#29364a"] {
+    color: var(--global-palette3, #29364a) !important;
+}
+body [style^="color:#465267"],
+body [style*=";color:#465267"] {
+    color: var(--global-palette4, #465267) !important;
+}
+body [style^="color:#596579"],
+body [style*=";color:#596579"] {
+    color: var(--global-palette5, #596579) !important;
+}
+body [style^="color:#6a7484"],
+body [style*=";color:#6a7484"] {
+    color: var(--global-palette6, #6a7484) !important;
+}
+
+/* Complement accent: the gold used throughout the prototype. */
+body [style^="color:#a77d2f"],
+body [style*=";color:#a77d2f"],
+body [style^="color:#e7c77d"],
+body [style*=";color:#e7c77d"] {
+    color: var(--global-palette10, #a77d2f) !important;
+}
+body [style*="background-color:#c69b49"],
+body [style*="background-color:#a77d2f"] {
+    background-color: var(--global-palette10, #c69b49) !important;
+}
+
+/* Light text and surfaces. */
+body [style^="color:#ffffff"],
+body [style*=";color:#ffffff"] {
+    color: var(--global-palette9, #ffffff) !important;
+}
+body [style*="background-color:#ffffff"] {
+    background-color: var(--global-palette9, #ffffff) !important;
+}
+body [style^="color:#e9edf4"],
+body [style*=";color:#e9edf4"] {
+    color: var(--global-palette8, #e9edf4) !important;
+}
+
+/* Alternate section/card backgrounds. */
+body [style*="background-color:#f5f2eb"],
+body [style*="background:#faf8f3"] {
+    background-color: var(--global-palette8, #f5f2eb) !important;
+    background: var(--global-palette8, #f5f2eb) !important;
+}
+body [style*="background-color:#efe5cf"] {
+    background-color: var(--global-palette7, #efe5cf) !important;
+}
+
+/* Existing warm neutral borders follow the subtle-background slot. */
+body [style*="border-color:#ded8cd"],
+body [style*="border-color:#dfd2b4"],
+body [style*="border-color:#e3ddd1"],
+body [style*="border-color:#e7dfd0"],
+body [style*="border-color:#e8e2d7"] {
+    border-color: var(--global-palette7, #e3ddd1) !important;
+}

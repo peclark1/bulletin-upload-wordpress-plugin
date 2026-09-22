@@ -1,0 +1,56 @@
+name: Build test plugin ZIP
+
+on:
+  push:
+    branches:
+      - feature/php-schedule-review
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: xml, mbstring, zlib, iconv
+          tools: composer:v2
+
+      - name: Install production dependencies
+        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+
+      - name: Lint plugin PHP
+        run: find . -path './vendor' -prune -o -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Run bulletin parser regression suite
+        run: |
+          php tests/regression/run.php
+          php tests/regression/run-candidates.php
+
+      - name: Upload candidate regression diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: candidate-regression-diagnostics
+          path: tests/regression-output/*.actual.json
+          if-no-files-found: ignore
+
+      - name: Build ZIP
+        id: build
+        run: |
+          make zip
+          VERSION=$(sed -n 's/^[[:space:]]*\* Version:[[:space:]]*//p' bulletin-upload-wordpress-plugin.php | head -n 1)
+          ZIP_NAME="church-bulletin-publisher-${VERSION}.zip"
+          cp "../${ZIP_NAME}" "./${ZIP_NAME}"
+          echo "zip_name=${ZIP_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload test ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.build.outputs.zip_name }}
+          path: ${{ steps.build.outputs.zip_name }}
+          if-no-files-found: error

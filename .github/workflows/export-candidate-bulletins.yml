@@ -1,0 +1,23 @@
+name: Export candidate bulletins
+
+on:
+  push:
+    paths:
+      - 'tests/candidate-bulletins/**'
+      - '.github/workflows/export-candidate-bulletins.yml'
+  workflow_dispatch:
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Upload candidate bulletin PDFs
+        uses: actions/upload-artifact@v4
+        with:
+          name: candidate-bulletins
+          path: tests/candidate-bulletins/*.pdf
+          if-no-files-found: error
+          compression-level: 0
