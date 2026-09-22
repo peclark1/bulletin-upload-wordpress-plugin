@@ -126,6 +126,17 @@ final class CBP_Home_Schedule
             $date = isset($row['date']) ? sanitize_text_field($row['date']) : '';
             $time = isset($row['time']) ? sanitize_text_field($row['time']) : '';
             $location = isset($row['location']) ? sanitize_text_field($row['location']) : '';
+            $title = isset($row['title']) ? sanitize_text_field($row['title']) : '';
+            $description = isset($row['description']) ? sanitize_text_field($row['description']) : '';
+
+            // The weekly calendar intentionally contains every Mass, including
+            // funerals and other special liturgies. Those belong on the calendar,
+            // but must not replace the parish's regular weekend Mass times on the
+            // homepage. Recurring schedule changes are handled through the
+            // separately reviewed schedule option.
+            if ($this->is_special_mass($title, $description)) {
+                continue;
+            }
 
             if ($time === '' || ! $this->valid_date($date) || $date < $today) {
                 continue;
@@ -164,6 +175,20 @@ final class CBP_Home_Schedule
         }
 
         return $schedule;
+    }
+
+    private function is_special_mass($title, $description)
+    {
+        $text = strtolower(trim($title . ' ' . $description));
+
+        if ($text === '') {
+            return false;
+        }
+
+        return (bool) preg_match(
+            '/\\b(funeral|wedding|nuptial|memorial|quincea(?:n|ñ)era|confirmation|ordination)\\b/u',
+            $text
+        );
     }
 
     private function valid_date($date)
