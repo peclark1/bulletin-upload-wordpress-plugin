@@ -1,5 +1,7 @@
 # Church Bulletin Publisher
 
+This repository also contains the separately installable **Parish Forms** companion plugin. It does not change the Bulletin Publisher package. See [`parish-forms/README.md`](parish-forms/README.md), or run `make parish-forms` to build its WordPress installation ZIP.
+
 A small WordPress plugin for assembling weekly church bulletins without giving the secretary WordPress or hosting access.
 
 The weekly workflow is deliberately simple:
