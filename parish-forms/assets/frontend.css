@@ -440,3 +440,75 @@
         grid-template-columns: 1fr;
     }
 }
+
+
+/*
+ * Parish Involvement
+ * Keep this deliberately independent of theme grid/flex rules. The field itself
+ * spans the form grid; the option list owns its two-column layout.
+ */
+.pform-section[data-pform-section="involvement"] .pform-grid {
+    display: block;
+}
+
+.pform-section[data-pform-section="involvement"] .pform-field {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+}
+
+.pform-section[data-pform-section="involvement"] .pform-field--ministries {
+    margin-bottom: 1.4rem;
+}
+
+.pform-section[data-pform-section="involvement"] .pform-field--ministries fieldset {
+    display: block;
+    width: 100%;
+}
+
+.pform-section[data-pform-section="involvement"] .pform-field--ministries .pform-options {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .7rem 2.5rem;
+}
+
+.pform-section[data-pform-section="involvement"] .pform-field--ministries .pform-option {
+    display: grid;
+    grid-template-columns: 1.15rem minmax(0, 1fr);
+    gap: .65rem;
+    align-items: start;
+    width: auto;
+    min-width: 0;
+    margin: 0;
+    white-space: normal;
+}
+
+.pform-section[data-pform-section="involvement"] .pform-field--ministries .pform-option input {
+    margin-top: .2rem;
+}
+
+.pform-section[data-pform-section="involvement"] .pform-field--ministries .pform-option span {
+    display: block;
+    min-width: 0;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+.pform-section[data-pform-section="involvement"] .pform-field--other-interests {
+    margin-top: 0;
+}
+
+.pform-section[data-pform-section="involvement"] .pform-field--other-interests textarea {
+    display: block;
+    width: 100%;
+    min-height: 125px;
+}
+
+@media (max-width: 760px) {
+    .pform-section[data-pform-section="involvement"] .pform-field--ministries .pform-options {
+        grid-template-columns: 1fr;
+        gap: .65rem;
+    }
+}
