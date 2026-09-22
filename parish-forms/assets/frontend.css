@@ -1,0 +1,514 @@
+:root {
+    --pform-blue: #255b8f;
+    --pform-blue-dark: #183f66;
+    --pform-gold: #c78b16;
+    --pform-ink: #252525;
+    --pform-muted: #5b6168;
+    --pform-border: #d8cfbd;
+    --pform-surface: #fff;
+    --pform-soft: #f7f6f3;
+    --pform-error: #a42121;
+}
+
+.pform-shell {
+    max-width: 1080px;
+    margin: 2rem auto;
+    color: var(--pform-ink);
+    font-size: 1rem;
+    line-height: 1.55;
+}
+
+.pform-intro {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.pform-intro h2 {
+    margin: .15rem 0 .65rem;
+    color: var(--pform-blue);
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    line-height: 1.1;
+}
+
+.pform-eyebrow {
+    margin: 0;
+    color: var(--pform-gold);
+    font-size: .85rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.pform-section {
+    margin: 1.25rem 0;
+    padding: clamp(1.15rem, 3vw, 2rem);
+    border: 1px solid var(--pform-border);
+    border-radius: 14px;
+    background: var(--pform-surface);
+    box-shadow: 0 3px 16px rgba(24, 63, 102, .055);
+}
+
+.pform-section[hidden],
+.pform-field[hidden] {
+    display: none !important;
+}
+
+.pform-section__heading {
+    margin-bottom: 1.25rem;
+}
+
+.pform-section__heading h3 {
+    margin: 0;
+    color: var(--pform-blue-dark);
+    font-size: clamp(1.35rem, 3vw, 1.8rem);
+}
+
+.pform-section__heading p {
+    margin: .35rem 0 0;
+    color: var(--pform-muted);
+}
+
+.pform-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 1.15rem 1rem;
+}
+
+.pform-field--full,
+.pform-repeater {
+    grid-column: span 6;
+}
+
+.pform-field--half {
+    grid-column: span 3;
+}
+
+.pform-field--third {
+    grid-column: span 2;
+}
+
+.pform-field--two-thirds {
+    grid-column: span 4;
+}
+
+.pform-field label:not(.pform-option):not(.pform-consent),
+.pform-field legend,
+.pform-repeater__item > legend {
+    display: block;
+    margin: 0 0 .4rem;
+    color: var(--pform-ink);
+    font-weight: 700;
+}
+
+.pform-field fieldset,
+.pform-repeater__item {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.pform-field input[type="text"],
+.pform-field input[type="email"],
+.pform-field input[type="tel"],
+.pform-field input[type="date"],
+.pform-field textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 46px;
+    padding: .65rem .75rem;
+    border: 1px solid #aebccc;
+    border-radius: 5px;
+    background: #fff;
+    color: var(--pform-ink);
+    font: inherit;
+}
+
+.pform-field textarea {
+    min-height: 92px;
+    resize: vertical;
+}
+
+.pform-field input:focus,
+.pform-field textarea:focus {
+    border-color: var(--pform-blue);
+    outline: 3px solid rgba(37, 91, 143, .18);
+    outline-offset: 1px;
+}
+
+.pform-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .55rem 1.15rem;
+}
+
+.pform-options--columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.pform-option,
+.pform-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: .55rem;
+    cursor: pointer;
+}
+
+.pform-option input,
+.pform-consent input {
+    flex: 0 0 auto;
+    width: 1.15rem;
+    height: 1.15rem;
+    margin: .2rem 0 0;
+    accent-color: var(--pform-blue);
+}
+
+.pform-required,
+.pform-error {
+    color: var(--pform-error);
+}
+
+.pform-error {
+    margin: .4rem 0 0;
+    font-size: .9rem;
+    font-weight: 650;
+}
+
+.pform-field--error input[type="text"],
+.pform-field--error input[type="email"],
+.pform-field--error input[type="tel"],
+.pform-field--error input[type="date"],
+.pform-field--error textarea {
+    border-color: var(--pform-error);
+}
+
+.pform-repeater__item {
+    margin-bottom: 1rem;
+    padding: 1.15rem;
+    border: 1px solid #cad3dc;
+    border-radius: 9px;
+    background: var(--pform-soft);
+}
+
+.pform-repeater__item > legend {
+    padding: 0 .35rem;
+    color: var(--pform-blue-dark);
+    font-size: 1.2rem;
+}
+
+.pform-remove {
+    margin-top: 1rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #8b1d1d;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.pform-button {
+    display: inline-flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    padding: .7rem 1.25rem;
+    border: 2px solid var(--pform-blue);
+    border-radius: 5px;
+    background: var(--pform-blue);
+    color: #fff;
+    font: inherit;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.pform-button:hover,
+.pform-button:focus {
+    border-color: var(--pform-blue-dark);
+    background: var(--pform-blue-dark);
+    color: #fff;
+}
+
+.pform-button--secondary {
+    background: #fff;
+    color: var(--pform-blue);
+}
+
+.pform-submit {
+    margin-top: 1.25rem;
+    padding: 1.4rem;
+    border-radius: 10px;
+    background: var(--pform-blue-dark);
+    color: #fff;
+    text-align: center;
+}
+
+.pform-submit p {
+    margin: 0 0 1rem;
+}
+
+.pform-submit .pform-button {
+    border-color: #fff;
+}
+
+.pform-notice {
+    margin: 1rem 0 1.5rem;
+    padding: 1rem 1.25rem;
+    border-left: 5px solid var(--pform-blue);
+    border-radius: 4px;
+    background: #eef5fb;
+}
+
+.pform-notice--error {
+    border-color: var(--pform-error);
+    background: #fff1f1;
+}
+
+.pform-notice h2,
+.pform-notice h3,
+.pform-notice p {
+    margin-top: 0;
+}
+
+.pform-notice p:last-child {
+    margin-bottom: 0;
+}
+
+.pform-honeypot {
+    position: absolute !important;
+    left: -10000px !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+}
+
+@media (max-width: 760px) {
+    .pform-field--half,
+    .pform-field--third,
+    .pform-field--two-thirds {
+        grid-column: span 6;
+    }
+
+    .pform-options--columns {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pform-shell * {
+        scroll-behavior: auto !important;
+    }
+}
+
+
+/* v0.1 visual polish */
+.pform-field--phone-wide {
+    grid-column: span 3;
+}
+
+.pform-remove {
+    display: inline-flex;
+    min-height: 38px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1rem;
+    padding: .45rem .8rem;
+    border: 1px solid #b55a5a;
+    border-radius: 5px;
+    background: #fff;
+    color: #8b1d1d;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.pform-remove:hover,
+.pform-remove:focus {
+    border-color: #8b1d1d;
+    background: #fff5f5;
+    color: #6f1717;
+}
+
+.pform-section[data-pform-section="directory"] {
+    padding-bottom: 1.45rem;
+}
+
+.pform-section[data-pform-section="directory"] .pform-section__heading {
+    margin-bottom: .8rem;
+}
+
+.pform-options--ministries {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    column-gap: 2rem;
+    row-gap: .65rem;
+}
+
+.pform-field--ministries {
+    grid-column: span 6;
+}
+
+.pform-field--other-interests {
+    grid-column: span 6;
+}
+
+.pform-field--other-interests textarea {
+    min-height: 110px;
+}
+
+.pform-section[data-pform-section="stewardship"] .pform-options {
+    gap: .8rem 1.7rem;
+}
+
+.pform-consent {
+    line-height: 1.4;
+}
+
+.pform-consent span {
+    max-width: 58rem;
+}
+
+@media (max-width: 900px) {
+    .pform-options--ministries {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .pform-field--phone-wide,
+    .pform-field--ministries,
+    .pform-field--other-interests {
+        grid-column: span 6;
+    }
+}
+
+
+/* Corrective layout pass after live theme testing. */
+.pform-grid > .pform-field--ministries,
+.pform-grid > .pform-field--other-interests {
+    grid-column: 1 / -1;
+    min-width: 0;
+}
+
+.pform-field--ministries .pform-options--ministries {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .65rem 2rem;
+}
+
+.pform-field--ministries .pform-option {
+    min-width: 0;
+}
+
+.pform-field--ministries .pform-option span {
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+.pform-repeater__item button.pform-remove {
+    display: inline-flex;
+    min-height: 38px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1rem;
+    padding: .45rem .8rem;
+    border: 1px solid #b55a5a;
+    border-radius: 5px;
+    background: #fff;
+    color: #8b1d1d;
+    font: inherit;
+    font-weight: 700;
+    line-height: 1.2;
+    text-decoration: none;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.pform-repeater__item button.pform-remove:hover,
+.pform-repeater__item button.pform-remove:focus {
+    border-color: #8b1d1d;
+    background: #fff5f5;
+    color: #6f1717;
+    text-decoration: none;
+}
+
+@media (max-width: 760px) {
+    .pform-field--ministries .pform-options--ministries {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/*
+ * Parish Involvement
+ * Keep this deliberately independent of theme grid/flex rules. The field itself
+ * spans the form grid; the option list owns its two-column layout.
+ */
+.pform-section[data-pform-section="involvement"] .pform-grid {
+    display: block;
+}
+
+.pform-section[data-pform-section="involvement"] .pform-field {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+}
+
+.pform-section[data-pform-section="involvement"] .pform-field--ministries {
+    margin-bottom: 1.4rem;
+}
+
+.pform-section[data-pform-section="involvement"] .pform-field--ministries fieldset {
+    display: block;
+    width: 100%;
+}
+
+.pform-section[data-pform-section="involvement"] .pform-field--ministries .pform-options {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .7rem 2.5rem;
+}
+
+.pform-section[data-pform-section="involvement"] .pform-field--ministries .pform-option {
+    display: grid;
+    grid-template-columns: 1.15rem minmax(0, 1fr);
+    gap: .65rem;
+    align-items: start;
+    width: auto;
+    min-width: 0;
+    margin: 0;
+    white-space: normal;
+}
+
+.pform-section[data-pform-section="involvement"] .pform-field--ministries .pform-option input {
+    margin-top: .2rem;
+}
+
+.pform-section[data-pform-section="involvement"] .pform-field--ministries .pform-option span {
+    display: block;
+    min-width: 0;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+.pform-section[data-pform-section="involvement"] .pform-field--other-interests {
+    margin-top: 0;
+}
+
+.pform-section[data-pform-section="involvement"] .pform-field--other-interests textarea {
+    display: block;
+    width: 100%;
+    min-height: 125px;
+}
+
+@media (max-width: 760px) {
+    .pform-section[data-pform-section="involvement"] .pform-field--ministries .pform-options {
+        grid-template-columns: 1fr;
+        gap: .65rem;
+    }
+}
