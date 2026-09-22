@@ -301,3 +301,85 @@
         scroll-behavior: auto !important;
     }
 }
+
+
+/* v0.1 visual polish */
+.pform-field--phone-wide {
+    grid-column: span 3;
+}
+
+.pform-remove {
+    display: inline-flex;
+    min-height: 38px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1rem;
+    padding: .45rem .8rem;
+    border: 1px solid #b55a5a;
+    border-radius: 5px;
+    background: #fff;
+    color: #8b1d1d;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.pform-remove:hover,
+.pform-remove:focus {
+    border-color: #8b1d1d;
+    background: #fff5f5;
+    color: #6f1717;
+}
+
+.pform-section[data-pform-section="directory"] {
+    padding-bottom: 1.45rem;
+}
+
+.pform-section[data-pform-section="directory"] .pform-section__heading {
+    margin-bottom: .8rem;
+}
+
+.pform-options--ministries {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    column-gap: 2rem;
+    row-gap: .65rem;
+}
+
+.pform-field--ministries {
+    grid-column: span 6;
+}
+
+.pform-field--other-interests {
+    grid-column: span 6;
+}
+
+.pform-field--other-interests textarea {
+    min-height: 110px;
+}
+
+.pform-section[data-pform-section="stewardship"] .pform-options {
+    gap: .8rem 1.7rem;
+}
+
+.pform-consent {
+    line-height: 1.4;
+}
+
+.pform-consent span {
+    max-width: 58rem;
+}
+
+@media (max-width: 900px) {
+    .pform-options--ministries {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .pform-field--phone-wide,
+    .pform-field--ministries,
+    .pform-field--other-interests {
+        grid-column: span 6;
+    }
+}
