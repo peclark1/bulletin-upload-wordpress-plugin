@@ -49,11 +49,11 @@ final class PFORM_Parish_Registration
                     'fields' => array(
                         self::text('primary_name', __('Full Name', 'parish-forms'), true, 'half', 150, 'name'),
                         self::date('primary_birth_date', __('Date of Birth', 'parish-forms'), false, 'half', true),
-                        self::text('primary_religion', __('Religion', 'parish-forms'), false, 'third', 100),
-                        self::text('primary_occupation', __('Occupation', 'parish-forms'), false, 'third', 120, 'organization-title'),
-                        self::tel('primary_phone', __('Cell and Home Phone', 'parish-forms'), true, 'phone-wide', 'tel'),
+                        self::text('primary_religion', __('Religion', 'parish-forms'), false, 'half', 100),
+                        self::text('primary_occupation', __('Occupation', 'parish-forms'), false, 'half', 120, 'organization-title'),
+                        self::tel('primary_phone', __('Cell and Home Phone', 'parish-forms'), true, 'half', 'tel'),
                         self::email('primary_email', __('Email Address', 'parish-forms'), true, 'half', 'email'),
-                        self::checkboxes('primary_sacraments', __('Sacraments Received - Primary Contact', 'parish-forms'), $sacraments, 'half'),
+                        self::checkboxes('primary_sacraments', __('Sacraments Received - Primary Contact', 'parish-forms'), $sacraments, 'full'),
                     ),
                 ),
                 array(
