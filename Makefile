@@ -8,9 +8,13 @@ PARISH_VERSION := $(shell sed -n 's/^[[:space:]]*\* Version:[[:space:]]*//p' $(P
 PARISH_ZIP_NAME := parish-forms-$(PARISH_VERSION).zip
 PARISH_ZIP_PATH := ../$(PARISH_ZIP_NAME)
 
-.PHONY: all zip parish-forms test-parish-forms clean info
+.PHONY: all zip parish-forms plugins test-parish-forms clean info
 
-all: zip
+all: plugins
+
+plugins: zip parish-forms
+	@echo
+	@echo "Built both WordPress plugins."
 
 info:
 	@echo "Plugin directory: $(PLUGIN_DIR)"
