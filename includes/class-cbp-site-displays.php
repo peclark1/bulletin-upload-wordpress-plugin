@@ -54,7 +54,6 @@ final class CBP_Site_Displays
             <?php echo $this->week_heading($weekly); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             <div class="cbp-site-grid cbp-site-grid--two">
                 <section class="cbp-site-card">
-                    <p class="cbp-site-eyebrow"><?php esc_html_e('MASS', 'church-bulletin-publisher'); ?></p>
                     <h3><?php esc_html_e('This Week’s Masses', 'church-bulletin-publisher'); ?></h3>
                     <?php
                     echo ! empty($masses)
@@ -63,7 +62,6 @@ final class CBP_Site_Displays
                     ?>
                 </section>
                 <section class="cbp-site-card cbp-site-card--warm">
-                    <p class="cbp-site-eyebrow"><?php esc_html_e('PRAYER & SACRAMENTS', 'church-bulletin-publisher'); ?></p>
                     <h3><?php esc_html_e('Reconciliation, Rosary & Adoration', 'church-bulletin-publisher'); ?></h3>
                     <?php
                     echo ! empty($devotions)

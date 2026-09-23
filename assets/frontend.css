@@ -24,8 +24,7 @@
 .cbp-site-days{display:grid;gap:20px}
 .cbp-site-day{display:grid;gap:8px}
 .cbp-site-day h4{margin:0 0 2px;color:var(--cbp-brand);font-size:18px}
-.cbp-site-item{display:grid;grid-template-columns:minmax(88px,auto) 1fr;gap:14px;align-items:start;padding:10px 0;border-top:1px solid var(--cbp-border)}
-.cbp-site-day .cbp-site-item:first-of-type{border-top:0}
+.cbp-site-item{display:grid;grid-template-columns:minmax(88px,auto) 1fr;gap:14px;align-items:start;padding:10px 0}
 .cbp-site-time{font-weight:700;color:var(--cbp-brand);white-space:nowrap}
 .cbp-site-item-body{display:flex;flex-direction:column;gap:3px}
 .cbp-site-title{font-weight:700;color:var(--cbp-strong)}
