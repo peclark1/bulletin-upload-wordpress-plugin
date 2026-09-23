@@ -139,4 +139,169 @@ final class CBP_Site_Displays
         return ob_get_clean();
     }
 
+    private function weekly()
+    {
+        return wp_parse_args(
+            get_option(CBP_Schedule::WEEKLY_OPTION, array()),
+            CBP_Schedule::weekly_defaults()
+        );
+    }
+
+    private function has_week(array $weekly)
+    {
+        return ! empty($weekly['week_start']) && ! empty($weekly['week_end']);
+    }
+
+    private function week_heading(array $weekly)
+    {
+        $start = $this->format_date($weekly['week_start'], 'F j');
+        $end = $this->format_date($weekly['week_end'], 'F j, Y');
+        if ($start === '' || $end === '') {
+            return '';
+        }
+        return '<p class="cbp-site-week">' . esc_html(sprintf(__('Week of %1$s–%2$s', 'church-bulletin-publisher'), $start, $end)) . '</p>';
+    }
+
+    private function render_rows(array $rows, $limit, $kind)
+    {
+        if ($limit > 0) {
+            $rows = array_slice($rows, 0, $limit);
+        }
+
+        $html = '<div class="cbp-site-days">';
+        $current_date = null;
+        foreach ($rows as $row) {
+            $date = isset($row['date']) ? sanitize_text_field($row['date']) : '';
+            if ($date !== $current_date) {
+                if ($current_date !== null) {
+                    $html .= '</div>';
+                }
+                $html .= '<div class="cbp-site-day">';
+                if ($this->valid_date($date)) {
+                    $html .= '<h4>' . esc_html($this->format_date($date, 'l, F j')) . '</h4>';
+                } else {
+                    $html .= '<h4>' . esc_html__('Any day', 'church-bulletin-publisher') . '</h4>';
+                }
+                $current_date = $date;
+            }
+
+            $time = isset($row['time']) ? sanitize_text_field($row['time']) : '';
+            $location = isset($row['location']) ? sanitize_text_field($row['location']) : '';
+            $title = isset($row['title']) ? sanitize_text_field($row['title']) : '';
+            if ($kind === 'event' && class_exists('CBP_Schedule_V8')) {
+                $title = CBP_Schedule_V8::clean_event_title($title);
+            }
+            $description = isset($row['description']) ? sanitize_text_field($row['description']) : '';
+
+            $html .= '<div class="cbp-site-item cbp-site-item--' . esc_attr($kind) . '">';
+            if ($time !== '') {
+                $html .= '<div class="cbp-site-time">' . esc_html($time) . '</div>';
+            }
+            $html .= '<div class="cbp-site-item-body">';
+            if ($title !== '') {
+                $html .= '<strong class="cbp-site-title">' . esc_html($title) . '</strong>';
+            } elseif ($description !== '') {
+                $html .= '<strong class="cbp-site-title">' . esc_html($description) . '</strong>';
+            }
+            if ($location !== '') {
+                $display_location = $kind === 'event' ? $location : $this->worship_location_name($location);
+                $html .= '<span class="cbp-site-location">' . esc_html($display_location) . '</span>';
+            }
+            if ($kind === 'mass' && $this->has_mass_intention($title, $description)) {
+                $html .= '<span class="cbp-site-intention"><strong>' . esc_html__('Intention:', 'church-bulletin-publisher') . '</strong> ' . esc_html($description) . '</span>';
+            }
+            if ($kind === 'event') {
+                $note = $this->event_note($description);
+                if ($note !== '') {
+                    $html .= '<span class="cbp-site-detail">' . esc_html($note) . '</span>';
+                }
+            }
+            $html .= '</div></div>';
+        }
+        if ($current_date !== null) {
+            $html .= '</div>';
+        }
+        $html .= '</div>';
+        return $html;
+    }
+
+    private function worship_location_name($location)
+    {
+        $location = trim((string) $location);
+        if (strcasecmp($location, 'St. Peter') === 0) {
+            return 'St. Peter Park Rapids';
+        }
+        if (in_array($location, array('St. Mary’s', "St. Mary's", 'St. Mary'), true)) {
+            return "St. Mary's Two Inlets";
+        }
+        return $location;
+    }
+
+    private function has_mass_intention($title, $description)
+    {
+        $title = trim((string) $title);
+        $description = trim((string) $description);
+        if ($description === '' || strcasecmp($title, 'No Mass') === 0) {
+            return false;
+        }
+        return (bool) preg_match('/\bMass$/i', $title);
+    }
+
+    private function event_note($description)
+    {
+        $description = (string) $description;
+        if ($description === '') {
+            return '';
+        }
+        if (preg_match('/\(([^)]*(?:call|contact)[^)]*(?:office|location|sign[- ]?up|details?)[^)]*)\)/iu', $description, $m)) {
+            return '(' . trim($m[1]) . ')';
+        }
+        return '';
+    }
+
+    private function upcoming_rows(array $rows)
+    {
+        $today = wp_date('Y-m-d');
+        $future = array();
+        foreach ($rows as $row) {
+            $date = isset($row['date']) ? $row['date'] : '';
+            if ($this->valid_date($date) && $date >= $today) {
+                $future[] = $row;
+            }
+        }
+        return ! empty($future) ? $future : $rows;
+    }
+
+    private function enqueue_assets()
+    {
+        wp_enqueue_style(
+            'cbp-site-displays',
+            CBP_URL . 'assets/frontend.css',
+            array(),
+            CBP_VERSION
+        );
+    }
+
+    private function empty_message($message)
+    {
+        return '<p class="cbp-site-empty">' . esc_html($message) . '</p>';
+    }
+
+    private function valid_date($date)
+    {
+        if (! is_string($date) || $date === '') {
+            return false;
+        }
+        $parsed = DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+        return $parsed && $parsed->format('Y-m-d') === $date;
+    }
+
+    private function format_date($date, $format)
+    {
+        if (! $this->valid_date($date)) {
+            return '';
+        }
+        $timestamp = strtotime($date . ' 12:00:00');
+        return wp_date($format, $timestamp);
+    }
 }
