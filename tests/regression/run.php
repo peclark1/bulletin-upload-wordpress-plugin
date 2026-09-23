@@ -16,6 +16,33 @@ $root = dirname(__DIR__, 2);
 require $root . '/tests/regression/wp-stubs.php';
 require $root . '/vendor/autoload.php';
 require $root . '/includes/class-cbp-schedule.php';
+require $root . '/includes/class-cbp-site-displays.php';
+
+// Smoke-test the front-end shortcode class structurally. PHP lint alone will
+// not catch a method call whose helper was accidentally removed from the class.
+$site_display_methods = array(
+    'worship_week_shortcode',
+    'parish_events_shortcode',
+    'weekly',
+    'has_week',
+    'week_heading',
+    'render_rows',
+    'worship_location_name',
+    'has_mass_intention',
+    'event_note',
+    'upcoming_rows',
+    'enqueue_assets',
+    'empty_message',
+    'valid_date',
+    'format_date',
+);
+$site_display_reflection = new ReflectionClass('CBP_Site_Displays');
+foreach ($site_display_methods as $method) {
+    if (! $site_display_reflection->hasMethod($method)) {
+        fwrite(STDERR, "CBP_Site_Displays is missing required method: {$method}\\n");
+        exit(1);
+    }
+}
 
 $version_files = glob($root . '/includes/class-cbp-schedule-v*.php');
 usort($version_files, function ($a, $b) {
