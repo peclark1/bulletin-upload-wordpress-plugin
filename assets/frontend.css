@@ -1,6 +1,6 @@
 .cbp-site-view,
 .cbp-home-mass-schedule,
-.cbp-bulletin-list,
+.cbp-bulletin-list {
     --cbp-brand: var(--global-palette2, #243b63);
     --cbp-strong: var(--global-palette3, #29364a);
     --cbp-body: var(--global-palette4, #465267);
