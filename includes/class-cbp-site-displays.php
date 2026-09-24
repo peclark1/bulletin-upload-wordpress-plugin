@@ -162,6 +162,11 @@ final class CBP_Site_Displays
 
     private function render_rows(array $rows, $limit, $kind)
     {
+        // Be defensive at render time as well: older approved weekly options
+        // may have been stored in lexical (display-string) order.
+        if (class_exists('CBP_Schedule_V30')) {
+            $rows = CBP_Schedule_V30::sort_calendar_rows($rows);
+        }
         if ($limit > 0) {
             $rows = array_slice($rows, 0, $limit);
         }
