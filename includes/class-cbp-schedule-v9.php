@@ -85,10 +85,18 @@ final class CBP_Schedule_V9
         $title = isset($row['title']) ? trim((string) $row['title']) : '';
         $description = isset($row['description']) ? trim((string) $row['description']) : '';
 
-        // Worship items never belong in the general parish-events bucket.
+        // Worship items at the parish churches do not belong in the general
+        // parish-events bucket.  Do not apply that rule blindly to off-site
+        // events: the weekly calendar can legitimately contain entries such as
+        // "Heritage Living Center: 10:00 am Pray the Rosary".  Those have a
+        // real date/time/location and should remain visible on the parish-events
+        // page.
         $combined = $title . ' ' . $description;
         if (preg_match('/\b(?:adoration|rosary|reconciliation|confession|mass)\b/iu', $combined)) {
-            return true;
+            $location = isset($row['location']) ? trim((string) $row['location']) : '';
+            if (! self::is_offsite_event_location($location)) {
+                return true;
+            }
         }
 
         // PDF column extraction can detach the second clause of wording such as:
@@ -106,6 +114,25 @@ final class CBP_Schedule_V9
         }
 
         return false;
+    }
+
+    private static function is_offsite_event_location($location)
+    {
+        $location = trim((string) $location);
+        if ($location === '') {
+            return false;
+        }
+
+        $normalized = strtolower(str_replace(array('’', "'"), '', $location));
+        $normalized = preg_replace('/\s+/u', ' ', $normalized);
+        if (preg_match('/\bst\.?\s*peter\b/iu', $normalized)) {
+            return false;
+        }
+        if (preg_match('/\bst\.?\s*mary\b/iu', $normalized)) {
+            return false;
+        }
+
+        return true;
     }
 
     private function review_key()
