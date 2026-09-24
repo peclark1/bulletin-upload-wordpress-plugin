@@ -251,10 +251,23 @@ final class CBP_Site_Displays
         if ($description === '') {
             return '';
         }
-        if (preg_match('/\(([^)]*(?:call|contact)[^)]*(?:office|location|sign[- ]?up|details?)[^)]*)\)/iu', $description, $m)) {
-            return '(' . trim($m[1]) . ')';
+
+        $notes = array();
+
+        // Preserve short invitation wording that staff intentionally put in the
+        // authoritative weekly schedule.  The event title cleaner removes this
+        // suffix from the title, so carry it as display detail instead.
+        if (preg_match('/\bAll\s+Men\s+are\s+welcome\b[.!]?/iu', $description, $m)) {
+            $notes[] = trim($m[0]);
         }
-        return '';
+
+        // Preserve operational parenthetical notes such as the Burger & Beer
+        // location instruction without dumping the parser's full source line.
+        if (preg_match('/\(([^)]*(?:call|contact)[^)]*(?:office|location|sign[- ]?up|details?)[^)]*)\)/iu', $description, $m)) {
+            $notes[] = '(' . trim($m[1]) . ')';
+        }
+
+        return implode(' ', array_values(array_unique($notes)));
     }
 
     private function upcoming_rows(array $rows)
