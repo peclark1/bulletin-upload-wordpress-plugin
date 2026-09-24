@@ -56,6 +56,41 @@ foreach ($version_files as $file) {
 
 // Targeted guards for the September 27 follow-up fixes that are not fully
 // represented by parser-only fixture comparisons.
+if (class_exists('CBP_Schedule_V29')) {
+    $v29 = CBP_Schedule_V29::instance();
+
+    $leak_method = new ReflectionMethod($v29, 'is_dated_prose_leak');
+    $leak_method->setAccessible(true);
+    $leak = $leak_method->invoke($v29, array(
+        'date' => '2026-10-04',
+        'time' => '',
+        'location' => '',
+        'title' => 'September 28 - Come Pray the Rosary at Heritage Living Center',
+    ), '2026-09-27');
+    if (! $leak) {
+        fwrite(STDERR, "V29 regression: a mismatched dated prose reminder was not rejected.\n");
+        exit(1);
+    }
+
+    $first_communion_method = new ReflectionMethod($v29, 'is_first_communion_announcement');
+    $first_communion_method->setAccessible(true);
+    if (! $first_communion_method->invoke($v29, array('time' => '', 'title' => 'First Communion, Selene and Kelsi Scholz'))) {
+        fwrite(STDERR, "V29 regression: First Communion prose announcement was not rejected.\n");
+        exit(1);
+    }
+
+    $dedupe_method = new ReflectionMethod($v29, 'dedupe_rows');
+    $dedupe_method->setAccessible(true);
+    $deduped = $dedupe_method->invoke($v29, array(
+        array('date' => '2026-09-28', 'time' => '6:00 PM–8:30 PM', 'location' => 'St. Peter', 'title' => 'Civil Air Patrol Meeting', 'description' => ''),
+        array('date' => '2026-09-28', 'time' => '6:00 PM', 'location' => 'St. Peter', 'title' => 'Civil Air Patrol Meeting', 'description' => ''),
+    ));
+    if (count($deduped) !== 1 || ($deduped[0]['time'] ?? '') !== '6:00 PM–8:30 PM') {
+        fwrite(STDERR, "V29 regression: Civil Air Patrol duplicate cleanup did not keep the best range row.\n");
+        exit(1);
+    }
+}
+
 if (class_exists('CBP_Schedule_V9')) {
     $offsite = array(
         array('date' => '2026-09-28', 'time' => '10:00 AM', 'location' => 'Heritage Living Center', 'title' => 'Pray the Rosary', 'description' => ''),
