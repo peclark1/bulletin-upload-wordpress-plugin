@@ -948,6 +948,9 @@ final class CBP_Schedule
 
     private function calendar_sort($a, $b)
     {
+        if (class_exists('CBP_Schedule_V30')) {
+            return CBP_Schedule_V30::compare_rows($a, $b);
+        }
         $ak = (isset($a['date']) ? $a['date'] : '') . ' ' . (isset($a['time']) ? $a['time'] : '');
         $bk = (isset($b['date']) ? $b['date'] : '') . ' ' . (isset($b['time']) ? $b['time'] : '');
         return strcmp($ak, $bk);
