@@ -111,6 +111,14 @@ final class CBP_Home_Schedule
             return $schedule;
         }
 
+        // Keep the approved standing Saturday time as the definition of the
+        // regular weekend vigil. On First Saturday the dated calendar contains
+        // both the 9:00 AM First Saturday Mass and the regular vigil Mass; only
+        // the regular vigil belongs in the compact homepage schedule.
+        $regular_st_peter_saturday = isset($schedule['st_peter_saturday'])
+            ? sanitize_text_field($schedule['st_peter_saturday'])
+            : '';
+
         $today = wp_date('Y-m-d');
         $found = array(
             'st_peter_saturday' => false,
@@ -156,6 +164,15 @@ final class CBP_Home_Schedule
             $is_peter = strpos($where, 'peter') !== false;
             $is_mary = strpos($where, 'mary') !== false;
 
+            if (
+                $day === 6
+                && $is_peter
+                && $this->is_first_saturday($timestamp)
+                && ! $this->same_mass_time($time, $regular_st_peter_saturday)
+            ) {
+                continue;
+            }
+
             if ($day === 6 && $is_peter && ! $found['st_peter_saturday']) {
                 $schedule['st_peter_saturday'] = $time;
                 $found['st_peter_saturday'] = true;
@@ -189,6 +206,30 @@ final class CBP_Home_Schedule
             '/\\b(funeral|wedding|nuptial|memorial|quincea(?:n|ñ)era|confirmation|ordination)\\b/u',
             $text
         );
+    }
+
+    private function is_first_saturday($timestamp)
+    {
+        return (int) wp_date('N', $timestamp) === 6
+            && (int) wp_date('j', $timestamp) <= 7;
+    }
+
+    private function same_mass_time($left, $right)
+    {
+        $left = strtolower(str_replace('.', '', trim((string) $left)));
+        $right = strtolower(str_replace('.', '', trim((string) $right)));
+
+        if ($left === '' || $right === '') {
+            return false;
+        }
+
+        $left_timestamp = strtotime('2000-01-01 ' . $left);
+        $right_timestamp = strtotime('2000-01-01 ' . $right);
+        if ($left_timestamp !== false && $right_timestamp !== false) {
+            return date('H:i', $left_timestamp) === date('H:i', $right_timestamp);
+        }
+
+        return preg_replace('/\\s+/', ' ', $left) === preg_replace('/\\s+/', ' ', $right);
     }
 
     private function valid_date($date)
