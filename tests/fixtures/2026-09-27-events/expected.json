@@ -1,0 +1,61 @@
+{
+  "name": "September 27, 2026 weekly event cleanup and schedule regression",
+  "bulletin_date": "2026-09-27",
+  "notes": "Human-reviewed fixture based on the September 27 bulletin. Protects Mass intentions, derived prayer rows, Heritage Living Center Rosary, cancellation recovery, and rejection of First Communion prose as a calendar event. Deterministic duplicate/prose-leak edge cases are covered by direct V29 guards in the runner.",
+  "current_schedule": {
+    "st_peter_saturday": "5:00 PM",
+    "st_peter_sunday": "8:30 AM",
+    "st_mary_sunday": "11:00 AM",
+    "reconciliation": "Saturday 8:00 AM & 4:00 PM",
+    "adoration": "Thursday 6:00 AM–1:00 PM"
+  },
+  "expected": {
+    "candidates": {
+      "st_peter_saturday": "5:00 PM",
+      "st_peter_sunday": "9:00 AM",
+      "st_mary_sunday": "11:00 AM",
+      "reconciliation": "Saturday 4:00 PM–4:30 PM",
+      "adoration": "Wednesday 5:30 PM–8:00 PM; Thursday 6:00 AM–5:00 PM"
+    },
+    "counts": {
+      "masses": 8
+    },
+    "masses": [
+      {"date":"2026-09-29","time":"5:30 PM","location":"St. Peter","title":"Mass","description":"† Richard Tandsater"},
+      {"date":"2026-09-30","time":"12:10 PM","location":"St. Peter","title":"Mass","description":"† Tom Spahn"},
+      {"date":"2026-10-01","time":"9:00 AM","location":"St. Mary’s","title":"Mass","description":"† Mary Schmitz"},
+      {"date":"2026-10-02","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"† Thomas Meyer"},
+      {"date":"2026-10-03","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"† Jennifer Grotte"},
+      {"date":"2026-10-03","time":"5:00 PM","location":"St. Peter","title":"Mass","description":"† Jeanne Hanson"},
+      {"date":"2026-10-04","time":"9:00 AM","location":"St. Peter","title":"Mass","description":"† David & † Leona Lashinski"},
+      {"date":"2026-10-04","time":"11:00 AM","location":"St. Mary’s","title":"Mass","description":"For the People"}
+    ],
+    "devotions_required": [
+      {"date":"2026-09-29","time":"5:00 PM","location":"St. Peter","title":"Rosary"},
+      {"date":"2026-09-30","time":"11:40 AM","location":"St. Peter","title":"Rosary"},
+      {"date":"2026-09-30","time":"5:30 PM–8:00 PM","location":"St. Peter","title":"Adoration"},
+      {"date":"2026-10-01","time":"6:00 AM–5:00 PM","location":"St. Peter","title":"Adoration"},
+      {"date":"2026-10-01","time":"8:30 AM","location":"St. Mary’s","title":"Rosary"},
+      {"date":"2026-10-02","time":"After 9:00 AM Mass","location":"St. Peter","title":"Rosary"},
+      {"date":"2026-10-03","time":"8:30 AM","location":"St. Peter","title":"Rosary"},
+      {"date":"2026-10-03","time":"4:00 PM–4:30 PM","location":"St. Peter","title":"Reconciliation"},
+      {"date":"2026-10-03","time":"4:30 PM","location":"St. Peter","title":"Rosary"},
+      {"date":"2026-10-04","time":"8:30 AM","location":"St. Peter","title":"Rosary"},
+      {"date":"2026-10-04","time":"10:30 AM","location":"St. Mary’s","title":"Rosary"}
+    ],
+    "events_required": [
+      {"date":"2026-09-28","time":"10:00 AM","location":"Heritage Living Center","title":"Pray the Rosary"},
+      {"date":"2026-09-28","time":"6:00 PM–8:30 PM","location":"St. Peter","title_contains":"Civil Air Patrol Meeting"},
+      {"date":"2026-09-29","time":"","title":"NO Ladies lunch"},
+      {"date":"2026-09-30","time":"6:00 PM","location":"St. Peter","title_contains":"Alpha"},
+      {"date":"2026-10-04","time":"3:00 PM","location":"St. Peter","title_contains":"Divine Mercy Hour"}
+    ],
+    "events_forbidden": [
+      {"title_contains":"First Communion"}
+    ],
+    "livestream_contains": ["Sunday Mass & Rosary are live streamed at stpeterpr.org"],
+    "warning_contains": [
+      "St. Peter Sunday Mass is currently 8:30 AM"
+    ]
+  }
+}

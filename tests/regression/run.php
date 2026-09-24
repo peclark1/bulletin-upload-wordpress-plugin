@@ -54,6 +54,79 @@ foreach ($version_files as $file) {
     require_once $file;
 }
 
+// Targeted guards for the September 27 follow-up fixes that are not fully
+// represented by parser-only fixture comparisons.
+if (class_exists('CBP_Schedule_V29')) {
+    $v29 = CBP_Schedule_V29::instance();
+
+    $leak_method = new ReflectionMethod($v29, 'is_dated_prose_leak');
+    $leak_method->setAccessible(true);
+    $leak = $leak_method->invoke($v29, array(
+        'date' => '2026-10-04',
+        'time' => '',
+        'location' => '',
+        'title' => 'September 28 - Come Pray the Rosary at Heritage Living Center',
+    ), '2026-09-27');
+    if (! $leak) {
+        fwrite(STDERR, "V29 regression: a mismatched dated prose reminder was not rejected.\n");
+        exit(1);
+    }
+
+    $first_communion_method = new ReflectionMethod($v29, 'is_first_communion_announcement');
+    $first_communion_method->setAccessible(true);
+    if (! $first_communion_method->invoke($v29, array('time' => '', 'title' => 'First Communion, Selene and Kelsi Scholz'))) {
+        fwrite(STDERR, "V29 regression: First Communion prose announcement was not rejected.\n");
+        exit(1);
+    }
+
+    $dedupe_method = new ReflectionMethod($v29, 'dedupe_rows');
+    $dedupe_method->setAccessible(true);
+    $deduped = $dedupe_method->invoke($v29, array(
+        array('date' => '2026-09-28', 'time' => '6:00 PM–8:30 PM', 'location' => 'St. Peter', 'title' => 'Civil Air Patrol Meeting', 'description' => ''),
+        array('date' => '2026-09-28', 'time' => '6:00 PM', 'location' => 'St. Peter', 'title' => 'Civil Air Patrol Meeting', 'description' => ''),
+    ));
+    if (count($deduped) !== 1 || ($deduped[0]['time'] ?? '') !== '6:00 PM–8:30 PM') {
+        fwrite(STDERR, "V29 regression: Civil Air Patrol duplicate cleanup did not keep the best range row.\n");
+        exit(1);
+    }
+}
+
+if (class_exists('CBP_Schedule_V9')) {
+    $offsite = array(
+        array('date' => '2026-09-28', 'time' => '10:00 AM', 'location' => 'Heritage Living Center', 'title' => 'Pray the Rosary', 'description' => ''),
+        array('date' => '2026-09-29', 'time' => '5:00 PM', 'location' => 'St. Peter', 'title' => 'Rosary', 'description' => ''),
+    );
+    $filtered = CBP_Schedule_V9::filter_worship_fragments($offsite);
+    if (count($filtered) !== 1 || ($filtered[0]['location'] ?? '') !== 'Heritage Living Center') {
+        fwrite(STDERR, "V9 regression: off-site Rosary events must survive while parish worship rows stay filtered.\n");
+        exit(1);
+    }
+}
+
+if (class_exists('CBP_Schedule_V30')) {
+    $rows = array(
+        array('date' => '2026-10-01', 'time' => '6:00 PM', 'location' => '', 'title' => 'Men’s Burger & Beer'),
+        array('date' => '2026-10-01', 'time' => '9:00 AM', 'location' => 'St. Peter', 'title' => 'Men’s Bible Study'),
+        array('date' => '2026-10-01', 'time' => '', 'location' => '', 'title' => 'NO Ladies lunch'),
+    );
+    $rows = CBP_Schedule_V30::sort_calendar_rows($rows);
+    $titles = array_column($rows, 'title');
+    if ($titles !== array('NO Ladies lunch', 'Men’s Bible Study', 'Men’s Burger & Beer')) {
+        fwrite(STDERR, "V30 regression: weekly rows are not sorted by actual clock time.\n");
+        exit(1);
+    }
+}
+
+$display_reflection = new ReflectionClass('CBP_Site_Displays');
+$display = $display_reflection->getMethod('instance')->invoke(null);
+$event_note = $display_reflection->getMethod('event_note');
+$event_note->setAccessible(true);
+$detail = $event_note->invoke($display, 'Men’s Burger & Beer-All Men are welcome (Call office before 4:00 pm for location)');
+if ($detail !== 'All Men are welcome (Call office before 4:00 pm for location)') {
+    fwrite(STDERR, "Site display regression: authoritative Burger & Beer detail was not preserved.\n");
+    exit(1);
+}
+
 /**
  * Build a tiny deterministic PDF from a UTF-8 text fixture.
  *
@@ -284,6 +357,21 @@ function cbp_compare_fixture(array $expected, array $actual)
             }
             if (! $matched) {
                 $errors[] = $actual_key . ' missing required row: ' . json_encode($rule, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            }
+        }
+    }
+
+    foreach (array('devotions_forbidden' => 'devotions', 'events_forbidden' => 'events') as $expect_key => $actual_key) {
+        if (empty($expect[$expect_key]) || ! is_array($expect[$expect_key])) {
+            continue;
+        }
+        $rows = isset($actual_weekly[$actual_key]) && is_array($actual_weekly[$actual_key]) ? $actual_weekly[$actual_key] : array();
+        foreach ($expect[$expect_key] as $rule) {
+            foreach ($rows as $row) {
+                if (is_array($row) && cbp_rule_matches_row($rule, $row)) {
+                    $errors[] = $actual_key . ' contains forbidden row: ' . json_encode($rule, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    break;
+                }
             }
         }
     }

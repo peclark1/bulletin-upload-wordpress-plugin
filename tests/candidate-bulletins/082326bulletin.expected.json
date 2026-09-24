@@ -34,8 +34,8 @@
       {"date":"2026-08-30","time":"10:00 AM","location":"St. Mary’s","title":"Rosary"}
     ],
     "events_required": [
-      {"date":"2026-08-24","time":"10:00 AM","title_contains":"Heritage Living"},
-      {"date":"2026-08-24","time":"6:00 PM","location":"St. Peter","title_contains":"Civil Air Patrol"},
+      {"date":"2026-08-24","time":"10:00 AM","location":"Heritage Living Center","title":"Pray the Rosary"},
+      {"date":"2026-08-24","time":"6:00 PM–8:30 PM","location":"St. Peter","title_contains":"Civil Air Patrol"},
       {"date":"2026-08-24","time":"7:00 PM","location":"St. Mary’s","title_contains":"Guild"},
       {"date":"2026-08-30","location":"St. Peter","title_contains":"Coffee & Rolls"}
     ],
