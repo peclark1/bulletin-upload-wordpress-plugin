@@ -17,6 +17,7 @@ require $root . '/tests/regression/wp-stubs.php';
 require $root . '/vendor/autoload.php';
 require $root . '/includes/class-cbp-schedule.php';
 require $root . '/includes/class-cbp-site-displays.php';
+require $root . '/includes/class-cbp-home-schedule.php';
 
 // Smoke-test the front-end shortcode class structurally. PHP lint alone will
 // not catch a method call whose helper was accidentally removed from the class.
@@ -124,6 +125,56 @@ $event_note->setAccessible(true);
 $detail = $event_note->invoke($display, 'Men’s Burger & Beer-All Men are welcome (Call office before 4:00 pm for location)');
 if ($detail !== 'All Men are welcome (Call office before 4:00 pm for location)') {
     fwrite(STDERR, "Site display regression: authoritative Burger & Beer detail was not preserved.\n");
+    exit(1);
+}
+
+// The homepage should show the regular Saturday vigil on First Saturday even
+// though the detailed weekly calendar correctly contains both Masses.
+$home_schedule = CBP_Home_Schedule::instance();
+$home_reflection = new ReflectionClass('CBP_Home_Schedule');
+$apply_weekend = $home_reflection->getMethod('apply_upcoming_weekend_masses');
+$apply_weekend->setAccessible(true);
+
+$month_start = new DateTimeImmutable('first day of next month', new DateTimeZone('UTC'));
+$days_to_saturday = (6 - (int) $month_start->format('N') + 7) % 7;
+$first_saturday = $month_start->modify('+' . $days_to_saturday . ' days');
+$ordinary_saturday = $first_saturday->modify('+7 days');
+$standing = wp_parse_args(array('st_peter_saturday' => '5:00 PM'), CBP_Schedule::defaults());
+
+cbp_regression_reset_wordpress_state();
+$GLOBALS['cbp_regression_options'][CBP_Schedule::WEEKLY_OPTION] = wp_parse_args(array(
+    'masses' => array(
+        array('date' => $first_saturday->format('Y-m-d'), 'time' => '9:00 AM', 'location' => 'St. Peter', 'title' => 'Mass', 'description' => 'First Saturday intention'),
+        array('date' => $first_saturday->format('Y-m-d'), 'time' => '5:00 PM', 'location' => 'St. Peter', 'title' => 'Mass', 'description' => 'Regular vigil intention'),
+    ),
+), CBP_Schedule::weekly_defaults());
+$first_saturday_result = $apply_weekend->invoke($home_schedule, $standing);
+if (($first_saturday_result['st_peter_saturday'] ?? '') !== '5:00 PM') {
+    fwrite(STDERR, "Homepage regression: First Saturday extra Mass replaced the regular Saturday vigil.\n");
+    exit(1);
+}
+
+cbp_regression_reset_wordpress_state();
+$GLOBALS['cbp_regression_options'][CBP_Schedule::WEEKLY_OPTION] = wp_parse_args(array(
+    'masses' => array(
+        array('date' => $first_saturday->format('Y-m-d'), 'time' => '9:00 AM', 'location' => 'St. Peter', 'title' => 'Mass', 'description' => 'First Saturday intention'),
+    ),
+), CBP_Schedule::weekly_defaults());
+$first_saturday_only_result = $apply_weekend->invoke($home_schedule, $standing);
+if (($first_saturday_only_result['st_peter_saturday'] ?? '') !== '5:00 PM') {
+    fwrite(STDERR, "Homepage regression: First Saturday extra Mass was substituted when the regular vigil was absent.\n");
+    exit(1);
+}
+
+cbp_regression_reset_wordpress_state();
+$GLOBALS['cbp_regression_options'][CBP_Schedule::WEEKLY_OPTION] = wp_parse_args(array(
+    'masses' => array(
+        array('date' => $ordinary_saturday->format('Y-m-d'), 'time' => '4:30 PM', 'location' => 'St. Peter', 'title' => 'Mass', 'description' => 'One-time Saturday schedule'),
+    ),
+), CBP_Schedule::weekly_defaults());
+$ordinary_saturday_result = $apply_weekend->invoke($home_schedule, $standing);
+if (($ordinary_saturday_result['st_peter_saturday'] ?? '') !== '4:30 PM') {
+    fwrite(STDERR, "Homepage regression: ordinary Saturday dated Mass no longer overrides the standing time.\n");
     exit(1);
 }
 
