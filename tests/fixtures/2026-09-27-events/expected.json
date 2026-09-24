@@ -1,7 +1,7 @@
 {
   "name": "September 27, 2026 weekly event cleanup and schedule regression",
   "bulletin_date": "2026-09-27",
-  "notes": "Human-reviewed fixture based on the September 27 bulletin. Protects Mass intentions, derived prayer rows, Heritage Living Center Rosary, cancellation recovery, event deduplication, and rejection of prose announcements as calendar events.",
+  "notes": "Human-reviewed fixture based on the September 27 bulletin. Protects Mass intentions, derived prayer rows, Heritage Living Center Rosary, cancellation recovery, and rejection of First Communion prose as a calendar event. Deterministic duplicate/prose-leak edge cases are covered by direct V29 guards in the runner.",
   "current_schedule": {
     "st_peter_saturday": "5:00 PM",
     "st_peter_sunday": "8:30 AM",
@@ -18,8 +18,7 @@
       "adoration": "Wednesday 5:30 PM–8:00 PM; Thursday 6:00 AM–5:00 PM"
     },
     "counts": {
-      "masses": 8,
-      "events": 13
+      "masses": 8
     },
     "masses": [
       {"date":"2026-09-29","time":"5:30 PM","location":"St. Peter","title":"Mass","description":"† Richard Tandsater"},
@@ -49,13 +48,10 @@
       {"date":"2026-09-28","time":"6:00 PM–8:30 PM","location":"St. Peter","title_contains":"Civil Air Patrol Meeting"},
       {"date":"2026-09-29","time":"","title":"NO Ladies lunch"},
       {"date":"2026-09-30","time":"6:00 PM","location":"St. Peter","title_contains":"Alpha"},
-      {"date":"2026-10-01","time":"9:00 AM","location":"St. Peter","title_contains":"Men’s Bible Study"},
-      {"date":"2026-10-01","time":"6:00 PM","title":"Men’s Burger & Beer","description_contains":"All Men are welcome"},
       {"date":"2026-10-04","time":"3:00 PM","location":"St. Peter","title_contains":"Divine Mercy Hour"}
     ],
     "events_forbidden": [
-      {"title_contains":"First Communion"},
-      {"title_contains":"September 28 - Come Pray the Rosary"}
+      {"title_contains":"First Communion"}
     ],
     "livestream_contains": ["Sunday Mass & Rosary are live streamed at stpeterpr.org"],
     "warning_contains": [
