@@ -140,6 +140,7 @@ $days_to_saturday = (6 - (int) $month_start->format('N') + 7) % 7;
 $first_saturday = $month_start->modify('+' . $days_to_saturday . ' days');
 $ordinary_saturday = $first_saturday->modify('+7 days');
 $standing = wp_parse_args(array('st_peter_saturday' => '5:00 PM'), CBP_Schedule::defaults());
+$stale_standing = wp_parse_args(array('st_peter_saturday' => '9:00 AM'), CBP_Schedule::defaults());
 
 cbp_regression_reset_wordpress_state();
 $GLOBALS['cbp_regression_options'][CBP_Schedule::WEEKLY_OPTION] = wp_parse_args(array(
@@ -148,9 +149,9 @@ $GLOBALS['cbp_regression_options'][CBP_Schedule::WEEKLY_OPTION] = wp_parse_args(
         array('date' => $first_saturday->format('Y-m-d'), 'time' => '5:00 PM', 'location' => 'St. Peter', 'title' => 'Mass', 'description' => 'Regular vigil intention'),
     ),
 ), CBP_Schedule::weekly_defaults());
-$first_saturday_result = $apply_weekend->invoke($home_schedule, $standing);
+$first_saturday_result = $apply_weekend->invoke($home_schedule, $stale_standing);
 if (($first_saturday_result['st_peter_saturday'] ?? '') !== '5:00 PM') {
-    fwrite(STDERR, "Homepage regression: First Saturday extra Mass replaced the regular Saturday vigil.\n");
+    fwrite(STDERR, "Homepage regression: First Saturday did not select the later regular vigil independently of the stored standing time.\n");
     exit(1);
 }
 

@@ -111,15 +111,16 @@ final class CBP_Home_Schedule
             return $schedule;
         }
 
-        // Keep the approved standing Saturday time as the definition of the
-        // regular weekend vigil. On First Saturday the dated calendar contains
-        // both the 9:00 AM First Saturday Mass and the regular vigil Mass; only
-        // the regular vigil belongs in the compact homepage schedule.
-        $regular_st_peter_saturday = isset($schedule['st_peter_saturday'])
-            ? sanitize_text_field($schedule['st_peter_saturday'])
-            : '';
-
         $today = wp_date('Y-m-d');
+
+        // First Saturday has an additional morning Mass plus the regular
+        // Saturday vigil. The weekly calendar intentionally keeps both. For
+        // the compact homepage schedule, identify the regular vigil from the
+        // dated rows themselves: when multiple St. Peter Masses occur on the
+        // first Saturday, the latest Mass of the day is the weekend vigil.
+        // This deliberately does not depend on the stored recurring Saturday
+        // value, which may itself be stale or awaiting its effective date.
+        $first_saturday_vigils = $this->first_saturday_vigils($weekly['masses'], $today);
         $found = array(
             'st_peter_saturday' => false,
             'st_peter_sunday' => false,
@@ -164,13 +165,15 @@ final class CBP_Home_Schedule
             $is_peter = strpos($where, 'peter') !== false;
             $is_mary = strpos($where, 'mary') !== false;
 
-            if (
-                $day === 6
-                && $is_peter
-                && $this->is_first_saturday($timestamp)
-                && ! $this->same_mass_time($time, $regular_st_peter_saturday)
-            ) {
-                continue;
+            if ($day === 6 && $is_peter && $this->is_first_saturday($timestamp)) {
+                $vigil_time = isset($first_saturday_vigils[$date]) ? $first_saturday_vigils[$date] : '';
+
+                // If only the extra First Saturday Mass was captured, leave the
+                // standing homepage Saturday time alone rather than substituting
+                // the morning Mass. When both are present, use the later vigil.
+                if ($vigil_time === '' || ! $this->same_mass_time($time, $vigil_time)) {
+                    continue;
+                }
             }
 
             if ($day === 6 && $is_peter && ! $found['st_peter_saturday']) {
@@ -212,6 +215,81 @@ final class CBP_Home_Schedule
     {
         return (int) wp_date('N', $timestamp) === 6
             && (int) wp_date('j', $timestamp) <= 7;
+    }
+
+    private function first_saturday_vigils(array $rows, $today)
+    {
+        $candidates = array();
+
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $date = isset($row['date']) ? sanitize_text_field($row['date']) : '';
+            $time = isset($row['time']) ? sanitize_text_field($row['time']) : '';
+            $location = isset($row['location']) ? sanitize_text_field($row['location']) : '';
+            $title = isset($row['title']) ? sanitize_text_field($row['title']) : '';
+            $description = isset($row['description']) ? sanitize_text_field($row['description']) : '';
+
+            if (
+                $time === ''
+                || ! $this->valid_date($date)
+                || $date < $today
+                || $this->is_special_mass($title, $description)
+            ) {
+                continue;
+            }
+
+            $timestamp = strtotime($date . ' 12:00:00');
+            if (! $timestamp || ! $this->is_first_saturday($timestamp)) {
+                continue;
+            }
+
+            $where = strtolower(str_replace(array('’', '\''), '', $location));
+            if (strpos($where, 'peter') === false) {
+                continue;
+            }
+
+            $clock = $this->mass_time_clock($time);
+            if ($clock === null) {
+                continue;
+            }
+
+            if (! isset($candidates[$date])) {
+                $candidates[$date] = array();
+            }
+            $candidates[$date][] = array(
+                'time' => $time,
+                'clock' => $clock,
+            );
+        }
+
+        $vigils = array();
+        foreach ($candidates as $date => $masses) {
+            if (count($masses) < 2) {
+                continue;
+            }
+
+            usort($masses, function ($left, $right) {
+                return strcmp($left['clock'], $right['clock']);
+            });
+            $latest = end($masses);
+            $vigils[$date] = $latest['time'];
+        }
+
+        return $vigils;
+    }
+
+    private function mass_time_clock($time)
+    {
+        $normalized = strtolower(str_replace('.', '', trim((string) $time)));
+        if ($normalized === '') {
+            return null;
+        }
+
+        $timestamp = strtotime('2000-01-01 ' . $normalized);
+        return $timestamp === false ? null : date('H:i', $timestamp);
     }
 
     private function same_mass_time($left, $right)
