@@ -64,10 +64,17 @@ final class CBP_Schedule_V31
 
         if (! empty($review['weekly']['events']) && is_array($review['weekly']['events'])) {
             $bulletin_date = (string) $review['bulletin_date'];
+            $future_sources = $this->future_dated_source_lines($raw, $bulletin_date);
             $review['weekly']['events'] = array_values(array_filter(
                 $review['weekly']['events'],
-                function ($row) use ($bulletin_date) {
-                    return ! is_array($row) || ! $this->is_mismatched_dated_prose($row, $bulletin_date);
+                function ($row) use ($bulletin_date, $future_sources) {
+                    if (! is_array($row)) {
+                        return true;
+                    }
+                    if ($this->is_mismatched_dated_prose($row, $bulletin_date)) {
+                        return false;
+                    }
+                    return ! $this->matches_future_dated_source($row, $future_sources);
                 }
             ));
         }
@@ -230,7 +237,7 @@ final class CBP_Schedule_V31
     private function normalize_intention($text)
     {
         $text = trim((string) preg_replace('/\s+/u', ' ', (string) $text), " ,");
-        $text = preg_replace('/^\+\s*/u', '† ', $text);
+        $text = preg_replace('/\+\s*/u', '† ', $text);
         return trim((string) $text);
     }
 
@@ -252,6 +259,60 @@ final class CBP_Schedule_V31
         $stated = $this->date_from_text($text, $bulletin_date);
         $assigned = (string) ($row['date'] ?? '');
         return $stated !== '' && $assigned !== '' && $stated !== $assigned;
+    }
+
+    private function future_dated_source_lines(array $lines, $bulletin_date)
+    {
+        $bulletin = DateTimeImmutable::createFromFormat('!Y-m-d', $bulletin_date);
+        if (! $bulletin) {
+            return array();
+        }
+        $week_start = $bulletin->modify('+1 day')->format('Y-m-d');
+        $week_end = $bulletin->modify('+7 days')->format('Y-m-d');
+        $future = array();
+
+        foreach ($lines as $line) {
+            $date = $this->date_from_text((string) $line, $bulletin_date);
+            if ($date === '' || ($date >= $week_start && $date <= $week_end)) {
+                continue;
+            }
+            $normalized = $this->semantic_text($line);
+            if ($normalized !== '') {
+                $future[] = $normalized;
+            }
+        }
+        return array_values(array_unique($future));
+    }
+
+    private function matches_future_dated_source(array $row, array $future_sources)
+    {
+        if (trim((string) ($row['time'] ?? '')) !== '' || empty($future_sources)) {
+            return false;
+        }
+
+        $title = $this->semantic_text((string) ($row['title'] ?? ''));
+        $description = $this->semantic_text((string) ($row['description'] ?? ''));
+        $candidate = $title !== '' ? $title : $description;
+        if (strlen($candidate) < 12) {
+            return false;
+        }
+
+        $prefix = substr($candidate, 0, min(32, strlen($candidate)));
+        foreach ($future_sources as $source) {
+            if (strpos($source, $candidate) !== false
+                || strpos($candidate, $source) !== false
+                || ($prefix !== '' && strpos($source, $prefix) !== false)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private function semantic_text($text)
+    {
+        $text = strtolower((string) $text);
+        $text = preg_replace('/[^a-z0-9]+/u', ' ', $text);
+        return trim((string) preg_replace('/\s+/u', ' ', $text));
     }
 
     private function date_from_line($line, DateTimeImmutable $bulletin)
