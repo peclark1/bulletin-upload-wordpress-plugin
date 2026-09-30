@@ -1,0 +1,241 @@
+{
+  "name": "October 4, 2026 off-site intention and future-event leakage regression",
+  "bulletin_date": "2026-10-04",
+  "notes": "Human-reviewed fixture based on the October 4 bulletin. Protects the wrapped Crystal Brook Mass location/intention, derived Rosaries, weekly parish calendar, Fall Dinner deduplication, and exclusion of future announcements such as the October 26 Heritage Living Center Rosary. The connector-friendly text fixture normalizes some PDF layout details, so the live-PDF Crystal Brook contamination pattern is also protected by a targeted V31 regression guard.",
+  "current_schedule": {
+    "st_peter_saturday": "5:00 PM",
+    "st_peter_sunday": "8:30 AM",
+    "st_mary_sunday": "11:00 AM",
+    "reconciliation": "Saturday 8:00 AM & 4:00 PM",
+    "adoration": "Thursday 6:00 AM–1:00 PM"
+  },
+  "expected": {
+    "candidates": {
+      "st_peter_saturday": "5:00 PM",
+      "st_peter_sunday": "9:00 AM",
+      "st_mary_sunday": "11:00 AM",
+      "reconciliation": "Saturday 4:00 PM–4:30 PM",
+      "adoration": "Wednesday 5:30 PM–8:00 PM; Thursday 6:00 AM–5:00 PM"
+    },
+    "counts": {
+      "masses": 7,
+      "devotions": 9
+    },
+    "masses": [
+      {
+        "date": "2026-10-06",
+        "time": "5:30 PM",
+        "location": "St. Peter",
+        "title": "Mass",
+        "description": "Michael Williams"
+      },
+      {
+        "date": "2026-10-07",
+        "time": "10:30 AM",
+        "location": "Crystal Brook Senior Living Center",
+        "title": "Mass",
+        "description": "Bishop Balke"
+      },
+      {
+        "date": "2026-10-08",
+        "time": "9:00 AM",
+        "location": "St. Mary’s",
+        "title": "Mass",
+        "description": "Healing for Grant & Lillian Schmaus"
+      },
+      {
+        "date": "2026-10-09",
+        "time": "9:00 AM",
+        "location": "St. Peter",
+        "title": "Mass",
+        "description": "† Paul Heitmann"
+      },
+      {
+        "date": "2026-10-10",
+        "time": "5:00 PM",
+        "location": "St. Peter",
+        "title": "Mass",
+        "description": "† Ron Masanz"
+      },
+      {
+        "date": "2026-10-11",
+        "time": "9:00 AM",
+        "location": "St. Peter",
+        "title": "Mass",
+        "description": "For the People"
+      },
+      {
+        "date": "2026-10-11",
+        "time": "11:00 AM",
+        "location": "St. Mary’s",
+        "title": "Mass",
+        "description": "† Helene Schroeder"
+      }
+    ],
+    "devotions_required": [
+      {
+        "date": "2026-10-06",
+        "time": "5:00 PM",
+        "location": "St. Peter",
+        "title": "Rosary"
+      },
+      {
+        "date": "2026-10-07",
+        "time": "5:30 PM–8:00 PM",
+        "location": "St. Peter",
+        "title": "Adoration"
+      },
+      {
+        "date": "2026-10-08",
+        "time": "6:00 AM–5:00 PM",
+        "location": "St. Peter",
+        "title": "Adoration"
+      },
+      {
+        "date": "2026-10-08",
+        "time": "8:30 AM",
+        "location": "St. Mary’s",
+        "title": "Rosary"
+      },
+      {
+        "date": "2026-10-09",
+        "time": "After 9:00 AM Mass",
+        "location": "St. Peter",
+        "title": "Rosary"
+      },
+      {
+        "date": "2026-10-10",
+        "time": "4:00 PM–4:30 PM",
+        "location": "St. Peter",
+        "title": "Reconciliation"
+      },
+      {
+        "date": "2026-10-10",
+        "time": "4:30 PM",
+        "location": "St. Peter",
+        "title": "Rosary"
+      },
+      {
+        "date": "2026-10-11",
+        "time": "8:30 AM",
+        "location": "St. Peter",
+        "title": "Rosary"
+      },
+      {
+        "date": "2026-10-11",
+        "time": "10:30 AM",
+        "location": "St. Mary’s",
+        "title": "Rosary"
+      }
+    ],
+    "events_required": [
+      {
+        "date": "2026-10-05",
+        "time": "10:00 AM",
+        "location": "St. Peter",
+        "title_contains": "Bible Study"
+      },
+      {
+        "date": "2026-10-05",
+        "time": "1:00 PM",
+        "location": "St. Peter",
+        "title_contains": "Family Guild"
+      },
+      {
+        "date": "2026-10-05",
+        "time": "5:00 PM",
+        "location": "St. Peter",
+        "title_contains": "St. Vincent de Paul"
+      },
+      {
+        "date": "2026-10-05",
+        "time": "6:00 PM–8:30 PM",
+        "location": "St. Peter",
+        "title_contains": "Civil Air Patrol"
+      },
+      {
+        "date": "2026-10-05",
+        "time": "6:30 PM",
+        "location": "St. Peter",
+        "title_contains": "Bible Study"
+      },
+      {
+        "date": "2026-10-06",
+        "time": "9:00 AM",
+        "location": "St. Peter",
+        "title_contains": "Quilt Group"
+      },
+      {
+        "date": "2026-10-06",
+        "time": "12:00 PM",
+        "title_contains": "Ladies lunch"
+      },
+      {
+        "date": "2026-10-06",
+        "time": "6:00 PM",
+        "location": "St. Peter",
+        "title_contains": "Choir practice"
+      },
+      {
+        "date": "2026-10-06",
+        "time": "7:00 PM",
+        "location": "St. Mary’s",
+        "title_contains": "Young Adult Catechism"
+      },
+      {
+        "date": "2026-10-07",
+        "time": "1:00 PM",
+        "location": "St. Peter",
+        "title_contains": "Faith Formation Grades"
+      },
+      {
+        "date": "2026-10-07",
+        "time": "6:00 PM",
+        "location": "St. Peter",
+        "title_contains": "Alpha"
+      },
+      {
+        "date": "2026-10-07",
+        "time": "6:00 PM",
+        "location": "St. Peter",
+        "title_contains": "Evening Faith Formation"
+      },
+      {
+        "date": "2026-10-10",
+        "time": "4:30 PM–7:00 PM",
+        "location": "St. Mary’s",
+        "title_contains": "Annual Dinner"
+      },
+      {
+        "date": "2026-10-11",
+        "time": "",
+        "location": "St. Peter",
+        "title_contains": "Coffee & Rolls"
+      }
+    ],
+    "events_forbidden": [
+      {
+        "title_contains": "Heritage Living Center"
+      },
+      {
+        "date": "2026-10-10",
+        "title_contains": "Heritage"
+      },
+      {
+        "title_contains": "St. Mary’s Guild"
+      },
+      {
+        "title_contains": "Emmaus Encounters"
+      },
+      {
+        "title_contains": "Fall Craft Show"
+      }
+    ],
+    "livestream_contains": [
+      "Sunday Mass & Rosary are live streamed at stpeterpr.org"
+    ],
+    "warning_contains": [
+      "St. Peter Sunday Mass is currently 8:30 AM"
+    ]
+  }
+}

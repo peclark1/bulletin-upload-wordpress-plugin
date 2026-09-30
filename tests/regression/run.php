@@ -118,6 +118,42 @@ if (class_exists('CBP_Schedule_V30')) {
     }
 }
 
+if (class_exists('CBP_Schedule_V31')) {
+    $v31 = CBP_Schedule_V31::instance();
+
+    $mass_records = new ReflectionMethod($v31, 'mass_records');
+    $mass_records->setAccessible(true);
+    $records = $mass_records->invoke($v31, array(
+        'Wednesday, October 7th',
+        ', 10:30 a.m.',
+        'Crystal Brook Senior Living Center,',
+        'Bishop Balke',
+        'Thursday, October 8th, 9:00 a.m.',
+        "St. Mary's, Healing for Grant & Lillian Schmaus",
+    ), '2026-10-04');
+    $key = strtolower('2026-10-07|10:30 AM|Crystal Brook Senior Living Center');
+    if (empty($records[$key])
+        || count($records[$key]) !== 1
+        || ($records[$key][0]['description'] ?? '') !== 'Bishop Balke') {
+        fwrite(STDERR, "V31 regression: split Crystal Brook location/intention was not recovered.\n");
+        exit(1);
+    }
+
+    $prose_leak = new ReflectionMethod($v31, 'is_mismatched_dated_prose');
+    $prose_leak->setAccessible(true);
+    $leaked = $prose_leak->invoke($v31, array(
+        'date' => '2026-10-10',
+        'time' => '10:00 AM',
+        'location' => '',
+        'title' => 'Heritage Living Center Rosary - We will meet Monday, October 26.',
+        'description' => 'Heritage Living Center Rosary - We will meet Monday, October 26.',
+    ), '2026-10-04');
+    if (! $leaked) {
+        fwrite(STDERR, "V31 regression: future dated prose leak was not rejected.\n");
+        exit(1);
+    }
+}
+
 $display_reflection = new ReflectionClass('CBP_Site_Displays');
 $display = $display_reflection->getMethod('instance')->invoke(null);
 $event_note = $display_reflection->getMethod('event_note');
@@ -421,7 +457,10 @@ function cbp_compare_fixture(array $expected, array $actual)
         foreach ($expect[$expect_key] as $rule) {
             foreach ($rows as $row) {
                 if (is_array($row) && cbp_rule_matches_row($rule, $row)) {
-                    $errors[] = $actual_key . ' contains forbidden row: ' . json_encode($rule, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    $errors[] = $actual_key . ' contains forbidden row: '
+                        . json_encode($rule, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                        . ' matched '
+                        . json_encode($row, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                     break;
                 }
             }
