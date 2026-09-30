@@ -143,9 +143,9 @@ if (class_exists('CBP_Schedule_V31')) {
     $prose_leak->setAccessible(true);
     $leaked = $prose_leak->invoke($v31, array(
         'date' => '2026-10-10',
-        'time' => '',
-        'location' => 'Heritage Living Center',
-        'title' => 'Heritage Living Center Rosary',
+        'time' => '10:00 AM',
+        'location' => '',
+        'title' => 'Heritage Living Center Rosary - We will meet Monday, October 26.',
         'description' => 'Heritage Living Center Rosary - We will meet Monday, October 26.',
     ), '2026-10-04');
     if (! $leaked) {
