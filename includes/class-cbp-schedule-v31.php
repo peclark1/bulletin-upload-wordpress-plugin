@@ -252,13 +252,24 @@ final class CBP_Schedule_V31
 
     private function is_mismatched_dated_prose(array $row, $bulletin_date)
     {
-        if (trim((string) ($row['time'] ?? '')) !== '') {
-            return false;
-        }
-        $text = trim((string) ($row['title'] ?? '') . ' ' . (string) ($row['description'] ?? ''));
+        $title = trim((string) ($row['title'] ?? ''));
+        $description = trim((string) ($row['description'] ?? ''));
+        $location = trim((string) ($row['location'] ?? ''));
+        $text = trim($title . ' ' . $description);
         $stated = $this->date_from_text($text, $bulletin_date);
         $assigned = (string) ($row['date'] ?? '');
-        return $stated !== '' && $assigned !== '' && $stated !== $assigned;
+
+        if ($stated === '' || $assigned === '' || $stated === $assigned) {
+            return false;
+        }
+
+        // A raw prose sentence can contain a clock time for its future date.
+        // Do not let that time make the sentence look like a current-week row.
+        $same_prose = $title !== ''
+            && $description !== ''
+            && $this->semantic_text($title) === $this->semantic_text($description);
+
+        return $location === '' && $same_prose;
     }
 
     private function future_dated_source_lines(array $lines, $bulletin_date)
