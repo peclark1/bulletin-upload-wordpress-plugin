@@ -457,7 +457,10 @@ function cbp_compare_fixture(array $expected, array $actual)
         foreach ($expect[$expect_key] as $rule) {
             foreach ($rows as $row) {
                 if (is_array($row) && cbp_rule_matches_row($rule, $row)) {
-                    $errors[] = $actual_key . ' contains forbidden row: ' . json_encode($rule, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    $errors[] = $actual_key . ' contains forbidden row: '
+                        . json_encode($rule, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                        . ' matched '
+                        . json_encode($row, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                     break;
                 }
             }
