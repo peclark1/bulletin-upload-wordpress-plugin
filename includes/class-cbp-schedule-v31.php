@@ -245,7 +245,7 @@ final class CBP_Schedule_V31
 
     private function is_mismatched_dated_prose(array $row, $bulletin_date)
     {
-        if (trim((string) ($row['time'] ?? '')) !== '' || trim((string) ($row['location'] ?? '')) !== '') {
+        if (trim((string) ($row['time'] ?? '')) !== '') {
             return false;
         }
         $text = trim((string) ($row['title'] ?? '') . ' ' . (string) ($row['description'] ?? ''));
