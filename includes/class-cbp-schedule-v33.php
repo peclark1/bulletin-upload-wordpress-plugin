@@ -112,7 +112,7 @@ final class CBP_Schedule_V33
                 if ($date === '') {
                     continue;
                 }
-                if ($date < $week_start || $date > $week_end) {
+                if ($date > $week_end) {
                     $normalized = $this->semantic_text($combined);
                     if ($normalized !== '') {
                         $windows[] = $normalized;
