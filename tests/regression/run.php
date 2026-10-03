@@ -154,6 +154,36 @@ if (class_exists('CBP_Schedule_V31')) {
     }
 }
 
+if (class_exists('CBP_Schedule_V32')) {
+    $v32 = CBP_Schedule_V32::instance();
+    $live_shape = new ReflectionMethod($v32, 'is_mismatched_dated_event');
+    $live_shape->setAccessible(true);
+
+    $leaked = $live_shape->invoke($v32, array(
+        'date' => '2026-10-10',
+        'time' => '',
+        'location' => '',
+        'title' => 'Heritage Living Center',
+        'description' => 'Heritage Living Center Rosary- Please join us in praying the Rosary at Heritage Center on the 4th Monday of the month at 10:00 am. We will meet Monday, October 26.',
+    ), '2026-10-04');
+    if (! $leaked) {
+        fwrite(STDERR, "V32 regression: normalized live Heritage row was not rejected.\n");
+        exit(1);
+    }
+
+    $legitimate = $live_shape->invoke($v32, array(
+        'date' => '2026-10-10',
+        'time' => '4:30 PM–7:00 PM',
+        'location' => 'St. Mary’s',
+        'title' => 'St. Mary’s Annual Dinner & Silent Auction',
+        'description' => '4:30 – 7:00 pm St. Mary’s Annual Dinner & Silent Auction',
+    ), '2026-10-04');
+    if ($legitimate) {
+        fwrite(STDERR, "V32 regression: legitimate dated weekly event was rejected.\n");
+        exit(1);
+    }
+}
+
 $display_reflection = new ReflectionClass('CBP_Site_Displays');
 $display = $display_reflection->getMethod('instance')->invoke(null);
 $event_note = $display_reflection->getMethod('event_note');
