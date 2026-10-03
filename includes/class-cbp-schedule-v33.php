@@ -9,8 +9,8 @@ if (! defined('ABSPATH')) {
  *
  * The October 4 live PDF can split the Heritage Living Center announcement so
  * the event row itself no longer contains "October 26", even though the nearby
- * raw bulletin text does. Build short adjacent-line windows from raw extraction
- * text and reject a blank-location weekly event when its title clearly belongs
+ * source text does. Build short adjacent-line windows from stored extraction
+ * sources and reject a blank-location weekly event when its title clearly belongs
  * to an announcement whose stated date falls outside the current bulletin week.
  */
 final class CBP_Schedule_V33
@@ -80,13 +80,20 @@ final class CBP_Schedule_V33
     {
         $raw = array();
         foreach (($review['source_lines'] ?? array()) as $line) {
-            $line = (string) $line;
-            if (strpos($line, '[raw] ') !== 0) {
+            $line = trim((string) $line);
+            if ($line === '' || preg_match('/^\[v\d+\]/i', $line)) {
                 continue;
             }
-            $value = trim(substr($line, 6));
-            if ($value !== '') {
-                $raw[] = $value;
+
+            // Some parser generations store source excerpts directly, while
+            // others prefix diagnostic raw lines with "[raw] ". Accept both
+            // shapes so the live WordPress review data is usable here.
+            if (strpos($line, '[raw] ') === 0) {
+                $line = trim(substr($line, 6));
+            }
+
+            if ($line !== '') {
+                $raw[] = $line;
             }
         }
         return $raw;
