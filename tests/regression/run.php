@@ -187,6 +187,20 @@ if (class_exists('CBP_Schedule_V32')) {
 if (class_exists('CBP_Schedule_V33')) {
     $v33 = CBP_Schedule_V33::instance();
 
+    $source_lines = new ReflectionMethod($v33, 'raw_lines');
+    $source_lines->setAccessible(true);
+    $stored_sources = $source_lines->invoke($v33, array(
+        'source_lines' => array(
+            'Heritage Living Center Rosary- Please join us in praying the Rosary at Heritage Center on the 4th Monday of the month at 10:00 am. We will meet Monday,',
+            'October 26.',
+            '[v32] Removed normalized weekly rows whose prose states a conflicting date.',
+        ),
+    ));
+    if (count($stored_sources) !== 2 || strpos($stored_sources[0], 'Heritage Living Center') === false) {
+        fwrite(STDERR, "V33 regression: ordinary stored source lines were not available for future-event matching.\n");
+        exit(1);
+    }
+
     $future_windows = new ReflectionMethod($v33, 'future_dated_windows');
     $future_windows->setAccessible(true);
     $windows = $future_windows->invoke($v33, array(
