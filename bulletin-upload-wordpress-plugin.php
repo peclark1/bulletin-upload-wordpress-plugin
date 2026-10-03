@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Church Bulletin Publisher
  * Description: Builds private bulletin previews, extracts reviewed parish schedules and weekly events, and publishes approved bulletins.
- * Version: 0.4.0-test54
+ * Version: 0.4.0-test55
  * Author: St. Mary's and St. Peter the Apostle Parishes
  * Requires at least: 6.2
  * Requires PHP: 7.4
@@ -14,7 +14,7 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-define('CBP_VERSION', '0.4.0-test54');
+define('CBP_VERSION', '0.4.0-test55');
 define('CBP_FILE', __FILE__);
 define('CBP_DIR', plugin_dir_path(__FILE__));
 define('CBP_URL', plugin_dir_url(__FILE__));
@@ -82,6 +82,7 @@ require_once CBP_DIR . 'includes/class-cbp-schedule-v28.php';
 require_once CBP_DIR . 'includes/class-cbp-schedule-v29.php';
 require_once CBP_DIR . 'includes/class-cbp-schedule-v30.php';
 require_once CBP_DIR . 'includes/class-cbp-schedule-v31.php';
+require_once CBP_DIR . 'includes/class-cbp-schedule-v32.php';
 require_once CBP_DIR . 'includes/class-cbp-site-displays.php';
 require_once CBP_DIR . 'includes/class-cbp-home-schedule.php';
 require_once CBP_DIR . 'includes/class-cbp-bulletin-list.php';
@@ -123,6 +124,7 @@ CBP_Schedule_V28::instance();
 CBP_Schedule_V29::instance();
 CBP_Schedule_V30::instance();
 CBP_Schedule_V31::instance();
+CBP_Schedule_V32::instance();
 CBP_Site_Displays::instance();
 CBP_Home_Schedule::instance();
 CBP_Bulletin_List::instance();
