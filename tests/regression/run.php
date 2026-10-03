@@ -57,6 +57,43 @@ foreach ($version_files as $file) {
 
 // Targeted guards for the September 27 follow-up fixes that are not fully
 // represented by parser-only fixture comparisons.
+if (class_exists('CBP_Schedule_V26')) {
+    $v26 = CBP_Schedule_V26::instance();
+    $historical_events = new ReflectionMethod($v26, 'historical_event_rows');
+    $historical_events->setAccessible(true);
+
+    $october_rows = $historical_events->invoke($v26, array(
+        'Saturday, October 10',
+        'Heritage Living Center Rosary- Please join us in praying the Rosary at Heritage Center on the 4th Monday of the month at',
+        '10:00 am. We will meet Monday, October 26.',
+        'Sunday, October 11',
+    ), '2026-10-04');
+    foreach ($october_rows as $row) {
+        if (stripos((string) ($row['title'] ?? ''), 'Heritage Living') !== false) {
+            fwrite(STDERR, "V26 regression: future Heritage announcement inherited the October 10 calendar heading.\n");
+            exit(1);
+        }
+    }
+
+    $april_rows = $historical_events->invoke($v26, array(
+        'Monday, April 27',
+        'Heritage Living Center: 10:00 am Pray the Rosary',
+        'Tuesday, April 28',
+    ), '2026-04-26');
+    $found_heritage = false;
+    foreach ($april_rows as $row) {
+        if (($row['date'] ?? '') === '2026-04-27'
+            && stripos((string) ($row['title'] ?? ''), 'Heritage Living') !== false) {
+            $found_heritage = true;
+            break;
+        }
+    }
+    if (! $found_heritage) {
+        fwrite(STDERR, "V26 regression: legitimate current-week Heritage Rosary was lost.\n");
+        exit(1);
+    }
+}
+
 if (class_exists('CBP_Schedule_V29')) {
     $v29 = CBP_Schedule_V29::instance();
 

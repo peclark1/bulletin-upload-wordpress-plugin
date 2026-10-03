@@ -538,7 +538,8 @@ final class CBP_Schedule_V26
         $last = $bulletin->modify('+7 days');
         $current = '';
         $rows = array();
-        foreach ($lines as $line) {
+
+        foreach ($lines as $index => $line) {
             $date = $this->date_info($line, $bulletin);
             if (is_array($date)) {
                 $dt = DateTimeImmutable::createFromFormat('!Y-m-d', $date['date']);
@@ -546,6 +547,7 @@ final class CBP_Schedule_V26
                 continue;
             }
             if ($current === '') continue;
+
             $interesting = stripos($line, 'Parish Mission') !== false
                 || stripos($line, 'Heritage Living') !== false
                 || stripos($line, 'Civil Air Patrol') !== false
@@ -553,13 +555,34 @@ final class CBP_Schedule_V26
                 || stripos($line, 'Funeral') !== false
                 || stripos($line, 'Memorial Service') !== false;
             if (! $interesting) continue;
+
+            // Historical recovery used to inherit the most recent weekly
+            // heading unconditionally. In a multi-column PDF, a later prose
+            // announcement can therefore inherit Saturday's date even when
+            // its own continuation explicitly says "Monday, October 26".
+            //
+            // Before creating a row, inspect only this line and its immediate
+            // continuation lines. An explicit event date is authoritative:
+            // use it when it belongs to the current bulletin week, and do not
+            // create a weekly row at all when it is outside that week.
+            $context = $this->event_context($lines, $index, $bulletin);
+            $explicit = $this->explicit_event_date($context, $bulletin);
+            $event_date = $current;
+            if ($explicit !== '') {
+                $explicit_dt = DateTimeImmutable::createFromFormat('!Y-m-d', $explicit);
+                if (! $explicit_dt || $explicit_dt < $bulletin || $explicit_dt > $last) {
+                    continue;
+                }
+                $event_date = $explicit;
+            }
+
             $time = $this->time_from_text($line);
             $location = '';
             if (preg_match('/^SP\s*:/i', $line) || stripos($line, 'SP & SM') === 0) $location = 'St. Peter';
             if (preg_match('/^SM\s*:/i', $line)) $location = 'St. Mary’s';
             $title = trim((string) preg_replace('/^(SP|SM)\s*:\s*/i', '', $line));
             $rows[] = array(
-                'date' => $current,
+                'date' => $event_date,
                 'time' => $time,
                 'location' => $location,
                 'title' => $title,
@@ -567,6 +590,58 @@ final class CBP_Schedule_V26
             );
         }
         return $this->dedupe_rows($rows);
+    }
+
+    private function event_context(array $lines, $index, DateTimeImmutable $bulletin)
+    {
+        $context = isset($lines[$index]) ? trim((string) $lines[$index]) : '';
+        $count = count($lines);
+
+        for ($offset = 1; $offset <= 2 && ($index + $offset) < $count; $offset++) {
+            $next = trim((string) $lines[$index + $offset]);
+            if ($next === '') {
+                continue;
+            }
+
+            // Never cross into the next weekly date heading or another
+            // structured SP:/SM: calendar row.
+            if (is_array($this->date_info($next, $bulletin))
+                || preg_match('/^(?:SP|SM)\s*:/iu', $next)) {
+                break;
+            }
+
+            $context = trim($context . ' ' . $next);
+            if ($this->explicit_event_date($context, $bulletin) !== '') {
+                break;
+            }
+        }
+
+        return $context;
+    }
+
+    private function explicit_event_date($text, DateTimeImmutable $bulletin)
+    {
+        if (! preg_match(
+            '/\b(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s*,?\s+'
+            . '(January|February|March|April|May|June|July|August|September|October|November|December)\s+'
+            . '(\d{1,2})(?:st|nd|rd|th)?\b/iu',
+            (string) $text,
+            $matches
+        )) {
+            return '';
+        }
+
+        $date = DateTimeImmutable::createFromFormat(
+            '!F j Y',
+            $matches[1] . ' ' . $matches[2] . ' ' . $bulletin->format('Y')
+        );
+        if (! $date) {
+            return '';
+        }
+        if ($date < $bulletin->modify('-30 days')) {
+            $date = $date->modify('+1 year');
+        }
+        return $date->format('Y-m-d');
     }
 
     private function intention($text)
