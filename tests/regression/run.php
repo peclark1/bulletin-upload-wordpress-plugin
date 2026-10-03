@@ -184,6 +184,44 @@ if (class_exists('CBP_Schedule_V32')) {
     }
 }
 
+if (class_exists('CBP_Schedule_V33')) {
+    $v33 = CBP_Schedule_V33::instance();
+
+    $future_windows = new ReflectionMethod($v33, 'future_dated_windows');
+    $future_windows->setAccessible(true);
+    $windows = $future_windows->invoke($v33, array(
+        'Heritage Living Center Rosary- Please join us in praying the Rosary at Heritage Center on the 4th Monday of the month at 10:00 am. We will meet Monday,',
+        'October 26.',
+        'Friday Rosary, Divine Mercy Chaplet and Prayers- Join us for prayer and fellowship on Fridays immediately following 9:00 am Mass at St. Peter\'s in the church.',
+    ), '2026-10-04');
+
+    $matches_future = new ReflectionMethod($v33, 'matches_future_window');
+    $matches_future->setAccessible(true);
+    $leaked = $matches_future->invoke($v33, array(
+        'date' => '2026-10-10',
+        'time' => '',
+        'location' => '',
+        'title' => 'Heritage Living Center',
+        'description' => 'Heritage Living Center Rosary- Please join us in praying the Rosary at Heritage Center',
+    ), $windows);
+    if (! $leaked) {
+        fwrite(STDERR, "V33 regression: split-line future Heritage announcement was not rejected.\n");
+        exit(1);
+    }
+
+    $legitimate = $matches_future->invoke($v33, array(
+        'date' => '2026-10-08',
+        'time' => '6:00 PM',
+        'location' => '',
+        'title' => 'Men’s Burger & Beer',
+        'description' => '6:00 pm Men’s Burger & Beer-All Men are welcome',
+    ), $windows);
+    if ($legitimate) {
+        fwrite(STDERR, "V33 regression: unrelated blank-location weekly event was rejected.\n");
+        exit(1);
+    }
+}
+
 $display_reflection = new ReflectionClass('CBP_Site_Displays');
 $display = $display_reflection->getMethod('instance')->invoke(null);
 $event_note = $display_reflection->getMethod('event_note');
