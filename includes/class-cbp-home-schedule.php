@@ -69,7 +69,7 @@ final class CBP_Home_Schedule
             <div class="cbp-home-mass-grid">
                 <section class="cbp-home-mass-card">
                     <p class="cbp-home-mass-eyebrow"><?php esc_html_e('PARK RAPIDS', 'church-bulletin-publisher'); ?></p>
-                    <h3><?php esc_html_e('St. Peter the Apostle', 'church-bulletin-publisher'); ?></h3>
+                    <h3><?php esc_html_e('St. Peter’s', 'church-bulletin-publisher'); ?></h3>
                     <p class="cbp-home-mass-times">
                         <strong><?php esc_html_e('Saturday', 'church-bulletin-publisher'); ?> • <?php echo esc_html($schedule['st_peter_saturday']); ?></strong><br>
                         <strong><?php esc_html_e('Sunday', 'church-bulletin-publisher'); ?> • <?php echo esc_html($schedule['st_peter_sunday']); ?></strong>
@@ -78,7 +78,7 @@ final class CBP_Home_Schedule
 
                 <section class="cbp-home-mass-card cbp-home-mass-card--warm">
                     <p class="cbp-home-mass-eyebrow"><?php esc_html_e('TWO INLETS', 'church-bulletin-publisher'); ?></p>
-                    <h3><?php esc_html_e('St. Mary’s Two Inlets', 'church-bulletin-publisher'); ?></h3>
+                    <h3><?php esc_html_e('St. Mary’s', 'church-bulletin-publisher'); ?></h3>
                     <p class="cbp-home-mass-times">
                         <strong><?php esc_html_e('Sunday', 'church-bulletin-publisher'); ?> • <?php echo esc_html($schedule['st_mary_sunday']); ?></strong>
                     </p>
