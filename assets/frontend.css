@@ -48,7 +48,7 @@
 .cbp-home-mass-schedule{max-width:100%;color:var(--cbp-brand)}
 .cbp-home-mass-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:34px}
 .cbp-home-mass-card{min-height:245px;padding:36px 30px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:var(--cbp-surface);border:1px solid var(--cbp-border);border-radius:10px}
-.cbp-home-mass-card--warm{background:var(--cbp-warm);border-color:var(--cbp-border)}
+.cbp-home-mass-card--warm{background:var(--cbp-surface);border-color:var(--cbp-border)}
 .cbp-home-mass-eyebrow{margin:0 0 32px;color:var(--cbp-accent);font-size:13px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase}
 .cbp-home-mass-card h3{margin:0 0 23px;color:var(--cbp-brand);font-size:28px;line-height:1.2}
 .cbp-home-mass-times{margin:0;font-size:20px;line-height:1.65;color:var(--cbp-brand)}
