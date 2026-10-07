@@ -86,3 +86,238 @@
         width: 42%;
     }
 }
+
+
+/* Form Manager v1 */
+.pform-form-manager__new,
+.pform-builder-publish,
+.pform-builder-toolbar {
+    margin: 18px 0;
+    padding: 16px 18px;
+    border: 1px solid #c3c4c7;
+    background: #fff;
+}
+
+.pform-form-manager__new form,
+.pform-builder-toolbar,
+.pform-builder-publish {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+}
+
+.pform-form-manager__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.pform-status--draft {
+    background: #f0f0f1;
+    color: #3c434a;
+}
+
+.pform-status--published {
+    background: #dff3e4;
+    color: #185c2d;
+}
+
+.pform-status--retired {
+    background: #f5dfdf;
+    color: #7b1c1c;
+}
+
+.pform-builder-general details {
+    margin-top: 18px;
+    padding-top: 12px;
+    border-top: 1px solid #dcdcde;
+}
+
+.pform-builder-general summary {
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.pform-builder-grid,
+.pform-builder-section__settings,
+.pform-builder-field__settings {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 18px;
+}
+
+.pform-builder-grid label,
+.pform-builder-section__settings label,
+.pform-builder-field__settings label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-weight: 600;
+}
+
+.pform-builder-grid input,
+.pform-builder-grid textarea,
+.pform-builder-grid select,
+.pform-builder-section__settings input,
+.pform-builder-section__settings textarea,
+.pform-builder-field__settings input,
+.pform-builder-field__settings textarea,
+.pform-builder-field__settings select {
+    width: 100%;
+    max-width: none;
+    font-weight: 400;
+}
+
+.pform-builder-wide {
+    grid-column: 1 / -1;
+}
+
+.pform-builder-toolbar {
+    justify-content: space-between;
+}
+
+.pform-builder-toolbar h2 {
+    margin: 0;
+}
+
+.pform-builder-section {
+    margin: 18px 0;
+    padding: 18px;
+    border: 1px solid #aeb6bf;
+    border-radius: 6px;
+    background: #fff;
+}
+
+.pform-builder-section__heading,
+.pform-builder-field__top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pform-builder-section__heading {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #dcdcde;
+}
+
+.pform-builder-section__heading h2 {
+    flex: 1;
+    margin: 0;
+    font-size: 18px;
+}
+
+.pform-builder-handle {
+    color: #646970;
+    cursor: grab;
+}
+
+.pform-builder-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.pform-builder-fields {
+    margin: 18px 0;
+}
+
+.pform-builder-field {
+    margin: 12px 0;
+    padding: 14px;
+    border-left: 4px solid #255b8f;
+    background: #f6f7f7;
+}
+
+.pform-builder-field__top {
+    margin-bottom: 12px;
+}
+
+.pform-builder-field__top strong {
+    flex: 1;
+}
+
+.pform-builder-field__type {
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: #e7edf3;
+    color: #183f66;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.pform-builder-check {
+    flex-direction: row !important;
+    align-items: center;
+    align-self: end;
+    min-height: 30px;
+}
+
+.pform-builder-check input {
+    width: auto !important;
+}
+
+.pform-builder-repeater {
+    grid-column: 1 / -1;
+    margin-top: 8px;
+    padding: 14px;
+    border: 1px dashed #9aa4ad;
+    background: #fff;
+}
+
+.pform-builder-repeater > label {
+    margin-bottom: 10px;
+}
+
+.pform-builder-advanced {
+    margin-top: 14px;
+}
+
+.pform-builder-publish {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    justify-content: flex-end;
+    box-shadow: 0 -3px 10px rgba(0,0,0,.08);
+}
+
+.pform-builder-history {
+    max-width: 620px;
+}
+
+.pform-admin-preview {
+    max-width: 1080px;
+    padding: 1px 20px 20px;
+    background: #f5f2eb;
+}
+
+@media (max-width: 782px) {
+    .pform-builder-grid,
+    .pform-builder-section__settings,
+    .pform-builder-field__settings {
+        grid-template-columns: 1fr;
+    }
+
+    .pform-builder-wide {
+        grid-column: auto;
+    }
+
+    .pform-builder-section__heading,
+    .pform-builder-field__top {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .pform-builder-actions {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .pform-builder-publish {
+        position: static;
+        justify-content: flex-start;
+    }
+}

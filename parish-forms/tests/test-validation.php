@@ -27,6 +27,16 @@ function sanitize_key($value)
     return preg_replace('/[^a-z0-9_\-]/', '', strtolower((string) $value));
 }
 
+function sanitize_title($value)
+{
+    return trim(preg_replace('/[^a-z0-9]+/', '-', strtolower((string) $value)), '-');
+}
+
+function wp_generate_password($length = 12)
+{
+    return str_repeat('a', $length);
+}
+
 function is_email($value)
 {
     return (bool) filter_var($value, FILTER_VALIDATE_EMAIL);
@@ -107,6 +117,7 @@ class PFORM_Plugin
 require_once dirname(__DIR__) . '/includes/forms/class-pform-parish-registration.php';
 require_once dirname(__DIR__) . '/includes/forms/class-pform-pre-baptismal-questionnaire.php';
 require_once dirname(__DIR__) . '/includes/forms/class-pform-confirmation-interest.php';
+require_once dirname(__DIR__) . '/includes/class-pform-definition-sanitizer.php';
 require_once dirname(__DIR__) . '/includes/class-pform-validator.php';
 require_once dirname(__DIR__) . '/includes/class-pform-formatter.php';
 require_once dirname(__DIR__) . '/includes/class-pform-renderer.php';
@@ -316,5 +327,78 @@ $confirmation_html = PFORM_Renderer::render(
 assert_true(strpos($confirmation_html, 'Confirmation Interest Form') !== false, 'Renderer should display the Confirmation form title.');
 assert_true(strpos($confirmation_html, 'name="pf[candidate_first_name]"') !== false, 'Renderer should include candidate fields.');
 assert_true(strpos($confirmation_html, 'data-pform-condition-field="sponsor_status"') !== false, 'Renderer should expose conditional sponsor behavior.');
+
+$migrated_registration = PFORM_Definition_Sanitizer::sanitize(PFORM_Parish_Registration::definition(), 'parish-registration');
+assert_true($migrated_registration['id'] === 'parish-registration', 'Migrated built-in form ID should remain stable.');
+assert_true(isset($migrated_registration['sections'][2]['condition']['field']) && $migrated_registration['sections'][2]['condition']['field'] === 'marital_status', 'Section conditions must survive Form Manager migration.');
+assert_true($migrated_registration['sections'][3]['fields'][0]['type'] === 'repeater', 'Repeatable child groups must survive Form Manager migration.');
+assert_true($migrated_registration['sections'][3]['fields'][0]['item_label'] === 'Child', 'Repeatable group labels must survive Form Manager migration.');
+
+$editable = array(
+    'id' => 'staff-built-form',
+    'title' => 'Staff Built Form',
+    'eyebrow' => 'Parish Forms',
+    'description' => 'A staff-maintained form.',
+    'submit_label' => 'Send',
+    'success_title' => 'Received',
+    'confirmation' => 'Thanks.',
+    'privacy_note' => 'For parish use.',
+    'reply_to_field' => 'email',
+    'admin_primary_fields' => 'first_name, last_name',
+    'admin_contact_fields' => array('email'),
+    'sections' => array(
+        array(
+            'id' => 'contact',
+            'title' => 'Contact',
+            'description' => '',
+            'fields' => array(
+                array(
+                    'id' => 'first_name',
+                    'type' => 'text',
+                    'label' => 'First Name',
+                    'required' => true,
+                    'width' => 'half',
+                    'max_length' => 80,
+                    'autocomplete' => 'given-name',
+                ),
+                array(
+                    'id' => 'email',
+                    'type' => 'email',
+                    'label' => 'Email',
+                    'required' => true,
+                    'width' => 'half',
+                    'max_length' => 254,
+                    'autocomplete' => 'email',
+                ),
+                array(
+                    'id' => 'contact_method',
+                    'type' => 'radio',
+                    'label' => 'Preferred Contact',
+                    'required' => false,
+                    'width' => 'full',
+                    'options' => array(
+                        'email' => 'Email',
+                        'phone' => 'Phone',
+                    ),
+                ),
+            ),
+        ),
+    ),
+);
+$editable_clean = PFORM_Definition_Sanitizer::sanitize($editable, 'staff-built-form');
+assert_true($editable_clean['id'] === 'staff-built-form', 'Editable form ID should remain stable.');
+assert_true($editable_clean['admin_primary_fields'] === array('first_name', 'last_name'), 'Admin summary field list should normalize.');
+assert_true($editable_clean['sections'][0]['fields'][2]['options']['email'] === 'Email', 'Editor choices should survive definition sanitization.');
+
+$hostile = $editable;
+$hostile['title'] = '<script>alert(1)</script>Safe Form';
+$hostile['sections'][0]['fields'][0]['type'] = 'php';
+$hostile['sections'][0]['fields'][0]['width'] = 'impossible-width';
+$hostile['sections'][0]['fields'][2]['options'] = array('safe' => 'Safe', '<bad>' => '<b>Bad</b>');
+$hostile_clean = PFORM_Definition_Sanitizer::sanitize($hostile, 'staff-built-form');
+assert_true(strpos($hostile_clean['title'], '<script>') === false, 'Editor metadata must be sanitized.');
+assert_true($hostile_clean['sections'][0]['fields'][0]['type'] === 'text', 'Unsupported field types must fall back to text.');
+assert_true($hostile_clean['sections'][0]['fields'][0]['width'] === 'full', 'Unsupported field widths must fall back to full.');
+assert_true(! isset($hostile_clean['sections'][0]['fields'][2]['options']['<bad>']), 'Choice keys must be sanitized.');
 
 echo "Validation tests passed.\n";
