@@ -29,7 +29,7 @@ From the repository root, build the installable plugin ZIP:
 make parish-forms
 ```
 
-Install the resulting `parish-forms-0.1.0.zip` in **Plugins > Add New > Upload Plugin**, then activate it.
+Install the resulting `parish-forms-0.2.0.zip` in **Plugins > Add New > Upload Plugin**, then activate it.
 
 Activation or upgrade creates draft **Parish Registration** and **Pre-Baptismal Questionnaire** pages. Review and publish those pages, or place either shortcode on another page:
 
