@@ -145,11 +145,12 @@ final class PFORM_Renderer
     private static function repeater($field, $values, $errors, $prefix, $path_prefix)
     {
         $items = isset($values[$field['id']]) && is_array($values[$field['id']]) ? array_values($values[$field['id']]) : array();
-        if (! $items) {
+        $minimum = max(1, absint(isset($field['min_items']) ? $field['min_items'] : 0));
+        while (count($items) < $minimum) {
             $items[] = array();
         }
         ?>
-        <div class="pform-repeater pform-field--full" data-pform-repeater data-max-items="<?php echo esc_attr(absint($field['max_items'])); ?>" data-item-label="<?php echo esc_attr($field['item_label']); ?>">
+        <div class="pform-repeater pform-field--full" data-pform-repeater data-min-items="<?php echo esc_attr(absint(isset($field['min_items']) ? $field['min_items'] : 0)); ?>" data-max-items="<?php echo esc_attr(absint($field['max_items'])); ?>" data-item-label="<?php echo esc_attr($field['item_label']); ?>">
             <div class="pform-repeater__items" data-pform-repeater-items>
                 <?php foreach ($items as $index => $item) : ?>
                     <?php self::repeater_item($field, $item, $errors, $prefix, $path_prefix, $index); ?>
