@@ -49,6 +49,7 @@ final class PFORM_Submissions
         ));
         update_post_meta($post_id, '_pform_form_id', $definition['id']);
         update_post_meta($post_id, '_pform_schema_version', absint($definition['version']));
+        update_post_meta($post_id, '_pform_definition_snapshot', $definition);
         update_post_meta($post_id, '_pform_data', $data);
         update_post_meta($post_id, '_pform_status', 'new');
 
@@ -59,6 +60,16 @@ final class PFORM_Submissions
     {
         $data = get_post_meta($post_id, '_pform_data', true);
         return is_array($data) ? $data : array();
+    }
+
+    public static function definition($post_id)
+    {
+        $snapshot = get_post_meta($post_id, '_pform_definition_snapshot', true);
+        if (is_array($snapshot)) {
+            return $snapshot;
+        }
+        $form_id = get_post_meta($post_id, '_pform_form_id', true);
+        return $form_id ? PFORM_Form_Registry::get($form_id) : null;
     }
 
     public static function is_submission($post_id)
