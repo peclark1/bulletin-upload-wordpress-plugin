@@ -386,7 +386,7 @@ final class PFORM_Admin
         header('Content-Disposition: attachment; filename="' . sanitize_file_name($form_id . '-' . gmdate('Y-m-d') . '.csv') . '"');
         $output = fopen('php://output', 'w');
         fwrite($output, "\xEF\xBB\xBF");
-        fputcsv($output, array_merge(array('Submission ID', 'Received', 'Status', 'Form'), wp_list_pluck($columns, 'label')));
+        fputcsv($output, array_merge(array('Submission ID', 'Received', 'Status', 'Form', 'Form Version'), wp_list_pluck($columns, 'label')));
         foreach ($posts as $post) {
             $data = $datasets[$post->ID];
             $row = array(
@@ -394,6 +394,7 @@ final class PFORM_Admin
                 get_the_date('Y-m-d H:i:s', $post),
                 get_post_meta($post->ID, '_pform_status', true) ?: 'new',
                 isset($definitions[$post->ID]['title']) ? $definitions[$post->ID]['title'] : $definition['title'],
+                isset($definitions[$post->ID]['version']) ? absint($definitions[$post->ID]['version']) : absint(get_post_meta($post->ID, '_pform_schema_version', true)),
             );
             $row_definition = isset($definitions[$post->ID]) && is_array($definitions[$post->ID])
                 ? $definitions[$post->ID]
