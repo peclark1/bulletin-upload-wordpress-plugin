@@ -5,8 +5,13 @@
         form.querySelectorAll('[data-pform-condition-field]').forEach(function (container) {
             var field = container.getAttribute('data-pform-condition-field');
             var expected = container.getAttribute('data-pform-condition-value');
-            var selected = form.querySelector('[name="pf[' + field + ']"]:checked');
-            var visible = !!selected && selected.value === expected;
+            var controls = form.querySelectorAll('[name="pf[' + field + ']"], [name="pf[' + field + '][]"]');
+            var visible = Array.prototype.some.call(controls, function (control) {
+                if (control.type === 'radio' || control.type === 'checkbox') {
+                    return control.checked && control.value === expected;
+                }
+                return control.value === expected;
+            });
             container.hidden = !visible;
             container.querySelectorAll('input, select, textarea, button').forEach(function (control) {
                 control.disabled = !visible;
@@ -63,8 +68,11 @@
     }
 
     document.querySelectorAll('.pform').forEach(function (form) {
-        form.addEventListener('change', function (event) {
-            if (event.target.matches('input[type="radio"]')) {
+        form.addEventListener('change', function () {
+            updateConditions(form);
+        });
+        form.addEventListener('input', function (event) {
+            if (event.target.matches('input[type="text"], input[type="email"], input[type="tel"], textarea')) {
                 updateConditions(form);
             }
         });
