@@ -259,8 +259,11 @@
 
         hidden.value = JSON.stringify(state.sections);
 
-        if (prop === 'label' || prop === 'type') {
-            render();
+        if (prop === 'label') {
+            var heading = fieldEl.querySelector('.pform-builder-field__top strong');
+            if (heading) {
+                heading.textContent = field.label || 'Field';
+            }
         }
     }
 
