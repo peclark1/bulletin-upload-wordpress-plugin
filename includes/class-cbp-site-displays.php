@@ -156,13 +156,31 @@ final class CBP_Site_Displays
             'next_week_start' => '',
         );
 
-        // Compact displays keep their existing behavior. Full Mass Times and
-        // Parish Events pages use the permanent approved-week archive.
-        if ($mode !== 'full' || ! class_exists('CBP_Weekly_History')) {
+        if (! class_exists('CBP_Weekly_History')) {
             return $selection;
         }
 
         $history = CBP_Weekly_History::instance();
+        $current_start = $history->current_week_start();
+
+        // Compact displays do not show navigation, but they should still stay
+        // on the week containing today when next week's bulletin is approved
+        // early. Fall back to the live option until a current archive exists.
+        if ($mode !== 'full') {
+            $current_record = $history->get_week($current_start);
+            if (is_array($current_record) && ! empty($current_record['weekly']) && is_array($current_record['weekly'])) {
+                $weekly = wp_parse_args($current_record['weekly'], CBP_Schedule::weekly_defaults());
+                if ($this->has_week($weekly)) {
+                    $selection['weekly'] = $weekly;
+                    $selection['selected_week_start'] = (string) $weekly['week_start'];
+                    $selection['current_week_start'] = $current_start;
+                    $selection['current_week_available'] = true;
+                }
+            }
+            return $selection;
+        }
+
+        // Full Mass Times and Parish Events pages can browse any archived week.
         $requested = isset($_GET['week']) ? sanitize_text_field(wp_unslash($_GET['week'])) : '';
         $record = null;
 
@@ -182,7 +200,6 @@ final class CBP_Site_Displays
         }
 
         $selected_start = (string) $weekly['week_start'];
-        $current_start = $history->current_week_start();
         $adjacent = $history->adjacent_week_starts($selected_start);
 
         $selection['weekly'] = $weekly;
