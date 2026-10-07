@@ -384,7 +384,7 @@ $editor_definition = array(
             'id' => 'contact',
             'title' => 'Contact',
             'fields' => array(
-                array('id' => 'name', 'type' => 'text', 'label' => 'Name', 'required' => true, 'width' => 'half', 'max_length' => 150),
+                array('id' => 'name', 'type' => 'text', 'label' => 'Name', 'help' => 'Enter your full name.', 'required' => true, 'width' => 'half', 'max_length' => 150),
                 array('id' => 'email', 'type' => 'email', 'label' => 'Email', 'required' => true, 'width' => 'half', 'max_length' => 254),
                 array(
                     'id' => 'area',
@@ -414,6 +414,7 @@ assert_true(! is_wp_error($editor_sanitized), 'A staff-created form should sanit
 assert_true($editor_sanitized['id'] === 'volunteer-interest', 'The stored form ID should be authoritative.');
 assert_true($editor_sanitized['notification_emails'] === 'forms@example.com, second@example.com', 'Per-form notification addresses should be allowlisted and normalized.');
 assert_true(! isset($editor_sanitized['unexpected']), 'Unknown top-level definition keys should be discarded.');
+assert_true($editor_sanitized['sections'][0]['fields'][0]['help'] === 'Enter your full name.', 'Field help text should be preserved.');
 assert_true(! isset($editor_sanitized['sections'][0]['fields'][3]['unsafe_html']), 'Unknown field properties should be discarded.');
 assert_true($editor_sanitized['sections'][0]['fields'][3]['condition']['equals'] === 'hospitality', 'Valid simple conditional logic should be retained.');
 
@@ -428,6 +429,7 @@ $preview_html = PFORM_Renderer::render(
     true
 );
 assert_true(strpos($preview_html, 'pform-preview') !== false, 'Preview rendering should use the non-submitting preview container.');
+assert_true(strpos($preview_html, 'Enter your full name.') !== false, 'Preview rendering should include field help text.');
 assert_true(strpos($preview_html, 'action="') === false, 'Preview rendering must not expose a submitting form action.');
 
 echo "Validation tests passed.\n";
