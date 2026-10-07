@@ -224,17 +224,20 @@
 
     function drag(card, kind, index, parentKey, mover) {
         card.draggable = true;
-        card.addEventListener('dragstart', function () {
+        card.addEventListener('dragstart', function (event) {
+            event.stopPropagation();
             dragState = {kind: kind, index: index, parentKey: parentKey};
             card.classList.add('is-dragging');
         });
-        card.addEventListener('dragend', function () {
+        card.addEventListener('dragend', function (event) {
+            event.stopPropagation();
             dragState = null;
             card.classList.remove('is-dragging');
         });
         card.addEventListener('dragover', function (event) {
             if (dragState && dragState.kind === kind && dragState.parentKey === parentKey) {
                 event.preventDefault();
+                event.stopPropagation();
             }
         });
         card.addEventListener('drop', function (event) {
@@ -242,6 +245,7 @@
                 return;
             }
             event.preventDefault();
+            event.stopPropagation();
             mover(dragState.index, index);
             dragState = null;
         });
