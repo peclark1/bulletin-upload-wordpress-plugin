@@ -521,7 +521,7 @@ final class PFORM_Admin
         }
         $post = get_post($submission_id);
         $form_id = get_post_meta($submission_id, '_pform_form_id', true);
-        $definition = PFORM_Form_Registry::get($form_id);
+        $definition = PFORM_Submissions::definition($submission_id);
         if (! $definition) {
             wp_die(esc_html__('The form definition for this submission is unavailable.', 'parish-forms'));
         }
