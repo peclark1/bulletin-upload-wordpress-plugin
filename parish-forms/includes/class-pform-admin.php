@@ -141,9 +141,9 @@ final class PFORM_Admin
                 </form>
                 <div>
                     <?php if ($show_trash) : ?>
-                        <a class="button" href="<?php echo esc_url(admin_url('admin.php?page=parish-forms')); ?>"><?php esc_html_e('View Active', 'parish-forms'); ?></a>
+                        <a class="button" href="<?php echo esc_url(admin_url('admin.php?page=parish-forms&form_id=' . $form_id)); ?>"><?php esc_html_e('View Active', 'parish-forms'); ?></a>
                     <?php else : ?>
-                        <a class="button" href="<?php echo esc_url(admin_url('admin.php?page=parish-forms&post_state=trash')); ?>"><?php esc_html_e('View Trash', 'parish-forms'); ?></a>
+                        <a class="button" href="<?php echo esc_url(admin_url('admin.php?page=parish-forms&form_id=' . $form_id . '&post_state=trash')); ?>"><?php esc_html_e('View Trash', 'parish-forms'); ?></a>
                         <?php if ($definition) : ?>
                             <a class="button button-primary" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=pform_export_csv&form_id=' . $form_id), 'pform_export_csv')); ?>"><?php esc_html_e('Export CSV', 'parish-forms'); ?></a>
                         <?php endif; ?>
@@ -320,7 +320,7 @@ final class PFORM_Admin
                         <th scope="row"><label for="pform-notification-emails"><?php esc_html_e('Notification email addresses', 'parish-forms'); ?></label></th>
                         <td>
                             <textarea id="pform-notification-emails" class="large-text" rows="3" name="<?php echo esc_attr(PFORM_Plugin::OPTION); ?>[notification_emails]"><?php echo esc_textarea($settings['notification_emails']); ?></textarea>
-                            <p class="description"><?php esc_html_e('Separate multiple addresses with commas. Each address receives the complete submitted registration. Leave blank to disable email notifications; submissions will still be stored.', 'parish-forms'); ?></p>
+                            <p class="description"><?php esc_html_e('Separate multiple addresses with commas. Each address receives the complete submitted form data. Leave blank to disable email notifications; submissions will still be stored.', 'parish-forms'); ?></p>
                         </td>
                     </tr>
                 </table>
