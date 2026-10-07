@@ -126,7 +126,7 @@
         var showRepeater = field.type === 'repeater' && !nested;
         var condition = field.condition || {};
 
-        var html = '<div class="pform-builder-field"' + data + ' draggable="true">';
+        var html = '<div class="pform-builder-field"' + data + '>';
         html += '<div class="pform-builder-field__top">';
         html += '<span class="dashicons dashicons-move pform-builder-handle" aria-hidden="true"></span>';
         html += '<strong>' + esc(field.label || 'Field') + '</strong>';
@@ -180,7 +180,7 @@
     }
 
     function sectionHtml(section, sectionIndex) {
-        var html = '<section class="pform-builder-section" data-section="' + sectionIndex + '" draggable="true">';
+        var html = '<section class="pform-builder-section" data-section="' + sectionIndex + '">';
         html += '<div class="pform-builder-section__heading">';
         html += '<span class="dashicons dashicons-move pform-builder-handle" aria-hidden="true"></span>';
         html += '<h2>' + esc(section.title || 'Section') + '</h2>';
