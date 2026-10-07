@@ -101,6 +101,9 @@ final class PFORM_Form_Manager
                             <td><code>[parish_form id="<?php echo esc_attr($record['form_id']); ?>"]</code></td>
                             <td>
                                 <div class="pform-manager__actions">
+                                    <?php if ($record['published']) : ?>
+                                        <a class="button" href="<?php echo esc_url(admin_url('admin.php?page=parish-forms&form_id=' . rawurlencode($record['form_id']))); ?>"><?php esc_html_e('Submissions', 'parish-forms'); ?></a>
+                                    <?php endif; ?>
                                     <a class="button" href="<?php echo esc_url($this->editor_url($record['form_id'])); ?>"><?php esc_html_e('Edit', 'parish-forms'); ?></a>
                                     <a class="button" href="<?php echo esc_url(add_query_arg('preview', '1', $this->editor_url($record['form_id']))); ?>"><?php esc_html_e('Preview', 'parish-forms'); ?></a>
                                     <?php $this->small_action_form('pform_form_duplicate', $record['form_id'], __('Duplicate', 'parish-forms')); ?>
