@@ -105,6 +105,7 @@ class PFORM_Plugin
 }
 
 require_once dirname(__DIR__) . '/includes/forms/class-pform-parish-registration.php';
+require_once dirname(__DIR__) . '/includes/forms/class-pform-pre-baptismal-questionnaire.php';
 require_once dirname(__DIR__) . '/includes/class-pform-validator.php';
 require_once dirname(__DIR__) . '/includes/class-pform-formatter.php';
 require_once dirname(__DIR__) . '/includes/class-pform-renderer.php';
@@ -180,5 +181,63 @@ $html = PFORM_Renderer::render($definition, array('errors' => array(), 'values' 
 assert_true(strpos($html, 'data-pform-condition-field="marital_status"') !== false, 'Renderer should expose conditional spouse behavior.');
 assert_true(strpos($html, 'name="pf[children][__INDEX__][full_name]"') !== false, 'Repeater template should preserve its replaceable index.');
 assert_true(strpos($html, 'id="pform-children-__INDEX__-full_name"') !== false, 'Repeater template IDs should be unique after client-side replacement.');
+
+$baptism_definition = PFORM_Pre_Baptismal_Questionnaire::definition();
+$baptism_valid = array(
+    'child_first_name' => 'William',
+    'child_middle_name' => 'Edward',
+    'child_last_name' => 'Clark',
+    'gender' => 'male',
+    'child_birth_date' => '2020-05-08',
+    'place_of_birth' => 'Merriam, KS, USA',
+    'mother_name' => 'Michelle Clark',
+    'mother_maiden_name' => 'Berghahn',
+    'mother_religion' => 'Catholic',
+    'mother_phone' => '913-555-0100',
+    'mother_email' => 'mother@example.com',
+    'father_name' => 'Peter Clark',
+    'father_religion' => 'Other Christian denomination',
+    'father_phone' => '913-555-0101',
+    'father_email' => 'father@example.com',
+    'address_for' => 'both',
+    'street_address' => '1343 West 9th Street',
+    'city' => 'Omaha',
+    'state' => 'NE',
+    'postal_code' => '67434',
+    'offertory_gifts' => 'yes',
+    'reserved_pews' => '3',
+);
+
+$baptism_result = PFORM_Validator::validate($baptism_definition, $baptism_valid);
+assert_true($baptism_result['errors'] === array(), 'Valid pre-baptismal questionnaire should have no errors.');
+assert_true($baptism_result['data']['address_for'] === 'both', 'Address-for choice should be retained from the allowlist.');
+
+$baptism_invalid = $baptism_valid;
+$baptism_invalid['child_first_name'] = '';
+$baptism_invalid['child_birth_date'] = '2035-01-01';
+$baptism_invalid['mother_email'] = 'bad-email';
+$baptism_invalid['address_for'] = 'somewhere-else';
+$baptism_invalid['reserved_pews'] = '';
+$baptism_result = PFORM_Validator::validate($baptism_definition, $baptism_invalid);
+assert_true(isset($baptism_result['errors']['child_first_name']), 'Child first name should be required.');
+assert_true(isset($baptism_result['errors']['child_birth_date']), 'Future child birth date should be rejected when supplied.');
+assert_true(isset($baptism_result['errors']['mother_email']), 'Invalid mother email should be rejected when supplied.');
+assert_true(isset($baptism_result['errors']['address_for']), 'Unknown address-for choices should be rejected.');
+assert_true(isset($baptism_result['errors']['reserved_pews']), 'Reserved pew count should be required.');
+
+$baptism_formatted = PFORM_Formatter::plain_text(
+    $baptism_definition,
+    PFORM_Validator::validate($baptism_definition, $baptism_valid)['data']
+);
+assert_true(strpos($baptism_formatted, 'William') !== false, 'Baptism notification should contain the child name.');
+assert_true(strpos($baptism_formatted, 'Michelle Clark') !== false, 'Baptism notification should contain parent information.');
+
+$baptism_html = PFORM_Renderer::render(
+    $baptism_definition,
+    array('errors' => array(), 'values' => $baptism_valid, 'success' => false)
+);
+assert_true(strpos($baptism_html, 'Pre-Baptismal Questionnaire') !== false, 'Renderer should display the baptism form title.');
+assert_true(strpos($baptism_html, 'name="pf[child_first_name]"') !== false, 'Renderer should include the child first-name field.');
+assert_true(strpos($baptism_html, 'name="pf[offertory_gifts]"') !== false, 'Renderer should include the offertory-gifts field.');
 
 echo "Validation tests passed.\n";
