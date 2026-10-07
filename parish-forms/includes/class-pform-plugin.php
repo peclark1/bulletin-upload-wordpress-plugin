@@ -21,6 +21,7 @@ final class PFORM_Plugin
 
     private function __construct()
     {
+        add_action('init', array('PFORM_Form_Store', 'register_post_types'), 9);
         add_action('init', array('PFORM_Submissions', 'register_post_type'));
         add_action('init', array($this, 'register_assets'));
         add_action('init', array($this, 'maybe_upgrade'), 20);
@@ -29,10 +30,12 @@ final class PFORM_Plugin
         add_shortcode('parish_form', array($this, 'shortcode'));
         add_action('admin_init', array($this, 'privacy_policy_content'));
         PFORM_Admin::instance();
+        PFORM_Form_Manager::instance();
     }
 
     public static function activate()
     {
+        PFORM_Form_Store::register_post_types();
         PFORM_Submissions::register_post_type();
 
         $administrator = get_role('administrator');
@@ -58,6 +61,7 @@ final class PFORM_Plugin
         }
 
         self::ensure_default_pages();
+        PFORM_Form_Store::seed_builtins(PFORM_Form_Registry::builtin_all());
         update_option(self::VERSION_OPTION, PFORM_VERSION);
 
         flush_rewrite_rules(false);
@@ -71,6 +75,7 @@ final class PFORM_Plugin
         }
 
         self::ensure_default_pages();
+        PFORM_Form_Store::seed_builtins(PFORM_Form_Registry::builtin_all());
         update_option(self::VERSION_OPTION, PFORM_VERSION);
     }
 
