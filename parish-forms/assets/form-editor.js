@@ -302,6 +302,9 @@
                 render();
             }
         }
+        if (event.target.hasAttribute('data-section-prop')) {
+            event.target.dispatchEvent(new Event('input', {bubbles: true}));
+        }
     });
 
     root.addEventListener('click', function (event) {
