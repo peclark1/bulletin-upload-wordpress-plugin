@@ -94,7 +94,11 @@ final class PFORM_Admin
             return;
         }
 
+        $forms = PFORM_Form_Registry::all();
         $form_id = isset($_GET['form_id']) ? sanitize_key(wp_unslash($_GET['form_id'])) : 'parish-registration';
+        if (! isset($forms[$form_id])) {
+            $form_id = 'parish-registration';
+        }
         $workflow_status = isset($_GET['workflow_status']) ? sanitize_key(wp_unslash($_GET['workflow_status'])) : '';
         $show_trash = isset($_GET['post_state']) && sanitize_key(wp_unslash($_GET['post_state'])) === 'trash';
         $paged = max(1, isset($_GET['paged']) ? absint($_GET['paged']) : 1);
@@ -121,7 +125,12 @@ final class PFORM_Admin
             <div class="pform-admin__toolbar">
                 <form method="get">
                     <input type="hidden" name="page" value="parish-forms">
-                    <input type="hidden" name="form_id" value="<?php echo esc_attr($form_id); ?>">
+                    <label for="pform-form-id"><?php esc_html_e('Form', 'parish-forms'); ?></label>
+                    <select id="pform-form-id" name="form_id">
+                        <?php foreach ($forms as $available_form_id => $available_definition) : ?>
+                            <option value="<?php echo esc_attr($available_form_id); ?>" <?php selected($form_id, $available_form_id); ?>><?php echo esc_html($available_definition['title']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
                     <label for="pform-workflow-status" class="screen-reader-text"><?php esc_html_e('Filter by status', 'parish-forms'); ?></label>
                     <select id="pform-workflow-status" name="workflow_status">
                         <option value=""><?php esc_html_e('All statuses', 'parish-forms'); ?></option>
@@ -145,9 +154,8 @@ final class PFORM_Admin
                 <thead>
                     <tr>
                         <th><?php esc_html_e('ID', 'parish-forms'); ?></th>
-                        <th><?php esc_html_e('Household', 'parish-forms'); ?></th>
-                        <th><?php esc_html_e('Primary Contact', 'parish-forms'); ?></th>
-                        <th><?php esc_html_e('Parish', 'parish-forms'); ?></th>
+                        <th><?php esc_html_e('Submission', 'parish-forms'); ?></th>
+                        <th><?php esc_html_e('Contact', 'parish-forms'); ?></th>
                         <th><?php esc_html_e('Received', 'parish-forms'); ?></th>
                         <th><?php esc_html_e('Status', 'parish-forms'); ?></th>
                         <th><?php esc_html_e('Email', 'parish-forms'); ?></th>
@@ -155,21 +163,19 @@ final class PFORM_Admin
                 </thead>
                 <tbody>
                     <?php if (! $query->posts) : ?>
-                        <tr><td colspan="7"><?php esc_html_e('No submissions found.', 'parish-forms'); ?></td></tr>
+                        <tr><td colspan="6"><?php esc_html_e('No submissions found.', 'parish-forms'); ?></td></tr>
                     <?php else : ?>
                         <?php foreach ($query->posts as $post) : ?>
                             <?php
                             $data = PFORM_Submissions::data($post->ID);
                             $status = get_post_meta($post->ID, '_pform_status', true) ?: 'new';
-                            $parish = isset($data['parish']) ? $data['parish'] : '';
-                            $parish_labels = isset($definition['sections']) ? PFORM_Form_Registry::fields($definition) : array();
-                            $parish_label = isset($parish_labels['parish']['options'][$parish]) ? $parish_labels['parish']['options'][$parish] : $parish;
+                            $primary_summary = $this->summary_value($definition, $data, 'admin_primary_fields');
+                            $contact_summary = $this->summary_value($definition, $data, 'admin_contact_fields');
                             ?>
                             <tr>
                                 <td><a href="<?php echo esc_url(self::submission_url($post->ID)); ?>">#<?php echo esc_html($post->ID); ?></a></td>
-                                <td><?php echo esc_html(isset($data['family_name']) ? $data['family_name'] : ''); ?></td>
-                                <td><a href="<?php echo esc_url(self::submission_url($post->ID)); ?>"><?php echo esc_html(isset($data['primary_name']) ? $data['primary_name'] : __('View submission', 'parish-forms')); ?></a></td>
-                                <td><?php echo esc_html($parish_label); ?></td>
+                                <td><a href="<?php echo esc_url(self::submission_url($post->ID)); ?>"><?php echo esc_html($primary_summary !== '' ? $primary_summary : __('View submission', 'parish-forms')); ?></a></td>
+                                <td><?php echo esc_html($contact_summary); ?></td>
                                 <td><?php echo esc_html(get_the_date('M j, Y g:i a', $post)); ?></td>
                                 <td><span class="pform-status pform-status--<?php echo esc_attr($status); ?>"><?php echo esc_html(ucfirst($status)); ?></span></td>
                                 <td><?php echo get_post_meta($post->ID, '_pform_email_sent', true) === '1' ? esc_html__('Sent', 'parish-forms') : esc_html__('Not sent', 'parish-forms'); ?></td>
@@ -303,6 +309,7 @@ final class PFORM_Admin
         $this->authorize();
         $settings = PFORM_Plugin::settings();
         $page_id = absint(get_option('pform_registration_page_id'));
+        $baptism_page_id = absint(get_option('pform_baptism_page_id'));
         ?>
         <div class="wrap pform-admin">
             <h1><?php esc_html_e('Parish Forms Settings', 'parish-forms'); ?></h1>
@@ -320,10 +327,14 @@ final class PFORM_Admin
                 <?php submit_button(); ?>
             </form>
             <section class="pform-admin__help">
-                <h2><?php esc_html_e('Using the Registration Form', 'parish-forms'); ?></h2>
-                <p><?php esc_html_e('Place this shortcode on any page:', 'parish-forms'); ?> <code>[parish_form id="parish-registration"]</code></p>
+                <h2><?php esc_html_e('Using Parish Forms', 'parish-forms'); ?></h2>
+                <p><strong><?php esc_html_e('Parish Registration:', 'parish-forms'); ?></strong> <code>[parish_form id="parish-registration"]</code></p>
                 <?php if ($page_id && get_post($page_id)) : ?>
                     <p><a class="button" href="<?php echo esc_url(get_edit_post_link($page_id)); ?>"><?php esc_html_e('Edit Draft Registration Page', 'parish-forms'); ?></a></p>
+                <?php endif; ?>
+                <p><strong><?php esc_html_e('Pre-Baptismal Questionnaire:', 'parish-forms'); ?></strong> <code>[parish_form id="pre-baptismal-questionnaire"]</code></p>
+                <?php if ($baptism_page_id && get_post($baptism_page_id)) : ?>
+                    <p><a class="button" href="<?php echo esc_url(get_edit_post_link($baptism_page_id)); ?>"><?php esc_html_e('Edit Draft Pre-Baptismal Page', 'parish-forms'); ?></a></p>
                 <?php endif; ?>
             </section>
         </div>
@@ -376,6 +387,25 @@ final class PFORM_Admin
         }
         fclose($output);
         exit;
+    }
+
+    private function summary_value($definition, $data, $definition_key)
+    {
+        if (empty($definition[$definition_key]) || ! is_array($definition[$definition_key])) {
+            return '';
+        }
+
+        $values = array();
+        foreach ($definition[$definition_key] as $field_id) {
+            if (! isset($data[$field_id]) || ! is_scalar($data[$field_id])) {
+                continue;
+            }
+            $value = trim((string) $data[$field_id]);
+            if ($value !== '') {
+                $values[] = $value;
+            }
+        }
+        return implode(' · ', $values);
     }
 
     private function csv_columns($definition, $datasets)
