@@ -156,6 +156,7 @@ final class PFORM_Admin
                         <th><?php esc_html_e('ID', 'parish-forms'); ?></th>
                         <th><?php esc_html_e('Submission', 'parish-forms'); ?></th>
                         <th><?php esc_html_e('Contact', 'parish-forms'); ?></th>
+                        <th><?php esc_html_e('Parish', 'parish-forms'); ?></th>
                         <th><?php esc_html_e('Received', 'parish-forms'); ?></th>
                         <th><?php esc_html_e('Status', 'parish-forms'); ?></th>
                         <th><?php esc_html_e('Email', 'parish-forms'); ?></th>
@@ -163,7 +164,7 @@ final class PFORM_Admin
                 </thead>
                 <tbody>
                     <?php if (! $query->posts) : ?>
-                        <tr><td colspan="6"><?php esc_html_e('No submissions found.', 'parish-forms'); ?></td></tr>
+                        <tr><td colspan="7"><?php esc_html_e('No submissions found.', 'parish-forms'); ?></td></tr>
                     <?php else : ?>
                         <?php foreach ($query->posts as $post) : ?>
                             <?php
@@ -171,11 +172,15 @@ final class PFORM_Admin
                             $status = get_post_meta($post->ID, '_pform_status', true) ?: 'new';
                             $primary_summary = $this->summary_value($definition, $data, 'admin_primary_fields');
                             $contact_summary = $this->summary_value($definition, $data, 'admin_contact_fields');
+                            $parish = isset($data['parish']) ? $data['parish'] : '';
+                            $definition_fields = isset($definition['sections']) ? PFORM_Form_Registry::fields($definition) : array();
+                            $parish_label = isset($definition_fields['parish']['options'][$parish]) ? $definition_fields['parish']['options'][$parish] : $parish;
                             ?>
                             <tr>
                                 <td><a href="<?php echo esc_url(self::submission_url($post->ID)); ?>">#<?php echo esc_html($post->ID); ?></a></td>
                                 <td><a href="<?php echo esc_url(self::submission_url($post->ID)); ?>"><?php echo esc_html($primary_summary !== '' ? $primary_summary : __('View submission', 'parish-forms')); ?></a></td>
                                 <td><?php echo esc_html($contact_summary); ?></td>
+                                <td><?php echo esc_html($parish_label); ?></td>
                                 <td><?php echo esc_html(get_the_date('M j, Y g:i a', $post)); ?></td>
                                 <td><span class="pform-status pform-status--<?php echo esc_attr($status); ?>"><?php echo esc_html(ucfirst($status)); ?></span></td>
                                 <td><?php echo get_post_meta($post->ID, '_pform_email_sent', true) === '1' ? esc_html__('Sent', 'parish-forms') : esc_html__('Not sent', 'parish-forms'); ?></td>
