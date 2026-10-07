@@ -20,8 +20,9 @@ final class PFORM_Notifications
         $body = sprintf("A new %s was submitted.\n\nSubmission ID: %d\nReceived: %s\nAdmin: %s\n\n%s\n", $definition['title'], $submission_id, wp_date('F j, Y g:i a'), PFORM_Admin::submission_url($submission_id), PFORM_Formatter::plain_text($definition, $data));
         $headers = array('Content-Type: text/plain; charset=UTF-8');
 
-        if (! empty($data['primary_email']) && is_email($data['primary_email'])) {
-            $headers[] = 'Reply-To: ' . $data['primary_email'];
+        $reply_to_field = ! empty($definition['reply_to_field']) ? $definition['reply_to_field'] : 'primary_email';
+        if (! empty($data[$reply_to_field]) && is_email($data[$reply_to_field])) {
+            $headers[] = 'Reply-To: ' . $data[$reply_to_field];
         }
 
         return (bool) wp_mail($recipients, $subject, $body, $headers);
