@@ -135,6 +135,9 @@ final class PFORM_Renderer
                     <input id="<?php echo esc_attr($html_id); ?>" type="<?php echo esc_attr($field['type']); ?>" name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr($value); ?>" <?php self::input_attributes($field, $error, $html_id); ?>>
                 <?php endif; ?>
             <?php endif; ?>
+            <?php if (! empty($field['help'])) : ?>
+                <p class="pform-help"><?php echo esc_html($field['help']); ?></p>
+            <?php endif; ?>
             <?php if ($error) : ?>
                 <p id="<?php echo esc_attr($html_id . '-error'); ?>" class="pform-error"><?php echo esc_html($error); ?></p>
             <?php endif; ?>
