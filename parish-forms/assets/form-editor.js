@@ -33,7 +33,10 @@
         ['full', 'Full width'],
         ['half', 'Half width'],
         ['third', 'One third'],
-        ['two-thirds', 'Two thirds']
+        ['two-thirds', 'Two thirds'],
+        ['phone-wide', 'Phone wide'],
+        ['ministries', 'Ministry choices layout'],
+        ['other-interests', 'Long notes layout']
     ];
 
     function esc(value) {
@@ -84,11 +87,11 @@
         return out;
     }
 
-    function fieldIds() {
+    function conditionSources() {
         var ids = [];
         state.sections.forEach(function (section) {
             (section.fields || []).forEach(function (field) {
-                if (field.id) {
+                if (field.id && field.type === 'radio') {
                     ids.push(field.id);
                 }
             });
@@ -96,10 +99,10 @@
         return ids;
     }
 
-    function conditionSelect(field) {
-        var current = field.condition && field.condition.field ? field.condition.field : '';
+    function conditionSelect(target) {
+        var current = target.condition && target.condition.field ? target.condition.field : '';
         var html = '<option value="">Always show</option>';
-        fieldIds().forEach(function (id) {
+        conditionSources().forEach(function (id) {
             html += '<option value="' + esc(id) + '"' + (id === current ? ' selected' : '') + '>' + esc(id) + '</option>';
         });
         return html;
@@ -193,6 +196,8 @@
         html += '<label>Section title<input type="text" data-section-prop="title" value="' + esc(section.title || '') + '"></label>';
         html += '<label>Section ID<input type="text" data-section-prop="id" value="' + esc(section.id || '') + '"></label>';
         html += '<label class="pform-builder-wide">Description<textarea rows="2" data-section-prop="description">' + esc(section.description || '') + '</textarea></label>';
+        html += '<label>Show section when field<select data-section-prop="condition_field">' + conditionSelect(section) + '</select></label>';
+        html += '<label>Equals value<input type="text" data-section-prop="condition_equals" value="' + esc(section.condition && section.condition.equals ? section.condition.equals : '') + '" placeholder="choice value"></label>';
         html += '</div>';
         html += '<div class="pform-builder-fields">';
         (section.fields || []).forEach(function (field, fieldIndex) {
@@ -267,7 +272,22 @@
         if (sectionProp) {
             var sectionEl = event.target.closest('.pform-builder-section');
             var index = parseInt(sectionEl.getAttribute('data-section'), 10);
-            state.sections[index][sectionProp] = event.target.value;
+            var section = state.sections[index];
+            if (sectionProp === 'condition_field') {
+                section.condition = section.condition || {};
+                section.condition.field = event.target.value;
+                if (!event.target.value) {
+                    delete section.condition;
+                }
+            } else if (sectionProp === 'condition_equals') {
+                section.condition = section.condition || {};
+                section.condition.equals = event.target.value;
+                if (!section.condition.field && !section.condition.equals) {
+                    delete section.condition;
+                }
+            } else {
+                section[sectionProp] = event.target.value;
+            }
             hidden.value = JSON.stringify(state.sections);
             if (sectionProp === 'title') {
                 sectionEl.querySelector('h2').textContent = event.target.value || 'Section';
