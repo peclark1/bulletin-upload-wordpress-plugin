@@ -288,6 +288,10 @@
             }
         });
 
+        advanced.appendChild(fieldRow('Notification email override', input(state.notification_emails || '', function (v) {
+            state.notification_emails = v;
+        }), 'Optional. Separate multiple addresses with commas. Leave blank to use the global Parish Forms notification setting.'));
+
         advanced.appendChild(fieldRow('Reply-To email field', select(state.reply_to_field || '', emailChoices, function (v) {
             state.reply_to_field = v;
         }), 'Staff notification emails use this submitted address as Reply-To when available.'));
