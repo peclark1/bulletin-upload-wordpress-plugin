@@ -161,6 +161,7 @@ final class PFORM_Form_Manager
             'labels' => array(
                 'confirmRemoveSection' => __('Remove this section and all fields inside it?', 'parish-forms'),
                 'confirmRemoveField' => __('Remove this field?', 'parish-forms'),
+                'confirmPublish' => __('Publish these changes to the live form? A new immutable form version will be created.', 'parish-forms'),
                 'optionHelp' => __('One choice per line. Use “value | Label” to set a stable stored value, or enter just the label.', 'parish-forms'),
             ),
         ));
@@ -180,6 +181,7 @@ final class PFORM_Form_Manager
             <?php else : ?>
                 <div class="notice notice-info inline"><p><?php esc_html_e('The permanent Form ID and shortcode will be assigned when you save this new form.', 'parish-forms'); ?></p></div>
             <?php endif; ?>
+            <p class="description"><?php esc_html_e('Save Draft keeps your changes private. The public form changes only when you choose Publish Changes.', 'parish-forms'); ?></p>
 
             <form id="pform-form-editor-form" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post">
                 <input type="hidden" name="action" value="pform_form_save">
