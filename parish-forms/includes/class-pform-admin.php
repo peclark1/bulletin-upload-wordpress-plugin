@@ -101,6 +101,296 @@ final class PFORM_Admin
         return array('notification_emails' => implode(', ', array_unique($clean)));
     }
 
+    public function render_forms()
+    {
+        $this->authorize();
+        $form_post_id = isset($_GET['form']) ? absint($_GET['form']) : 0;
+
+        if ($form_post_id) {
+            $this->render_form_editor($form_post_id);
+            return;
+        }
+
+        $forms = PFORM_Form_Store::posts();
+        ?>
+        <div class="wrap pform-admin pform-form-manager">
+            <h1><?php esc_html_e('Parish Forms', 'parish-forms'); ?></h1>
+            <?php $this->form_notice(); ?>
+            <p><?php esc_html_e('Create and maintain parish forms without editing plugin code. Published changes are versioned so historical submissions keep the definition that was used when they were submitted.', 'parish-forms'); ?></p>
+
+            <div class="pform-form-manager__new">
+                <form action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post">
+                    <input type="hidden" name="action" value="pform_form_create">
+                    <?php wp_nonce_field('pform_form_create'); ?>
+                    <label for="pform-new-form-title"><strong><?php esc_html_e('New form', 'parish-forms'); ?></strong></label>
+                    <input id="pform-new-form-title" type="text" class="regular-text" name="title" placeholder="<?php esc_attr_e('Example: Funeral Planning', 'parish-forms'); ?>" required>
+                    <?php submit_button(__('Add New Form', 'parish-forms'), 'primary', 'submit', false); ?>
+                </form>
+            </div>
+
+            <table class="widefat fixed striped pform-forms-table">
+                <thead>
+                    <tr>
+                        <th><?php esc_html_e('Form', 'parish-forms'); ?></th>
+                        <th><?php esc_html_e('Status', 'parish-forms'); ?></th>
+                        <th><?php esc_html_e('Version', 'parish-forms'); ?></th>
+                        <th><?php esc_html_e('Shortcode', 'parish-forms'); ?></th>
+                        <th><?php esc_html_e('Actions', 'parish-forms'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (! $forms) : ?>
+                        <tr><td colspan="5"><?php esc_html_e('No forms found.', 'parish-forms'); ?></td></tr>
+                    <?php else : ?>
+                        <?php foreach ($forms as $form_post) : ?>
+                            <?php
+                            $form_id = PFORM_Form_Store::form_id($form_post->ID);
+                            $status = PFORM_Form_Store::status($form_post->ID);
+                            $version = absint(get_post_meta($form_post->ID, '_pform_published_version', true));
+                            $edit_url = admin_url('admin.php?page=parish-forms-forms&form=' . $form_post->ID);
+                            $duplicate_url = wp_nonce_url(
+                                admin_url('admin-post.php?action=pform_form_duplicate&form=' . $form_post->ID),
+                                'pform_form_duplicate_' . $form_post->ID
+                            );
+                            $status_operation = $status === 'retired' ? 'restore' : 'retire';
+                            $status_url = wp_nonce_url(
+                                admin_url('admin-post.php?action=pform_form_status&form=' . $form_post->ID . '&operation=' . $status_operation),
+                                'pform_form_status_' . $form_post->ID
+                            );
+                            ?>
+                            <tr>
+                                <td>
+                                    <strong><a href="<?php echo esc_url($edit_url); ?>"><?php echo esc_html($form_post->post_title); ?></a></strong>
+                                    <div class="row-actions"><span><?php echo esc_html($form_id); ?></span></div>
+                                </td>
+                                <td><span class="pform-status pform-status--<?php echo esc_attr($status); ?>"><?php echo esc_html(ucfirst($status)); ?></span></td>
+                                <td><?php echo esc_html($version ? 'v' . $version : __('Not published', 'parish-forms')); ?></td>
+                                <td><code>[parish_form id="<?php echo esc_html($form_id); ?>"]</code></td>
+                                <td class="pform-form-manager__actions">
+                                    <a class="button" href="<?php echo esc_url($edit_url); ?>"><?php esc_html_e('Edit', 'parish-forms'); ?></a>
+                                    <a class="button" href="<?php echo esc_url($duplicate_url); ?>"><?php esc_html_e('Duplicate', 'parish-forms'); ?></a>
+                                    <a class="button" href="<?php echo esc_url($status_url); ?>"><?php echo $status === 'retired' ? esc_html__('Restore', 'parish-forms') : esc_html__('Retire', 'parish-forms'); ?></a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php
+    }
+
+    private function render_form_editor($post_id)
+    {
+        if (! PFORM_Form_Store::is_form_post($post_id)) {
+            wp_die(esc_html__('Form not found.', 'parish-forms'), '', array('response' => 404));
+        }
+
+        $definition = PFORM_Form_Store::draft($post_id);
+        if (! $definition) {
+            $definition = PFORM_Form_Store::published_by_post($post_id);
+        }
+        if (! $definition) {
+            wp_die(esc_html__('Form definition not found.', 'parish-forms'));
+        }
+
+        $status = PFORM_Form_Store::status($post_id);
+        $version = absint(get_post_meta($post_id, '_pform_published_version', true));
+        $history = array_reverse(PFORM_Form_Store::history($post_id));
+        $preview = ! empty($_GET['preview']);
+
+        if ($preview) {
+            ?>
+            <div class="wrap pform-admin">
+                <p><a href="<?php echo esc_url(admin_url('admin.php?page=parish-forms-forms&form=' . $post_id)); ?>">&larr; <?php esc_html_e('Back to form editor', 'parish-forms'); ?></a></p>
+                <h1><?php echo esc_html(sprintf(__('Draft Preview: %s', 'parish-forms'), $definition['title'])); ?></h1>
+                <div class="notice notice-info inline"><p><?php esc_html_e('This preview uses the saved draft. The submit button is disabled and no submission will be stored.', 'parish-forms'); ?></p></div>
+                <div class="pform-admin-preview">
+                    <?php echo PFORM_Renderer::render($definition, array('errors' => array(), 'values' => array(), 'success' => false)); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                </div>
+                <script>document.querySelectorAll('.pform-admin-preview input,.pform-admin-preview textarea,.pform-admin-preview button').forEach(function(el){el.disabled=true;});</script>
+            </div>
+            <?php
+            return;
+        }
+
+        $primary_fields = implode(', ', isset($definition['admin_primary_fields']) ? (array) $definition['admin_primary_fields'] : array());
+        $contact_fields = implode(', ', isset($definition['admin_contact_fields']) ? (array) $definition['admin_contact_fields'] : array());
+        ?>
+        <div class="wrap pform-admin pform-form-editor">
+            <p><a href="<?php echo esc_url(admin_url('admin.php?page=parish-forms-forms')); ?>">&larr; <?php esc_html_e('Back to forms', 'parish-forms'); ?></a></p>
+            <h1><?php echo esc_html($definition['title']); ?></h1>
+            <?php $this->form_notice(); ?>
+
+            <div class="pform-admin__meta">
+                <span><strong><?php esc_html_e('Form ID:', 'parish-forms'); ?></strong> <code><?php echo esc_html($definition['id']); ?></code></span>
+                <span><strong><?php esc_html_e('Status:', 'parish-forms'); ?></strong> <?php echo esc_html(ucfirst($status)); ?></span>
+                <span><strong><?php esc_html_e('Published version:', 'parish-forms'); ?></strong> <?php echo esc_html($version ? 'v' . $version : __('None', 'parish-forms')); ?></span>
+                <span><strong><?php esc_html_e('Shortcode:', 'parish-forms'); ?></strong> <code>[parish_form id="<?php echo esc_html($definition['id']); ?>"]</code></span>
+            </div>
+
+            <form action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post" data-pform-editor-form>
+                <input type="hidden" name="action" value="pform_form_save">
+                <input type="hidden" name="form" value="<?php echo esc_attr($post_id); ?>">
+                <input type="hidden" id="pform-definition-json" name="sections_json" value="">
+                <?php wp_nonce_field('pform_form_save_' . $post_id); ?>
+
+                <section class="pform-admin__section pform-builder-general">
+                    <h2><?php esc_html_e('Form Settings', 'parish-forms'); ?></h2>
+                    <div class="pform-builder-grid">
+                        <label><?php esc_html_e('Form title', 'parish-forms'); ?><input type="text" name="definition[title]" value="<?php echo esc_attr($definition['title']); ?>" required></label>
+                        <label><?php esc_html_e('Eyebrow', 'parish-forms'); ?><input type="text" name="definition[eyebrow]" value="<?php echo esc_attr(isset($definition['eyebrow']) ? $definition['eyebrow'] : ''); ?>"></label>
+                        <label class="pform-builder-wide"><?php esc_html_e('Description', 'parish-forms'); ?><textarea rows="3" name="definition[description]"><?php echo esc_textarea(isset($definition['description']) ? $definition['description'] : ''); ?></textarea></label>
+                        <label><?php esc_html_e('Submit button', 'parish-forms'); ?><input type="text" name="definition[submit_label]" value="<?php echo esc_attr(isset($definition['submit_label']) ? $definition['submit_label'] : __('Submit', 'parish-forms')); ?>"></label>
+                        <label><?php esc_html_e('Success heading', 'parish-forms'); ?><input type="text" name="definition[success_title]" value="<?php echo esc_attr(isset($definition['success_title']) ? $definition['success_title'] : __('Submission Received', 'parish-forms')); ?>"></label>
+                        <label class="pform-builder-wide"><?php esc_html_e('Confirmation message', 'parish-forms'); ?><textarea rows="3" name="definition[confirmation]"><?php echo esc_textarea(isset($definition['confirmation']) ? $definition['confirmation'] : ''); ?></textarea></label>
+                        <label class="pform-builder-wide"><?php esc_html_e('Privacy/follow-up note', 'parish-forms'); ?><textarea rows="2" name="definition[privacy_note]"><?php echo esc_textarea(isset($definition['privacy_note']) ? $definition['privacy_note'] : ''); ?></textarea></label>
+                    </div>
+                    <details>
+                        <summary><?php esc_html_e('Advanced form settings', 'parish-forms'); ?></summary>
+                        <div class="pform-builder-grid pform-builder-advanced">
+                            <label><?php esc_html_e('Reply-to field ID', 'parish-forms'); ?><input type="text" name="definition[reply_to_field]" value="<?php echo esc_attr(isset($definition['reply_to_field']) ? $definition['reply_to_field'] : ''); ?>"></label>
+                            <label><?php esc_html_e('Admin submission title fields', 'parish-forms'); ?><input type="text" name="definition[admin_primary_fields]" value="<?php echo esc_attr($primary_fields); ?>" placeholder="first_name, last_name"></label>
+                            <label><?php esc_html_e('Admin contact fields', 'parish-forms'); ?><input type="text" name="definition[admin_contact_fields]" value="<?php echo esc_attr($contact_fields); ?>" placeholder="email, phone"></label>
+                        </div>
+                    </details>
+                </section>
+
+                <div class="pform-builder-toolbar">
+                    <h2><?php esc_html_e('Sections and Fields', 'parish-forms'); ?></h2>
+                    <button class="button" type="button" data-add-section><?php esc_html_e('Add Section', 'parish-forms'); ?></button>
+                </div>
+
+                <div data-pform-editor></div>
+                <script id="pform-editor-definition" type="application/json"><?php echo wp_json_encode($definition, JSON_HEX_TAG | JSON_HEX_AMP); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></script>
+
+                <div class="pform-builder-publish">
+                    <button class="button button-secondary button-large" type="submit" name="operation" value="draft"><?php esc_html_e('Save Draft', 'parish-forms'); ?></button>
+                    <a class="button button-secondary button-large" href="<?php echo esc_url(admin_url('admin.php?page=parish-forms-forms&form=' . $post_id . '&preview=1')); ?>"><?php esc_html_e('Preview Saved Draft', 'parish-forms'); ?></a>
+                    <button class="button button-primary button-large" type="submit" name="operation" value="publish" onclick="return confirm('<?php echo esc_js(__('Publish these form changes? Existing submissions will keep their historical form version.', 'parish-forms')); ?>');"><?php esc_html_e('Publish Changes', 'parish-forms'); ?></button>
+                </div>
+            </form>
+
+            <?php if ($history) : ?>
+                <section class="pform-admin__section pform-builder-history">
+                    <h2><?php esc_html_e('Published Version History', 'parish-forms'); ?></h2>
+                    <table class="widefat striped">
+                        <thead><tr><th><?php esc_html_e('Version', 'parish-forms'); ?></th><th><?php esc_html_e('Published', 'parish-forms'); ?></th></tr></thead>
+                        <tbody>
+                            <?php foreach (array_slice($history, 0, 10) as $entry) : ?>
+                                <tr><td><?php echo esc_html('v' . absint($entry['version'])); ?></td><td><?php echo esc_html(isset($entry['published_at']) ? $entry['published_at'] : ''); ?></td></tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </section>
+            <?php endif; ?>
+        </div>
+        <?php
+    }
+
+    public function form_create()
+    {
+        $this->authorize();
+        check_admin_referer('pform_form_create');
+        $title = isset($_POST['title']) ? sanitize_text_field(wp_unslash($_POST['title'])) : '';
+        $post_id = PFORM_Form_Store::create_blank($title);
+        if (is_wp_error($post_id)) {
+            wp_die(esc_html($post_id->get_error_message()));
+        }
+        wp_safe_redirect(admin_url('admin.php?page=parish-forms-forms&form=' . absint($post_id) . '&pform_form_notice=created'));
+        exit;
+    }
+
+    public function form_save()
+    {
+        $this->authorize();
+        $post_id = isset($_POST['form']) ? absint($_POST['form']) : 0;
+        check_admin_referer('pform_form_save_' . $post_id);
+        if (! PFORM_Form_Store::is_form_post($post_id)) {
+            wp_die(esc_html__('Form not found.', 'parish-forms'), '', array('response' => 404));
+        }
+
+        $meta = isset($_POST['definition']) && is_array($_POST['definition']) ? wp_unslash($_POST['definition']) : array();
+        $sections_json = isset($_POST['sections_json']) ? wp_unslash($_POST['sections_json']) : '[]';
+        $sections = json_decode($sections_json, true);
+        if (! is_array($sections)) {
+            $sections = array();
+        }
+
+        $raw = $meta;
+        $raw['id'] = PFORM_Form_Store::form_id($post_id);
+        $raw['sections'] = $sections;
+        $operation = isset($_POST['operation']) ? sanitize_key(wp_unslash($_POST['operation'])) : 'draft';
+
+        if ($operation === 'publish') {
+            $result = PFORM_Form_Store::publish($post_id, $raw);
+            $notice = 'published';
+        } else {
+            $result = PFORM_Form_Store::save_draft($post_id, $raw);
+            $notice = 'saved';
+        }
+
+        if (is_wp_error($result)) {
+            wp_die(esc_html($result->get_error_message()));
+        }
+
+        wp_safe_redirect(admin_url('admin.php?page=parish-forms-forms&form=' . $post_id . '&pform_form_notice=' . $notice));
+        exit;
+    }
+
+    public function form_duplicate()
+    {
+        $this->authorize();
+        $post_id = isset($_GET['form']) ? absint($_GET['form']) : 0;
+        check_admin_referer('pform_form_duplicate_' . $post_id);
+        $new_post_id = PFORM_Form_Store::duplicate($post_id);
+        if (is_wp_error($new_post_id)) {
+            wp_die(esc_html($new_post_id->get_error_message()));
+        }
+        wp_safe_redirect(admin_url('admin.php?page=parish-forms-forms&form=' . absint($new_post_id) . '&pform_form_notice=duplicated'));
+        exit;
+    }
+
+    public function form_status()
+    {
+        $this->authorize();
+        $post_id = isset($_GET['form']) ? absint($_GET['form']) : 0;
+        $operation = isset($_GET['operation']) ? sanitize_key(wp_unslash($_GET['operation'])) : '';
+        check_admin_referer('pform_form_status_' . $post_id);
+
+        if ($operation === 'retire') {
+            PFORM_Form_Store::retire($post_id);
+            $notice = 'retired';
+        } elseif ($operation === 'restore') {
+            PFORM_Form_Store::restore($post_id);
+            $notice = 'restored';
+        } else {
+            wp_die(esc_html__('Invalid form action.', 'parish-forms'), '', array('response' => 400));
+        }
+
+        wp_safe_redirect(admin_url('admin.php?page=parish-forms-forms&pform_form_notice=' . $notice));
+        exit;
+    }
+
+    private function form_notice()
+    {
+        $notice = isset($_GET['pform_form_notice']) ? sanitize_key(wp_unslash($_GET['pform_form_notice'])) : '';
+        if (! $notice) {
+            return;
+        }
+        $messages = array(
+            'created' => __('Form created as a draft.', 'parish-forms'),
+            'saved' => __('Draft saved. Published visitors still see the previous published version.', 'parish-forms'),
+            'published' => __('Form changes published.', 'parish-forms'),
+            'duplicated' => __('Form duplicated as a new draft.', 'parish-forms'),
+            'retired' => __('Form retired. Its shortcode will no longer render publicly.', 'parish-forms'),
+            'restored' => __('Form restored.', 'parish-forms'),
+        );
+        if (isset($messages[$notice])) {
+            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html($messages[$notice]) . '</p></div>';
+        }
+    }
+
     public function render_submissions()
     {
         $this->authorize();
