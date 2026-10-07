@@ -162,6 +162,14 @@ final class PFORM_Form_Store
             return new WP_Error('pform_missing_draft', __('The form does not have a draft to publish.', 'parish-forms'));
         }
 
+        $field_count = 0;
+        foreach ((array) $draft['sections'] as $section) {
+            $field_count += count(isset($section['fields']) && is_array($section['fields']) ? $section['fields'] : array());
+        }
+        if ($field_count < 1) {
+            return new WP_Error('pform_empty_form', __('Add at least one field before publishing the form.', 'parish-forms'));
+        }
+
         $next_version = absint(get_post_meta($post->ID, '_pform_published_version', true)) + 1;
         $draft['version'] = $next_version;
 
