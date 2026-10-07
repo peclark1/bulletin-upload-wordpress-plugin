@@ -16,7 +16,7 @@ Parish Forms is a purpose-built WordPress plugin for St. Peter the Apostle and S
 - Section and field reordering by drag-and-drop or move buttons
 - Schema-based server validation and sanitization
 - Non-public WordPress submission storage
-- Configurable staff email notifications containing submitted data
+- Configurable staff email notifications containing submitted data, with optional per-form recipient overrides
 - Administrator-only submission review, status, trash, restore, and deletion tools
 - UTF-8 CSV export with spreadsheet-formula protection
 - Reusable shortcode rendering: `[parish_form id="your-form-id"]`
