@@ -195,7 +195,15 @@ final class PFORM_Definition_Sanitizer
         if ($source === '' || $source === $self_id || ! isset($fields[$source])) {
             return false;
         }
-        return in_array($fields[$source]['type'], array('radio', 'text', 'email', 'tel'), true);
+        if (! in_array($fields[$source]['type'], array('radio', 'text', 'email', 'tel'), true)) {
+            return false;
+        }
+        if ($fields[$source]['type'] === 'radio'
+            && isset($fields[$source]['options'])
+            && ! isset($fields[$source]['options'][$condition['equals']])) {
+            return false;
+        }
+        return true;
     }
 
     private static function prune_summary_fields(&$definition)
