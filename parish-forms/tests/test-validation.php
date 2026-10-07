@@ -375,6 +375,7 @@ $editor_definition = array(
     'success_title' => 'Thank You',
     'confirmation' => 'We will be in touch.',
     'privacy_note' => 'For parish follow-up.',
+    'notification_emails' => 'forms@example.com, invalid-address, second@example.com',
     'reply_to_field' => 'email',
     'admin_primary_fields' => array('name'),
     'admin_contact_fields' => array('email'),
@@ -411,6 +412,7 @@ $editor_definition = array(
 $editor_sanitized = PFORM_Definition_Sanitizer::sanitize($editor_definition, 'volunteer-interest');
 assert_true(! is_wp_error($editor_sanitized), 'A staff-created form should sanitize successfully.');
 assert_true($editor_sanitized['id'] === 'volunteer-interest', 'The stored form ID should be authoritative.');
+assert_true($editor_sanitized['notification_emails'] === 'forms@example.com, second@example.com', 'Per-form notification addresses should be allowlisted and normalized.');
 assert_true(! isset($editor_sanitized['unexpected']), 'Unknown top-level definition keys should be discarded.');
 assert_true(! isset($editor_sanitized['sections'][0]['fields'][3]['unsafe_html']), 'Unknown field properties should be discarded.');
 assert_true($editor_sanitized['sections'][0]['fields'][3]['condition']['equals'] === 'hospitality', 'Valid simple conditional logic should be retained.');
