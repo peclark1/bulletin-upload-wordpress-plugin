@@ -9,7 +9,10 @@ final class PFORM_Notifications
     public static function send($submission_id, $definition, $data)
     {
         $settings = PFORM_Plugin::settings();
-        $recipients = self::recipients($settings['notification_emails']);
+        $recipient_source = ! empty($definition['notification_emails'])
+            ? $definition['notification_emails']
+            : $settings['notification_emails'];
+        $recipients = self::recipients($recipient_source);
         $recipients = apply_filters('pform_notification_recipients', $recipients, $definition['id'], $submission_id);
         if (! $recipients) {
             return false;
