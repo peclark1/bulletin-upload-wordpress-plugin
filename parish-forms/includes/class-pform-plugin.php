@@ -22,6 +22,7 @@ final class PFORM_Plugin
     private function __construct()
     {
         add_action('init', array('PFORM_Submissions', 'register_post_type'));
+        add_action('init', array('PFORM_Form_Store', 'register_post_type'));
         add_action('init', array($this, 'register_assets'));
         add_action('init', array($this, 'maybe_upgrade'), 20);
         add_action('admin_post_pform_submit', array($this, 'handle_submission'));
@@ -34,6 +35,7 @@ final class PFORM_Plugin
     public static function activate()
     {
         PFORM_Submissions::register_post_type();
+        PFORM_Form_Store::register_post_type();
 
         $administrator = get_role('administrator');
         if ($administrator) {
@@ -57,6 +59,7 @@ final class PFORM_Plugin
             ));
         }
 
+        self::seed_form_manager();
         self::ensure_default_pages();
         update_option(self::VERSION_OPTION, PFORM_VERSION);
 
@@ -70,8 +73,16 @@ final class PFORM_Plugin
             return;
         }
 
+        self::seed_form_manager();
         self::ensure_default_pages();
         update_option(self::VERSION_OPTION, PFORM_VERSION);
+    }
+
+    private static function seed_form_manager()
+    {
+        foreach (PFORM_Form_Registry::builtins() as $definition) {
+            PFORM_Form_Store::seed_builtin($definition);
+        }
     }
 
     private static function ensure_default_pages()
