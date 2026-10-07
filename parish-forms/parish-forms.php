@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Parish Forms
  * Description: Secure, parish-branded forms with private submissions, email notifications, and CSV export.
- * Version: 0.2.0
+ * Version: 0.3.0
  * Author: St. Mary's and St. Peter the Apostle Parishes
  * Requires at least: 6.2
  * Requires PHP: 7.4
@@ -14,13 +14,14 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-define('PFORM_VERSION', '0.2.0');
+define('PFORM_VERSION', '0.3.0');
 define('PFORM_FILE', __FILE__);
 define('PFORM_DIR', plugin_dir_path(__FILE__));
 define('PFORM_URL', plugin_dir_url(__FILE__));
 
 require_once PFORM_DIR . 'includes/forms/class-pform-parish-registration.php';
 require_once PFORM_DIR . 'includes/forms/class-pform-pre-baptismal-questionnaire.php';
+require_once PFORM_DIR . 'includes/forms/class-pform-confirmation-interest.php';
 require_once PFORM_DIR . 'includes/class-pform-form-registry.php';
 require_once PFORM_DIR . 'includes/class-pform-validator.php';
 require_once PFORM_DIR . 'includes/class-pform-formatter.php';
