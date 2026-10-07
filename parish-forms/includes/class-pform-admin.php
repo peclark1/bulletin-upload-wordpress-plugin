@@ -219,7 +219,7 @@ final class PFORM_Admin
         $is_trash = $post->post_status === 'trash';
         ?>
         <div class="wrap pform-admin">
-            <p><a href="<?php echo esc_url(admin_url('admin.php?page=parish-forms' . ($is_trash ? '&post_state=trash' : ''))); ?>">&larr; <?php esc_html_e('Back to submissions', 'parish-forms'); ?></a></p>
+            <p><a href="<?php echo esc_url(admin_url('admin.php?page=parish-forms&form_id=' . $form_id . ($is_trash ? '&post_state=trash' : ''))); ?>">&larr; <?php esc_html_e('Back to submissions', 'parish-forms'); ?></a></p>
             <h1><?php echo esc_html($definition['title'] . ' #' . $submission_id); ?></h1>
             <?php $this->admin_notice(); ?>
             <div class="pform-admin__meta">
