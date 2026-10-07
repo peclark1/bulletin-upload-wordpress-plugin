@@ -6,7 +6,7 @@ if (! defined('ABSPATH')) {
 
 final class PFORM_Renderer
 {
-    public static function render($definition, $state)
+    public static function render($definition, $state, $preview = false)
     {
         $values = isset($state['values']) ? $state['values'] : array();
         $errors = isset($state['errors']) ? $state['errors'] : array();
@@ -36,17 +36,21 @@ final class PFORM_Renderer
                     </div>
                 <?php endif; ?>
 
-                <form class="pform" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post">
-                    <input type="hidden" name="action" value="pform_submit">
-                    <input type="hidden" name="pform_id" value="<?php echo esc_attr($definition['id']); ?>">
-                    <?php wp_nonce_field('pform_submit_' . $definition['id'], '_pform_nonce'); ?>
-                    <?php $started = time(); ?>
-                    <input type="hidden" name="pform_started" value="<?php echo esc_attr($started); ?>">
-                    <input type="hidden" name="pform_signature" value="<?php echo esc_attr(PFORM_Plugin::signature($definition['id'], $started)); ?>">
-                    <div class="pform-honeypot" aria-hidden="true">
-                        <label for="pform-website"><?php esc_html_e('Website', 'parish-forms'); ?></label>
-                        <input id="pform-website" type="text" name="pf[website]" tabindex="-1" autocomplete="off">
-                    </div>
+                <?php if ($preview) : ?>
+                    <div class="pform pform-preview">
+                <?php else : ?>
+                    <form class="pform" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post">
+                        <input type="hidden" name="action" value="pform_submit">
+                        <input type="hidden" name="pform_id" value="<?php echo esc_attr($definition['id']); ?>">
+                        <?php wp_nonce_field('pform_submit_' . $definition['id'], '_pform_nonce'); ?>
+                        <?php $started = time(); ?>
+                        <input type="hidden" name="pform_started" value="<?php echo esc_attr($started); ?>">
+                        <input type="hidden" name="pform_signature" value="<?php echo esc_attr(PFORM_Plugin::signature($definition['id'], $started)); ?>">
+                        <div class="pform-honeypot" aria-hidden="true">
+                            <label for="pform-website"><?php esc_html_e('Website', 'parish-forms'); ?></label>
+                            <input id="pform-website" type="text" name="pf[website]" tabindex="-1" autocomplete="off">
+                        </div>
+                <?php endif; ?>
 
                     <?php foreach ($definition['sections'] as $section) : ?>
                         <section class="pform-section" data-pform-section="<?php echo esc_attr($section['id']); ?>" <?php echo self::condition_attributes(isset($section['condition']) ? $section['condition'] : null); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
@@ -68,9 +72,13 @@ final class PFORM_Renderer
 
                     <div class="pform-submit">
                         <p><?php echo esc_html(! empty($definition['privacy_note']) ? $definition['privacy_note'] : __('Information submitted through this form is intended for parish-office follow-up.', 'parish-forms')); ?></p>
-                        <button class="pform-button" type="submit"><?php echo esc_html($definition['submit_label']); ?></button>
+                        <button class="pform-button" type="<?php echo $preview ? 'button' : 'submit'; ?>" <?php echo $preview ? 'disabled' : ''; ?>><?php echo esc_html($definition['submit_label']); ?></button>
                     </div>
-                </form>
+                <?php if ($preview) : ?>
+                    </div>
+                <?php else : ?>
+                    </form>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
         <?php
