@@ -223,13 +223,17 @@
     }
 
     function drag(card, kind, index, parentKey, mover) {
-        card.draggable = true;
-        card.addEventListener('dragstart', function (event) {
+        var handle = card.querySelector('.pform-editor-drag');
+        if (!handle) {
+            return;
+        }
+        handle.draggable = true;
+        handle.addEventListener('dragstart', function (event) {
             event.stopPropagation();
             dragState = {kind: kind, index: index, parentKey: parentKey};
             card.classList.add('is-dragging');
         });
-        card.addEventListener('dragend', function (event) {
+        handle.addEventListener('dragend', function (event) {
             event.stopPropagation();
             dragState = null;
             card.classList.remove('is-dragging');
