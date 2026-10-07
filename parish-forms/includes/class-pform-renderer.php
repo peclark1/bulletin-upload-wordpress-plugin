@@ -149,7 +149,7 @@ final class PFORM_Renderer
             $items[] = array();
         }
         ?>
-        <div class="pform-repeater pform-field--full" data-pform-repeater data-max-items="<?php echo esc_attr(absint($field['max_items'])); ?>">
+        <div class="pform-repeater pform-field--full" data-pform-repeater data-max-items="<?php echo esc_attr(absint($field['max_items'])); ?>" data-item-label="<?php echo esc_attr($field['item_label']); ?>">
             <div class="pform-repeater__items" data-pform-repeater-items>
                 <?php foreach ($items as $index => $item) : ?>
                     <?php self::repeater_item($field, $item, $errors, $prefix, $path_prefix, $index); ?>
@@ -176,7 +176,7 @@ final class PFORM_Renderer
                     <?php self::field($item_field, $item, $errors, $item_prefix, $item_path); ?>
                 <?php endforeach; ?>
             </div>
-            <button class="pform-remove" type="button" data-pform-remove><?php esc_html_e('Remove Child', 'parish-forms'); ?></button>
+            <button class="pform-remove" type="button" data-pform-remove><?php echo esc_html(sprintf(__('Remove %s', 'parish-forms'), $field['item_label'])); ?></button>
         </fieldset>
         <?php
     }
