@@ -38,7 +38,7 @@ only when you are ready to cut over the listing page.
 ## Approved weekly history and navigation
 
 Approved website information is stored in a dedicated WordPress table named
-`{$wpdb->prefix}cbp_weekly_history` (normally `wp_cbp_weekly_history`). The
+`$wpdb->prefix . 'cbp_weekly_history'` (normally `wp_cbp_weekly_history`). The
 table keeps one authoritative snapshot per Monday-Sunday week. Approving the
 same week again intentionally replaces that week's snapshot rather than
 creating revisions.
