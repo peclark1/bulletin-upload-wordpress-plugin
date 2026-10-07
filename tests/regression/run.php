@@ -273,6 +273,116 @@ if (class_exists('CBP_Schedule_V33')) {
     }
 }
 
+if (class_exists('CBP_Schedule_V34')) {
+    $v34 = CBP_Schedule_V34::instance();
+
+    $normalize_liturgy = new ReflectionMethod($v34, 'normalize_liturgy_mass_rows');
+    $normalize_liturgy->setAccessible(true);
+    $normalized = $normalize_liturgy->invoke($v34, array(
+        array('date' => '2026-10-14', 'time' => '10:00 AM', 'location' => 'Heritage Senior Living Center', 'title' => 'Mass', 'description' => 'Liturgy of the Word'),
+    ));
+    if (($normalized[0]['title'] ?? '') !== 'Liturgy of the Word' || ($normalized[0]['description'] ?? '') !== '') {
+        fwrite(STDERR, "V34 regression: Liturgy of the Word Mass row was not reclassified.\n");
+        exit(1);
+    }
+
+    $liturgy_from_calendar = new ReflectionMethod($v34, 'liturgy_events_from_calendar');
+    $liturgy_from_calendar->setAccessible(true);
+    $canonical = $liturgy_from_calendar->invoke($v34, array(
+        'Wednesday, October 14',
+        'Heritage Living Center: 10:00 am',
+        'Liturgy of the Word',
+        'SP: 1:00 pm Faith Formation Grades 1 - 6',
+    ), '2026-10-11');
+    if (count($canonical) !== 1
+        || ($canonical[0]['date'] ?? '') !== '2026-10-14'
+        || ($canonical[0]['time'] ?? '') !== '10:00 AM'
+        || ($canonical[0]['location'] ?? '') !== 'Heritage Living Center'
+        || ($canonical[0]['title'] ?? '') !== 'Liturgy of the Word') {
+        fwrite(STDERR, "V34 regression: canonical Heritage Liturgy of the Word was not recovered.\n");
+        exit(1);
+    }
+
+    $merge_liturgy = new ReflectionMethod($v34, 'merge_canonical_liturgy_events');
+    $merge_liturgy->setAccessible(true);
+    $merged = $merge_liturgy->invoke($v34, array(
+        array('date' => '2026-10-14', 'time' => '', 'location' => '', 'title' => 'There will be Liturgy of the Word at Heritage Living Center', 'description' => 'There will be Liturgy of the Word at Heritage Living Center on Wednesday, October 14.'),
+        array('date' => '2026-10-14', 'time' => '10:00 AM', 'location' => '', 'title' => 'Heritage Living Center', 'description' => 'Heritage Living Center: 10:00 am'),
+        array('date' => '2026-10-14', 'time' => '1:00 PM', 'location' => 'St. Peter', 'title' => 'Faith Formation Grades 1 - 6', 'description' => ''),
+    ), $canonical);
+    $heritage_rows = array_values(array_filter($merged, function ($row) {
+        return is_array($row)
+            && ($row['date'] ?? '') === '2026-10-14'
+            && (($row['title'] ?? '') === 'Liturgy of the Word' || stripos((string) ($row['title'] ?? ''), 'Heritage') !== false);
+    }));
+    if (count($merged) !== 2 || count($heritage_rows) !== 1 || ($heritage_rows[0]['location'] ?? '') !== 'Heritage Living Center') {
+        fwrite(STDERR, "V34 regression: duplicate/malformed Heritage rows were not consolidated.\n");
+        exit(1);
+    }
+
+    $recover_after_mass = new ReflectionMethod($v34, 'recover_after_mass_events');
+    $recover_after_mass->setAccessible(true);
+    $after_mass = $recover_after_mass->invoke($v34, array(
+        array('date' => '2026-10-18', 'time' => '', 'location' => 'St. Peter', 'title' => 'Coffee & Rolls Team 3', 'description' => ''),
+    ), array(
+        'Sunday, October 18',
+        'SP: Coffee & Rolls Team 3',
+        'SM: Soup & Sandwich after Mass',
+    ), '2026-10-11');
+    $found_soup = false;
+    foreach ($after_mass as $row) {
+        if (($row['date'] ?? '') === '2026-10-18'
+            && ($row['time'] ?? '') === 'After Mass'
+            && ($row['location'] ?? '') === 'St. Mary’s'
+            && ($row['title'] ?? '') === 'Soup & Sandwich') {
+            $found_soup = true;
+            break;
+        }
+    }
+    if (! $found_soup) {
+        fwrite(STDERR, "V34 regression: St. Mary's after-Mass event was not recovered.\n");
+        exit(1);
+    }
+
+    cbp_regression_reset_wordpress_state();
+    $GLOBALS['cbp_regression_transients']['cbp_schedule_review_1'] = array(
+        'bulletin_date' => '2026-10-11',
+        'candidates' => array('st_peter_sunday' => '9:00 AM'),
+        'weekly' => array(
+            'masses' => array(),
+            'devotions' => array(),
+            'events' => array(
+                array('date' => '2026-10-18', 'time' => '', 'location' => 'St. Peter', 'title' => 'Coffee & Rolls Team 3', 'description' => ''),
+            ),
+            'livestream' => array(),
+        ),
+    );
+    $payload = $v34->ability_get_review();
+    $revision = is_array($payload) ? ($payload['revision'] ?? '') : '';
+    if ($revision === '') {
+        fwrite(STDERR, "V34 regression: review ability did not return a revision token.\n");
+        exit(1);
+    }
+    $changed = $v34->ability_update_review_candidate(array(
+        'expected_revision' => $revision,
+        'key' => 'st_peter_sunday',
+        'value' => '8:30 AM',
+    ));
+    if (! is_array($changed) || ($changed['candidates']['st_peter_sunday'] ?? '') !== '8:30 AM') {
+        fwrite(STDERR, "V34 regression: recurring candidate ability did not update pending review data.\n");
+        exit(1);
+    }
+    $stale = $v34->ability_update_review_candidate(array(
+        'expected_revision' => $revision,
+        'key' => 'st_peter_sunday',
+        'value' => '9:00 AM',
+    ));
+    if (! is_wp_error($stale)) {
+        fwrite(STDERR, "V34 regression: stale review revision was not rejected.\n");
+        exit(1);
+    }
+}
+
 $display_reflection = new ReflectionClass('CBP_Site_Displays');
 $display = $display_reflection->getMethod('instance')->invoke(null);
 $event_note = $display_reflection->getMethod('event_note');

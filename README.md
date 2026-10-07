@@ -35,6 +35,16 @@ The existing public Bulletins page is **not** edited automatically. Replace its 
 
 only when you are ready to cut over the listing page.
 
+## Agent-assisted review editing
+
+On WordPress 6.9+ the plugin registers public Abilities API actions that an authenticated administrator can use through a compatible MCP/agent connection:
+
+- `church-bulletin-publisher/get-review` — read the current pending Step 3 review and receive a revision token.
+- `church-bulletin-publisher/update-review-row` — add, edit, or delete one pending Mass, devotion, event, or livestream row.
+- `church-bulletin-publisher/update-review-candidate` — edit one recurring schedule candidate.
+
+Mutation abilities require the revision token returned by `get-review`; stale edits are rejected if the browser review changed in the meantime. These abilities only edit the pending review transient. They **cannot approve the review or publish a bulletin**, so the existing human approval/publish guardrails remain in place.
+
 ## Approved weekly history and navigation
 
 Approved website information is stored in a dedicated WordPress table named
