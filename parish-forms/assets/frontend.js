@@ -15,10 +15,11 @@
     }
 
     function renumber(repeater) {
+        var itemLabel = repeater.getAttribute('data-item-label') || 'Item';
         repeater.querySelectorAll('[data-pform-repeater-item]').forEach(function (item, index) {
             var legend = item.querySelector(':scope > legend');
             if (legend) {
-                legend.textContent = 'Child ' + (index + 1);
+                legend.textContent = itemLabel + ' ' + (index + 1);
             }
         });
         var count = repeater.querySelectorAll('[data-pform-repeater-item]').length;
