@@ -476,6 +476,7 @@
         if (field.type === 'radio' || field.type === 'checkboxes') {
             card.appendChild(fieldRow('Choices', textarea(optionLines(field.options || {}), function (v) {
                 field.options = parseOptionLines(v);
+                render();
             }, 5), (data.labels && data.labels.optionHelp) || 'One choice per line.'));
         }
 
