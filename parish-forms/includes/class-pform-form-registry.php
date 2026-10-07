@@ -10,6 +10,7 @@ final class PFORM_Form_Registry
     {
         $forms = array(
             'parish-registration' => PFORM_Parish_Registration::definition(),
+            'pre-baptismal-questionnaire' => PFORM_Pre_Baptismal_Questionnaire::definition(),
         );
         return apply_filters('pform_definitions', $forms);
     }
