@@ -142,6 +142,19 @@ final class PFORM_Form_Manager
             }
         }
 
+        $state_key = isset($_GET['pform_state']) ? sanitize_key(wp_unslash($_GET['pform_state'])) : '';
+        if ($state_key) {
+            $saved_state = get_transient('pform_manager_editor_state_' . $state_key);
+            delete_transient('pform_manager_editor_state_' . $state_key);
+            if (is_array($saved_state)
+                && isset($saved_state['form_id'])
+                && $saved_state['form_id'] === $form_id
+                && isset($saved_state['definition'])
+                && is_array($saved_state['definition'])) {
+                $definition = $saved_state['definition'];
+            }
+        }
+
         wp_localize_script('pform-form-editor', 'PFORM_EDITOR_DATA', array(
             'definition' => $definition,
             'isNew' => $is_new,
@@ -250,7 +263,7 @@ final class PFORM_Form_Manager
 
         $saved = PFORM_Form_Store::save_draft($form_id, $raw);
         if (is_wp_error($saved)) {
-            $this->error_redirect($saved->get_error_message(), $form_id);
+            $this->error_redirect($saved->get_error_message(), $form_id, $raw);
         }
 
         if ($operation === 'publish') {
@@ -396,12 +409,23 @@ final class PFORM_Form_Manager
         }
     }
 
-    private function error_redirect($message, $form_id = '')
+    private function error_redirect($message, $form_id = '', $definition = null)
     {
         $key = strtolower(wp_generate_password(18, false, false));
         set_transient('pform_manager_error_' . $key, sanitize_text_field($message), 10 * MINUTE_IN_SECONDS);
         $url = $form_id ? $this->editor_url($form_id) : admin_url('admin.php?page=parish-forms-manager');
-        wp_safe_redirect(add_query_arg('pform_error', $key, $url));
+
+        $args = array('pform_error' => $key);
+        if ($form_id && is_array($definition)) {
+            $state_key = strtolower(wp_generate_password(18, false, false));
+            set_transient('pform_manager_editor_state_' . $state_key, array(
+                'form_id' => $form_id,
+                'definition' => $definition,
+            ), 10 * MINUTE_IN_SECONDS);
+            $args['pform_state'] = $state_key;
+        }
+
+        wp_safe_redirect(add_query_arg($args, $url));
         exit;
     }
 
