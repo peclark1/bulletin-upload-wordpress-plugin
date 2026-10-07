@@ -27,6 +27,35 @@ function sanitize_key($value)
     return preg_replace('/[^a-z0-9_\-]/', '', strtolower((string) $value));
 }
 
+function sanitize_title($value)
+{
+    $value = strtolower(trim((string) $value));
+    $value = preg_replace('/[^a-z0-9]+/', '-', $value);
+    return trim($value, '-');
+}
+
+class WP_Error
+{
+    private $code;
+    private $message;
+
+    public function __construct($code, $message)
+    {
+        $this->code = $code;
+        $this->message = $message;
+    }
+
+    public function get_error_message()
+    {
+        return $this->message;
+    }
+}
+
+function is_wp_error($value)
+{
+    return $value instanceof WP_Error;
+}
+
 function is_email($value)
 {
     return (bool) filter_var($value, FILTER_VALIDATE_EMAIL);
@@ -107,6 +136,7 @@ class PFORM_Plugin
 require_once dirname(__DIR__) . '/includes/forms/class-pform-parish-registration.php';
 require_once dirname(__DIR__) . '/includes/forms/class-pform-pre-baptismal-questionnaire.php';
 require_once dirname(__DIR__) . '/includes/forms/class-pform-confirmation-interest.php';
+require_once dirname(__DIR__) . '/includes/class-pform-definition-sanitizer.php';
 require_once dirname(__DIR__) . '/includes/class-pform-validator.php';
 require_once dirname(__DIR__) . '/includes/class-pform-formatter.php';
 require_once dirname(__DIR__) . '/includes/class-pform-renderer.php';
@@ -316,5 +346,86 @@ $confirmation_html = PFORM_Renderer::render(
 assert_true(strpos($confirmation_html, 'Confirmation Interest Form') !== false, 'Renderer should display the Confirmation form title.');
 assert_true(strpos($confirmation_html, 'name="pf[candidate_first_name]"') !== false, 'Renderer should include candidate fields.');
 assert_true(strpos($confirmation_html, 'data-pform-condition-field="sponsor_status"') !== false, 'Renderer should expose conditional sponsor behavior.');
+
+$sanitized_registration = PFORM_Definition_Sanitizer::sanitize(PFORM_Parish_Registration::definition(), 'parish-registration');
+assert_true(! is_wp_error($sanitized_registration), 'Parish Registration definition should survive editor sanitization.');
+assert_true(isset($sanitized_registration['sections'][2]['condition']), 'Section-level spouse condition should survive sanitization.');
+assert_true($sanitized_registration['sections'][3]['fields'][0]['type'] === 'repeater', 'Repeatable children group should survive sanitization.');
+assert_true(count($sanitized_registration['sections'][3]['fields'][0]['fields']) === 5, 'Nested child fields should survive sanitization.');
+
+$sanitized_baptism = PFORM_Definition_Sanitizer::sanitize(PFORM_Pre_Baptismal_Questionnaire::definition(), 'pre-baptismal-questionnaire');
+assert_true(! is_wp_error($sanitized_baptism), 'Baptism definition should survive editor sanitization.');
+assert_true($sanitized_baptism['reply_to_field'] === 'mother_email', 'Baptism reply-to field should be preserved.');
+
+$sanitized_confirmation = PFORM_Definition_Sanitizer::sanitize(PFORM_Confirmation_Interest::definition(), 'confirmation-interest');
+assert_true(! is_wp_error($sanitized_confirmation), 'Confirmation definition should survive editor sanitization.');
+$confirmation_fields = array();
+foreach ($sanitized_confirmation['sections'] as $section) {
+    foreach ($section['fields'] as $field) {
+        $confirmation_fields[$field['id']] = $field;
+    }
+}
+assert_true(isset($confirmation_fields['sponsor_name']['condition']), 'Confirmation sponsor condition should survive sanitization.');
+
+$editor_definition = array(
+    'title' => 'Volunteer Interest',
+    'eyebrow' => 'Get Involved',
+    'description' => 'Tell us how you would like to help.',
+    'submit_label' => 'Send Interest Form',
+    'success_title' => 'Thank You',
+    'confirmation' => 'We will be in touch.',
+    'privacy_note' => 'For parish follow-up.',
+    'reply_to_field' => 'email',
+    'admin_primary_fields' => array('name'),
+    'admin_contact_fields' => array('email'),
+    'sections' => array(
+        array(
+            'id' => 'contact',
+            'title' => 'Contact',
+            'fields' => array(
+                array('id' => 'name', 'type' => 'text', 'label' => 'Name', 'required' => true, 'width' => 'half', 'max_length' => 150),
+                array('id' => 'email', 'type' => 'email', 'label' => 'Email', 'required' => true, 'width' => 'half', 'max_length' => 254),
+                array(
+                    'id' => 'area',
+                    'type' => 'radio',
+                    'label' => 'Area',
+                    'required' => true,
+                    'width' => 'full',
+                    'options' => array('liturgy' => 'Liturgy', 'hospitality' => 'Hospitality'),
+                ),
+                array(
+                    'id' => 'details',
+                    'type' => 'textarea',
+                    'label' => 'Details',
+                    'required' => false,
+                    'width' => 'full',
+                    'max_length' => 1000,
+                    'condition' => array('field' => 'area', 'equals' => 'hospitality'),
+                    'unsafe_html' => '<script>alert(1)</script>',
+                ),
+            ),
+        ),
+    ),
+    'unexpected' => 'discard me',
+);
+$editor_sanitized = PFORM_Definition_Sanitizer::sanitize($editor_definition, 'volunteer-interest');
+assert_true(! is_wp_error($editor_sanitized), 'A staff-created form should sanitize successfully.');
+assert_true($editor_sanitized['id'] === 'volunteer-interest', 'The stored form ID should be authoritative.');
+assert_true(! isset($editor_sanitized['unexpected']), 'Unknown top-level definition keys should be discarded.');
+assert_true(! isset($editor_sanitized['sections'][0]['fields'][3]['unsafe_html']), 'Unknown field properties should be discarded.');
+assert_true($editor_sanitized['sections'][0]['fields'][3]['condition']['equals'] === 'hospitality', 'Valid simple conditional logic should be retained.');
+
+$bad_options = $editor_definition;
+$bad_options['sections'][0]['fields'][2]['options'] = array();
+$bad_result = PFORM_Definition_Sanitizer::sanitize($bad_options, 'bad-options');
+assert_true(is_wp_error($bad_result), 'Choice fields without options should be rejected.');
+
+$preview_html = PFORM_Renderer::render(
+    $editor_sanitized,
+    array('errors' => array(), 'values' => array(), 'success' => false),
+    true
+);
+assert_true(strpos($preview_html, 'pform-preview') !== false, 'Preview rendering should use the non-submitting preview container.');
+assert_true(strpos($preview_html, 'action="') === false, 'Preview rendering must not expose a submitting form action.');
 
 echo "Validation tests passed.\n";
