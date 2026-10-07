@@ -139,12 +139,17 @@ final class CBP_Site_Displays
         return ob_get_clean();
     }
 
-    private function weekly_selection($mode)
+    private function weekly()
     {
-        $fallback = wp_parse_args(
+        return wp_parse_args(
             get_option(CBP_Schedule::WEEKLY_OPTION, array()),
             CBP_Schedule::weekly_defaults()
         );
+    }
+
+    private function weekly_selection($mode)
+    {
+        $fallback = $this->weekly();
 
         $selection = array(
             'weekly' => $fallback,
