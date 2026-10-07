@@ -37,6 +37,16 @@ final class PFORM_Definition_Sanitizer
             'sections' => array(),
         );
 
+        if ($definition['submit_label'] === '') {
+            $definition['submit_label'] = __('Submit Form', 'parish-forms');
+        }
+        if ($definition['success_title'] === '') {
+            $definition['success_title'] = __('Submission Received', 'parish-forms');
+        }
+        if ($definition['confirmation'] === '') {
+            $definition['confirmation'] = __('Thank you. Your submission has been received.', 'parish-forms');
+        }
+
         $sections = isset($raw['sections']) && is_array($raw['sections']) ? array_slice(array_values($raw['sections']), 0, 50) : array();
         $section_ids = array();
         $field_ids = array();
