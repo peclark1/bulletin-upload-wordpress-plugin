@@ -410,11 +410,12 @@ final class PFORM_Admin
         }
 
         $values = array();
+        $fields = PFORM_Form_Registry::fields($definition);
         foreach ($definition[$definition_key] as $field_id) {
-            if (! isset($data[$field_id]) || ! is_scalar($data[$field_id])) {
+            if (! isset($data[$field_id]) || ! isset($fields[$field_id])) {
                 continue;
             }
-            $value = trim((string) $data[$field_id]);
+            $value = trim((string) PFORM_Formatter::display_value($fields[$field_id], $data[$field_id]));
             if ($value !== '') {
                 $values[] = $value;
             }
