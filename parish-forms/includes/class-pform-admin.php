@@ -337,6 +337,8 @@ final class PFORM_Admin
             </form>
             <section class="pform-admin__help">
                 <h2><?php esc_html_e('Using Parish Forms', 'parish-forms'); ?></h2>
+                <p><?php esc_html_e('Create, edit, preview, publish, duplicate, and retire forms from the Form Manager. Each form shows its permanent shortcode there.', 'parish-forms'); ?></p>
+                <p><a class="button button-primary" href="<?php echo esc_url(admin_url('admin.php?page=parish-forms-manager')); ?>"><?php esc_html_e('Manage Forms', 'parish-forms'); ?></a></p>
                 <p><strong><?php esc_html_e('Parish Registration:', 'parish-forms'); ?></strong> <code>[parish_form id="parish-registration"]</code></p>
                 <?php if ($page_id && get_post($page_id)) : ?>
                     <p><a class="button" href="<?php echo esc_url(get_edit_post_link($page_id)); ?>"><?php esc_html_e('Edit Draft Registration Page', 'parish-forms'); ?></a></p>
