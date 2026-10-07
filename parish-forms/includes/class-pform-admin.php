@@ -395,8 +395,11 @@ final class PFORM_Admin
                 get_post_meta($post->ID, '_pform_status', true) ?: 'new',
                 isset($definitions[$post->ID]['title']) ? $definitions[$post->ID]['title'] : $definition['title'],
             );
+            $row_definition = isset($definitions[$post->ID]) && is_array($definitions[$post->ID])
+                ? $definitions[$post->ID]
+                : $definition;
             foreach ($columns as $column) {
-                $row[] = $this->csv_safe($this->csv_value($column, $data));
+                $row[] = $this->csv_safe($this->csv_value($column, $data, $row_definition));
             }
             fputcsv($output, $row);
         }
@@ -486,14 +489,50 @@ final class PFORM_Admin
         return $columns;
     }
 
-    private function csv_value($column, $data)
+    private function csv_value($column, $data, $definition = null)
     {
+        $field = $column['field'];
+        if (is_array($definition)) {
+            $snapshot_field = $this->definition_field(
+                $definition,
+                $column['id'],
+                isset($column['item_id']) ? $column['item_id'] : ''
+            );
+            if ($snapshot_field) {
+                $field = $snapshot_field;
+            }
+        }
+
         if (isset($column['index'])) {
             $value = isset($data[$column['id']][$column['index']][$column['item_id']]) ? $data[$column['id']][$column['index']][$column['item_id']] : '';
         } else {
             $value = isset($data[$column['id']]) ? $data[$column['id']] : '';
         }
-        return PFORM_Formatter::display_value($column['field'], $value);
+        return PFORM_Formatter::display_value($field, $value);
+    }
+
+    private function definition_field($definition, $field_id, $item_id = '')
+    {
+        foreach ((array) $definition['sections'] as $section) {
+            foreach ((array) $section['fields'] as $field) {
+                if ($field['id'] !== $field_id) {
+                    continue;
+                }
+                if ($item_id === '') {
+                    return $field;
+                }
+                if ($field['type'] !== 'repeater') {
+                    return null;
+                }
+                foreach ((array) $field['fields'] as $item_field) {
+                    if ($item_field['id'] === $item_id) {
+                        return $item_field;
+                    }
+                }
+                return null;
+            }
+        }
+        return null;
     }
 
     private function csv_safe($value)
