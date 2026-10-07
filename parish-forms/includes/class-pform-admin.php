@@ -658,10 +658,6 @@ final class PFORM_Admin
         $this->authorize();
         check_admin_referer('pform_export_csv');
         $form_id = isset($_GET['form_id']) ? sanitize_key(wp_unslash($_GET['form_id'])) : '';
-        $definition = PFORM_Form_Registry::get($form_id);
-        if (! $definition) {
-            wp_die(esc_html__('Unknown form.', 'parish-forms'), '', array('response' => 400));
-        }
 
         $posts = get_posts(array(
             'post_type' => PFORM_Submissions::POST_TYPE,
@@ -672,28 +668,45 @@ final class PFORM_Admin
             'meta_key' => '_pform_form_id',
             'meta_value' => $form_id,
         ));
+
+        $definition = PFORM_Form_Registry::get($form_id);
         $datasets = array();
+        $definitions = array();
         foreach ($posts as $post) {
             $datasets[$post->ID] = PFORM_Submissions::data($post->ID);
+            $snapshot = PFORM_Submissions::definition($post->ID);
+            if (is_array($snapshot)) {
+                $definitions[$post->ID] = $snapshot;
+                if (! $definition) {
+                    $definition = $snapshot;
+                }
+            }
         }
-        $columns = $this->csv_columns($definition, $datasets);
+
+        if (! $definition) {
+            wp_die(esc_html__('Unknown form.', 'parish-forms'), '', array('response' => 400));
+        }
+
+        $columns = $this->csv_columns($definition, $definitions, $datasets);
 
         nocache_headers();
         header('Content-Type: text/csv; charset=UTF-8');
         header('Content-Disposition: attachment; filename="' . sanitize_file_name($form_id . '-' . gmdate('Y-m-d') . '.csv') . '"');
         $output = fopen('php://output', 'w');
         fwrite($output, "\xEF\xBB\xBF");
-        fputcsv($output, array_merge(array('Submission ID', 'Received', 'Status', 'Form'), wp_list_pluck($columns, 'label')));
+        fputcsv($output, array_merge(array('Submission ID', 'Received', 'Status', 'Form', 'Form Version'), wp_list_pluck($columns, 'label')));
         foreach ($posts as $post) {
             $data = $datasets[$post->ID];
+            $row_definition = isset($definitions[$post->ID]) ? $definitions[$post->ID] : $definition;
             $row = array(
                 $post->ID,
                 get_the_date('Y-m-d H:i:s', $post),
                 get_post_meta($post->ID, '_pform_status', true) ?: 'new',
-                $definition['title'],
+                isset($row_definition['title']) ? $row_definition['title'] : $definition['title'],
+                isset($row_definition['version']) ? absint($row_definition['version']) : '',
             );
             foreach ($columns as $column) {
-                $row[] = $this->csv_safe($this->csv_value($column, $data));
+                $row[] = $this->csv_safe($this->csv_value($column, $data, $row_definition));
             }
             fputcsv($output, $row);
         }
@@ -721,43 +734,101 @@ final class PFORM_Admin
         return implode($separator, $values);
     }
 
-    private function csv_columns($definition, $datasets)
+    private function csv_columns($current_definition, $definitions, $datasets)
     {
+        $field_map = array();
+        $definition_list = array_merge(array($current_definition), array_values($definitions));
+
+        foreach ($definition_list as $definition) {
+            if (empty($definition['sections']) || ! is_array($definition['sections'])) {
+                continue;
+            }
+            foreach ($definition['sections'] as $section) {
+                foreach ((array) $section['fields'] as $field) {
+                    if (empty($field['id']) || isset($field_map[$field['id']])) {
+                        continue;
+                    }
+                    $field_map[$field['id']] = $field;
+                }
+            }
+        }
+
         $columns = array();
-        foreach ($definition['sections'] as $section) {
-            foreach ($section['fields'] as $field) {
-                if ($field['type'] !== 'repeater') {
-                    $columns[] = array('label' => $field['label'], 'field' => $field, 'id' => $field['id']);
+        foreach ($field_map as $field_id => $field) {
+            if ($field['type'] !== 'repeater') {
+                $columns[] = array('label' => $field['label'], 'field' => $field, 'id' => $field_id);
+                continue;
+            }
+
+            $maximum = 0;
+            foreach ($datasets as $data) {
+                $maximum = max($maximum, isset($data[$field_id]) && is_array($data[$field_id]) ? count($data[$field_id]) : 0);
+            }
+
+            $child_map = array();
+            foreach ($definition_list as $definition) {
+                $repeater = $this->definition_field($definition, $field_id);
+                if (! $repeater || empty($repeater['fields'])) {
                     continue;
                 }
-                $maximum = 0;
-                foreach ($datasets as $data) {
-                    $maximum = max($maximum, isset($data[$field['id']]) && is_array($data[$field['id']]) ? count($data[$field['id']]) : 0);
-                }
-                for ($index = 0; $index < $maximum; $index++) {
-                    foreach ($field['fields'] as $item_field) {
-                        $columns[] = array(
-                            'label' => sprintf('%s %d - %s', $field['item_label'], $index + 1, $item_field['label']),
-                            'field' => $item_field,
-                            'id' => $field['id'],
-                            'index' => $index,
-                            'item_id' => $item_field['id'],
-                        );
+                foreach ($repeater['fields'] as $child) {
+                    if (! empty($child['id']) && ! isset($child_map[$child['id']])) {
+                        $child_map[$child['id']] = $child;
                     }
+                }
+            }
+
+            for ($index = 0; $index < $maximum; $index++) {
+                foreach ($child_map as $child_id => $item_field) {
+                    $columns[] = array(
+                        'label' => sprintf('%s %d - %s', isset($field['item_label']) ? $field['item_label'] : __('Item', 'parish-forms'), $index + 1, $item_field['label']),
+                        'field' => $item_field,
+                        'id' => $field_id,
+                        'index' => $index,
+                        'item_id' => $child_id,
+                    );
                 }
             }
         }
         return $columns;
     }
 
-    private function csv_value($column, $data)
+    private function csv_value($column, $data, $definition)
     {
         if (isset($column['index'])) {
             $value = isset($data[$column['id']][$column['index']][$column['item_id']]) ? $data[$column['id']][$column['index']][$column['item_id']] : '';
+            $field = $this->definition_field($definition, $column['id'], $column['item_id']);
         } else {
             $value = isset($data[$column['id']]) ? $data[$column['id']] : '';
+            $field = $this->definition_field($definition, $column['id']);
         }
-        return PFORM_Formatter::display_value($column['field'], $value);
+        if (! $field) {
+            $field = $column['field'];
+        }
+        return PFORM_Formatter::display_value($field, $value);
+    }
+
+    private function definition_field($definition, $field_id, $item_id = '')
+    {
+        if (empty($definition['sections']) || ! is_array($definition['sections'])) {
+            return null;
+        }
+        foreach ($definition['sections'] as $section) {
+            foreach ((array) $section['fields'] as $field) {
+                if (! isset($field['id']) || $field['id'] !== $field_id) {
+                    continue;
+                }
+                if ($item_id === '') {
+                    return $field;
+                }
+                foreach (isset($field['fields']) ? (array) $field['fields'] : array() as $child) {
+                    if (isset($child['id']) && $child['id'] === $item_id) {
+                        return $child;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     private function csv_safe($value)
