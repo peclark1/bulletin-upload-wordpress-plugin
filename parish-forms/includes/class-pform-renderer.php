@@ -15,12 +15,12 @@ final class PFORM_Renderer
         <div id="parish-form" class="pform-shell">
             <?php if (! empty($state['success'])) : ?>
                 <div class="pform-notice pform-notice--success" role="status" tabindex="-1">
-                    <h2><?php esc_html_e('Registration Received', 'parish-forms'); ?></h2>
+                    <h2><?php echo esc_html(! empty($definition['success_title']) ? $definition['success_title'] : __('Submission Received', 'parish-forms')); ?></h2>
                     <p><?php echo esc_html($definition['confirmation']); ?></p>
                 </div>
             <?php else : ?>
                 <div class="pform-intro">
-                    <p class="pform-eyebrow"><?php esc_html_e('Welcome to Our Parish Family', 'parish-forms'); ?></p>
+                    <p class="pform-eyebrow"><?php echo esc_html(! empty($definition['eyebrow']) ? $definition['eyebrow'] : __('Parish Forms', 'parish-forms')); ?></p>
                     <h2><?php echo esc_html($definition['title']); ?></h2>
                     <p><?php echo esc_html($definition['description']); ?></p>
                 </div>
@@ -67,7 +67,7 @@ final class PFORM_Renderer
                     <?php endforeach; ?>
 
                     <div class="pform-submit">
-                        <p><?php esc_html_e('Information submitted through this form is intended for parish registration and parish-office follow-up.', 'parish-forms'); ?></p>
+                        <p><?php echo esc_html(! empty($definition['privacy_note']) ? $definition['privacy_note'] : __('Information submitted through this form is intended for parish-office follow-up.', 'parish-forms')); ?></p>
                         <button class="pform-button" type="submit"><?php echo esc_html($definition['submit_label']); ?></button>
                     </div>
                 </form>

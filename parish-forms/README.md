@@ -1,10 +1,11 @@
 # Parish Forms
 
-Parish Forms is a small, purpose-built WordPress plugin for St. Peter the Apostle and St. Mary's Two Inlets. Version 0.1 provides the Parish Registration form without introducing a general-purpose form builder.
+Parish Forms is a small, purpose-built WordPress plugin for St. Peter the Apostle and St. Mary's Two Inlets. Version 0.2 provides Parish Registration and a Pre-Baptismal Questionnaire without introducing a general-purpose form builder.
 
 ## Features
 
-- Responsive parish-branded frontend form
+- Responsive parish-branded frontend forms
+- Parish Registration plus Pre-Baptismal Questionnaire
 - Conditional marriage and spouse fields
 - Repeatable child sections (up to 10 children)
 - Schema-based server validation and sanitization
@@ -28,15 +29,16 @@ From the repository root, build the installable plugin ZIP:
 make parish-forms
 ```
 
-Install the resulting `parish-forms-0.1.0.zip` in **Plugins > Add New > Upload Plugin**, then activate it.
+Install the resulting `parish-forms-0.2.0.zip` in **Plugins > Add New > Upload Plugin**, then activate it.
 
-Activation creates a draft **Parish Registration** page. Review and publish that page, or place this shortcode on another page:
+Activation or upgrade creates draft **Parish Registration** and **Pre-Baptismal Questionnaire** pages. Review and publish those pages, or place either shortcode on another page:
 
 ```text
 [parish_form id="parish-registration"]
+[parish_form id="pre-baptismal-questionnaire"]
 ```
 
-Open **Parish Forms > Settings** to set one or more notification addresses. Open **Parish Forms > Submissions** to review registrations or export them as CSV.
+Open **Parish Forms > Settings** to set one or more notification addresses. Open **Parish Forms > Submissions** to choose a form, review its submissions, or export them as CSV.
 
 ## Data handling
 

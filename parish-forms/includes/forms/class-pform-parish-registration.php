@@ -18,9 +18,15 @@ final class PFORM_Parish_Registration
             'id' => 'parish-registration',
             'version' => 1,
             'title' => __('Join Our Parish Family', 'parish-forms'),
+            'eyebrow' => __('Welcome to Our Parish Family', 'parish-forms'),
             'description' => __('Use this form to register as a new or returning parishioner, or to update your household information. Fields marked with an asterisk are required.', 'parish-forms'),
             'submit_label' => __('Submit Registration', 'parish-forms'),
+            'success_title' => __('Registration Received', 'parish-forms'),
             'confirmation' => __('Thank you. Your parish registration has been received. The parish office will follow up if any additional information is needed.', 'parish-forms'),
+            'privacy_note' => __('Information submitted through this form is intended for parish registration and parish-office follow-up.', 'parish-forms'),
+            'reply_to_field' => 'primary_email',
+            'admin_primary_fields' => array('family_name'),
+            'admin_contact_fields' => array('primary_name', 'primary_email'),
             'sections' => array(
                 array(
                     'id' => 'household',

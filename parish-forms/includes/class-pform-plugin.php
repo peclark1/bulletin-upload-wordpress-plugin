@@ -8,6 +8,7 @@ final class PFORM_Plugin
 {
     const OPTION = 'pform_settings';
     const CAPABILITY = 'manage_parish_forms';
+    const VERSION_OPTION = 'pform_version';
     private static $instance;
 
     public static function instance()
@@ -22,6 +23,7 @@ final class PFORM_Plugin
     {
         add_action('init', array('PFORM_Submissions', 'register_post_type'));
         add_action('init', array($this, 'register_assets'));
+        add_action('init', array($this, 'maybe_upgrade'), 20);
         add_action('admin_post_pform_submit', array($this, 'handle_submission'));
         add_action('admin_post_nopriv_pform_submit', array($this, 'handle_submission'));
         add_shortcode('parish_form', array($this, 'shortcode'));
@@ -55,19 +57,52 @@ final class PFORM_Plugin
             ));
         }
 
-        if (! get_option('pform_registration_page_id')) {
+        self::ensure_default_pages();
+        update_option(self::VERSION_OPTION, PFORM_VERSION);
+
+        flush_rewrite_rules(false);
+    }
+
+    public function maybe_upgrade()
+    {
+        $installed = (string) get_option(self::VERSION_OPTION, '');
+        if ($installed === PFORM_VERSION) {
+            return;
+        }
+
+        self::ensure_default_pages();
+        update_option(self::VERSION_OPTION, PFORM_VERSION);
+    }
+
+    private static function ensure_default_pages()
+    {
+        $pages = array(
+            'pform_registration_page_id' => array(
+                'title' => __('Parish Registration', 'parish-forms'),
+                'shortcode' => '[parish_form id="parish-registration"]',
+            ),
+            'pform_baptism_page_id' => array(
+                'title' => __('Pre-Baptismal Questionnaire', 'parish-forms'),
+                'shortcode' => '[parish_form id="pre-baptismal-questionnaire"]',
+            ),
+        );
+
+        foreach ($pages as $option_name => $page) {
+            $existing_id = absint(get_option($option_name));
+            if ($existing_id && get_post($existing_id)) {
+                continue;
+            }
+
             $page_id = wp_insert_post(array(
-                'post_title' => __('Parish Registration', 'parish-forms'),
-                'post_content' => '<!-- wp:shortcode -->[parish_form id="parish-registration"]<!-- /wp:shortcode -->',
+                'post_title' => $page['title'],
+                'post_content' => '<!-- wp:shortcode -->' . $page['shortcode'] . '<!-- /wp:shortcode -->',
                 'post_status' => 'draft',
                 'post_type' => 'page',
             ));
             if (! is_wp_error($page_id)) {
-                add_option('pform_registration_page_id', $page_id);
+                update_option($option_name, $page_id);
             }
         }
-
-        flush_rewrite_rules(false);
     }
 
     public function register_assets()
@@ -136,7 +171,7 @@ final class PFORM_Plugin
         $submission_id = PFORM_Submissions::create($definition, $result['data']);
         if (is_wp_error($submission_id)) {
             $this->redirect_with_errors($return_url, $form_id, array(
-                '_form' => __('We could not save your registration. Please try again or contact the parish office.', 'parish-forms'),
+                '_form' => __('We could not save your submission. Please try again or contact the parish office.', 'parish-forms'),
             ), $result['data']);
         }
 
@@ -153,7 +188,7 @@ final class PFORM_Plugin
         }
         wp_add_privacy_policy_content(
             __('Parish Forms', 'parish-forms'),
-            wp_kses_post(__('<p>Parish form submissions may include household contact information, dates of birth, sacramental information, ministry interests, and registration choices. Submissions are stored privately in WordPress for parish-office use and may be sent to configured parish staff email addresses.</p><p>Access is limited to WordPress users granted the Parish Forms management capability. Submissions remain stored until an authorized administrator moves them to the trash or permanently deletes them under the parish records-retention policy.</p>', 'parish-forms'))
+            wp_kses_post(__('<p>Parish form submissions may include household and parent contact information, dates of birth, sacramental-preparation information, ministry interests, and registration choices. Submissions are stored privately in WordPress for parish-office use and may be sent to configured parish staff email addresses.</p><p>Access is limited to WordPress users granted the Parish Forms management capability. Submissions remain stored until an authorized administrator moves them to the trash or permanently deletes them under the parish records-retention policy.</p>', 'parish-forms'))
         );
     }
 
