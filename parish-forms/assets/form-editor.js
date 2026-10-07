@@ -108,9 +108,9 @@
         return html;
     }
 
-    function blankField(index) {
+    function blankField(id) {
         return {
-            id: 'field-' + index,
+            id: id,
             type: 'text',
             label: 'New Field',
             required: false,
@@ -320,7 +320,7 @@
 
         if (button.hasAttribute('data-add-field')) {
             var fields = state.sections[sectionIndex].fields || (state.sections[sectionIndex].fields = []);
-            fields.push(blankField(fields.length + 1));
+            fields.push(blankField('field-' + (sectionIndex + 1) + '-' + (fields.length + 1)));
             render();
             return;
         }
@@ -372,7 +372,7 @@
         if (button.hasAttribute('data-add-repeater-field')) {
             var parentField = state.sections[sectionIndex].fields[fieldIndex];
             parentField.fields = parentField.fields || [];
-            parentField.fields.push(blankField(parentField.fields.length + 1));
+            parentField.fields.push(blankField('item-field-' + (parentField.fields.length + 1)));
             render();
         }
     });
