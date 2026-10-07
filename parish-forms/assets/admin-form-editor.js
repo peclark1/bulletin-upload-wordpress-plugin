@@ -440,6 +440,7 @@
                 field.options = {yes: 'Yes', no: 'No'};
             }
             if (v === 'repeater' && !field.fields) {
+                field.required = false;
                 field.item_label = 'Item';
                 field.add_label = 'Add Another';
                 field.min_items = 0;
@@ -452,11 +453,13 @@
         grid.appendChild(fieldRow('Width', select(field.width || 'full', widths, function (v) { field.width = v; })));
         grid.appendChild(fieldRow('Help text', input(field.help || '', function (v) { field.help = v; }), 'Optional short instruction shown beneath the field.'));
 
-        var requiredWrap = el('div', 'pform-editor-control');
-        var requiredLabel = el('label', 'pform-editor-check', 'Required');
-        requiredLabel.insertBefore(checkbox(field.required, function (v) { field.required = v; }), requiredLabel.firstChild);
-        requiredWrap.appendChild(requiredLabel);
-        grid.appendChild(requiredWrap);
+        if (field.type !== 'repeater') {
+            var requiredWrap = el('div', 'pform-editor-control');
+            var requiredLabel = el('label', 'pform-editor-check', 'Required');
+            requiredLabel.insertBefore(checkbox(field.required, function (v) { field.required = v; }), requiredLabel.firstChild);
+            requiredWrap.appendChild(requiredLabel);
+            grid.appendChild(requiredWrap);
+        }
 
         if (['text', 'email', 'tel', 'textarea'].indexOf(field.type) !== -1) {
             grid.appendChild(fieldRow('Maximum length', input(field.max_length || (field.type === 'textarea' ? 2000 : 180), function (v) {
