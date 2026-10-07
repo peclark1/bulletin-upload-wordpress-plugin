@@ -35,6 +35,32 @@ The existing public Bulletins page is **not** edited automatically. Replace its 
 
 only when you are ready to cut over the listing page.
 
+## Approved weekly history and navigation
+
+Approved website information is stored in a dedicated WordPress table named
+`$wpdb->prefix . 'cbp_weekly_history'` (normally `wp_cbp_weekly_history`). The
+table keeps one authoritative snapshot per Monday-Sunday week. Approving the
+same week again intentionally replaces that week's snapshot rather than
+creating revisions.
+
+Each snapshot contains the approved dated Masses and intentions, devotions and
+sacramental times, parish events, livestream notes, the recurring schedule
+approved with that bulletin, approval metadata, plugin version, and the
+reviewed PDF SHA-256 when available. Existing `cbp_mass_schedule` and
+`cbp_weekly_calendar` options remain the live/current sources used by older
+plugin code.
+
+The full `[church_worship_week]` and `[church_parish_events]` views use the
+history table to provide Previous Week / Next Week navigation. A selected week
+is shareable with `?week=YYYY-MM-DD`, where the date is that week's Monday.
+When an approved future bulletin is available, the current week remains the
+default until the calendar reaches the future week.
+
+On first upgrade, the plugin automatically archives the currently approved
+`cbp_weekly_calendar` value so the new history starts with the data already
+on the site. Weeks that were overwritten before this feature existed are not
+reconstructed automatically.
+
 ## Test area
 
 The existing test workflow remains available and writes only to:
