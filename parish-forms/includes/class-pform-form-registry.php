@@ -38,7 +38,7 @@ final class PFORM_Form_Registry
             return PFORM_Form_Store::get_published($form_id, $include_retired);
         }
 
-        $forms = self::builtin_all();
+        $forms = self::all($include_retired);
         return isset($forms[$form_id]) && is_array($forms[$form_id]) ? $forms[$form_id] : null;
     }
 
