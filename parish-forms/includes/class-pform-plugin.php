@@ -60,6 +60,7 @@ final class PFORM_Plugin
         }
 
         self::seed_form_manager();
+        PFORM_Submissions::backfill_definition_snapshots();
         self::ensure_default_pages();
         update_option(self::VERSION_OPTION, PFORM_VERSION);
 
@@ -74,6 +75,9 @@ final class PFORM_Plugin
         }
 
         self::seed_form_manager();
+        if (! $installed || version_compare($installed, '0.4.0', '<')) {
+            PFORM_Submissions::backfill_definition_snapshots();
+        }
         self::ensure_default_pages();
         update_option(self::VERSION_OPTION, PFORM_VERSION);
     }
