@@ -30,7 +30,10 @@
         full: 'Full width',
         half: 'Half width',
         third: 'One third',
-        'two-thirds': 'Two thirds'
+        'two-thirds': 'Two thirds',
+        'phone-wide': 'Half width (phone layout)',
+        ministries: 'Full width (ministry choices)',
+        'other-interests': 'Full width (large notes)'
     };
 
     function el(tag, className, text) {
