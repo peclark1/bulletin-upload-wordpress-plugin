@@ -23,6 +23,10 @@ final class PFORM_Admin
         add_action('admin_init', array($this, 'register_settings'));
         add_action('admin_post_pform_submission_action', array($this, 'submission_action'));
         add_action('admin_post_pform_export_csv', array($this, 'export_csv'));
+        add_action('admin_post_pform_form_create', array($this, 'form_create'));
+        add_action('admin_post_pform_form_save', array($this, 'form_save'));
+        add_action('admin_post_pform_form_duplicate', array($this, 'form_duplicate'));
+        add_action('admin_post_pform_form_status', array($this, 'form_status'));
     }
 
     public function admin_menu()
@@ -46,6 +50,14 @@ final class PFORM_Admin
         );
         add_submenu_page(
             'parish-forms',
+            __('Forms', 'parish-forms'),
+            __('Forms', 'parish-forms'),
+            PFORM_Plugin::CAPABILITY,
+            'parish-forms-forms',
+            array($this, 'render_forms')
+        );
+        add_submenu_page(
+            'parish-forms',
             __('Parish Forms Settings', 'parish-forms'),
             __('Settings', 'parish-forms'),
             PFORM_Plugin::CAPABILITY,
@@ -60,6 +72,10 @@ final class PFORM_Admin
             return;
         }
         wp_enqueue_style('pform-admin', PFORM_URL . 'assets/admin.css', array(), PFORM_VERSION);
+        if (strpos($hook, 'parish-forms-forms') !== false) {
+            wp_enqueue_script('pform-form-editor', PFORM_URL . 'assets/form-editor.js', array(), PFORM_VERSION, true);
+            wp_enqueue_style('pform-frontend', PFORM_URL . 'assets/frontend.css', array(), PFORM_VERSION);
+        }
     }
 
     public function register_settings()
