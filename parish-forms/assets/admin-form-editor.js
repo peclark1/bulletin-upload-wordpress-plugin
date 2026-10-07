@@ -610,8 +610,16 @@
     });
 
     form.querySelectorAll('[data-pform-operation]').forEach(function (buttonNode) {
-        buttonNode.addEventListener('click', function () {
-            operationInput.value = buttonNode.getAttribute('data-pform-operation') || 'save';
+        buttonNode.addEventListener('click', function (event) {
+            var operation = buttonNode.getAttribute('data-pform-operation') || 'save';
+            if (operation === 'publish') {
+                var message = (data.labels && data.labels.confirmPublish) || 'Publish these changes to the live form?';
+                if (!window.confirm(message)) {
+                    event.preventDefault();
+                    return;
+                }
+            }
+            operationInput.value = operation;
         });
     });
 
