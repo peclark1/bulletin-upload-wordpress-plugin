@@ -328,6 +328,12 @@ assert_true(strpos($confirmation_html, 'Confirmation Interest Form') !== false, 
 assert_true(strpos($confirmation_html, 'name="pf[candidate_first_name]"') !== false, 'Renderer should include candidate fields.');
 assert_true(strpos($confirmation_html, 'data-pform-condition-field="sponsor_status"') !== false, 'Renderer should expose conditional sponsor behavior.');
 
+$migrated_registration = PFORM_Definition_Sanitizer::sanitize(PFORM_Parish_Registration::definition(), 'parish-registration');
+assert_true($migrated_registration['id'] === 'parish-registration', 'Migrated built-in form ID should remain stable.');
+assert_true(isset($migrated_registration['sections'][2]['condition']['field']) && $migrated_registration['sections'][2]['condition']['field'] === 'marital_status', 'Section conditions must survive Form Manager migration.');
+assert_true($migrated_registration['sections'][3]['fields'][0]['type'] === 'repeater', 'Repeatable child groups must survive Form Manager migration.');
+assert_true($migrated_registration['sections'][3]['fields'][0]['item_label'] === 'Child', 'Repeatable group labels must survive Form Manager migration.');
+
 $editable = array(
     'id' => 'staff-built-form',
     'title' => 'Staff Built Form',
