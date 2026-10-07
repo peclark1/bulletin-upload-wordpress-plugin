@@ -536,6 +536,7 @@ final class PFORM_Admin
             <div class="pform-admin__meta">
                 <span><strong><?php esc_html_e('Received:', 'parish-forms'); ?></strong> <?php echo esc_html(get_the_date('F j, Y g:i a', $post)); ?></span>
                 <span><strong><?php esc_html_e('Status:', 'parish-forms'); ?></strong> <?php echo esc_html($is_trash ? __('Trash', 'parish-forms') : ucfirst($status)); ?></span>
+                <span><strong><?php esc_html_e('Form version:', 'parish-forms'); ?></strong> <?php echo esc_html('v' . absint(isset($definition['version']) ? $definition['version'] : get_post_meta($submission_id, '_pform_schema_version', true))); ?></span>
                 <span><strong><?php esc_html_e('Notification:', 'parish-forms'); ?></strong> <?php echo get_post_meta($submission_id, '_pform_email_sent', true) === '1' ? esc_html__('Sent', 'parish-forms') : esc_html__('Not sent', 'parish-forms'); ?></span>
             </div>
 
