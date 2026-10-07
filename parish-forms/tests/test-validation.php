@@ -184,26 +184,26 @@ assert_true(strpos($html, 'id="pform-children-__INDEX__-full_name"') !== false, 
 
 $baptism_definition = PFORM_Pre_Baptismal_Questionnaire::definition();
 $baptism_valid = array(
-    'child_first_name' => 'William',
-    'child_middle_name' => 'Edward',
-    'child_last_name' => 'Clark',
+    'child_first_name' => 'Jordan',
+    'child_middle_name' => 'Lee',
+    'child_last_name' => 'Sample',
     'gender' => 'male',
     'child_birth_date' => '2020-05-08',
-    'place_of_birth' => 'Merriam, KS, USA',
-    'mother_name' => 'Michelle Clark',
-    'mother_maiden_name' => 'Berghahn',
+    'place_of_birth' => 'Park Rapids, MN, USA',
+    'mother_name' => 'Pat Sample',
+    'mother_maiden_name' => 'Example',
     'mother_religion' => 'Catholic',
     'mother_phone' => '913-555-0100',
     'mother_email' => 'mother@example.com',
-    'father_name' => 'Peter Clark',
+    'father_name' => 'Taylor Sample',
     'father_religion' => 'Other Christian denomination',
     'father_phone' => '913-555-0101',
     'father_email' => 'father@example.com',
     'address_for' => 'both',
-    'street_address' => '1343 West 9th Street',
-    'city' => 'Omaha',
-    'state' => 'NE',
-    'postal_code' => '67434',
+    'street_address' => '123 Main Street',
+    'city' => 'Park Rapids',
+    'state' => 'MN',
+    'postal_code' => '56470',
     'offertory_gifts' => 'yes',
     'reserved_pews' => '3',
 );
@@ -229,8 +229,8 @@ $baptism_formatted = PFORM_Formatter::plain_text(
     $baptism_definition,
     PFORM_Validator::validate($baptism_definition, $baptism_valid)['data']
 );
-assert_true(strpos($baptism_formatted, 'William') !== false, 'Baptism notification should contain the child name.');
-assert_true(strpos($baptism_formatted, 'Michelle Clark') !== false, 'Baptism notification should contain parent information.');
+assert_true(strpos($baptism_formatted, 'Jordan') !== false, 'Baptism notification should contain the child name.');
+assert_true(strpos($baptism_formatted, 'Pat Sample') !== false, 'Baptism notification should contain parent information.');
 
 $baptism_html = PFORM_Renderer::render(
     $baptism_definition,
