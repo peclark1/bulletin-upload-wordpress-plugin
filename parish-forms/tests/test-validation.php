@@ -106,6 +106,7 @@ class PFORM_Plugin
 
 require_once dirname(__DIR__) . '/includes/forms/class-pform-parish-registration.php';
 require_once dirname(__DIR__) . '/includes/forms/class-pform-pre-baptismal-questionnaire.php';
+require_once dirname(__DIR__) . '/includes/forms/class-pform-confirmation-interest.php';
 require_once dirname(__DIR__) . '/includes/class-pform-validator.php';
 require_once dirname(__DIR__) . '/includes/class-pform-formatter.php';
 require_once dirname(__DIR__) . '/includes/class-pform-renderer.php';
@@ -239,5 +240,81 @@ $baptism_html = PFORM_Renderer::render(
 assert_true(strpos($baptism_html, 'Pre-Baptismal Questionnaire') !== false, 'Renderer should display the baptism form title.');
 assert_true(strpos($baptism_html, 'name="pf[child_first_name]"') !== false, 'Renderer should include the child first-name field.');
 assert_true(strpos($baptism_html, 'name="pf[offertory_gifts]"') !== false, 'Renderer should include the offertory-gifts field.');
+
+$confirmation_definition = PFORM_Confirmation_Interest::definition();
+$confirmation_valid = array(
+    'candidate_first_name' => 'Alex',
+    'candidate_middle_name' => 'Jordan',
+    'candidate_last_name' => 'Sample',
+    'candidate_birth_date' => '2012-04-12',
+    'candidate_grade' => '8',
+    'candidate_school' => 'Sample Middle School',
+    'parish' => 'st-peter',
+    'parent_name' => 'Pat Sample',
+    'parent_relationship' => 'Parent',
+    'parent_email' => 'pat@example.com',
+    'parent_phone' => '218-555-0110',
+    'street_address' => '123 Main Street',
+    'city' => 'Park Rapids',
+    'state' => 'MN',
+    'postal_code' => '56470',
+    'baptized' => 'yes',
+    'baptism_date' => '2012-06-10',
+    'baptism_parish' => 'St. Example',
+    'baptism_location' => 'Park Rapids, MN',
+    'first_communion' => 'yes',
+    'formation_setting' => 'parish-program',
+    'formation_notes' => 'Weekly parish formation.',
+    'sponsor_status' => 'selected',
+    'sponsor_name' => 'Jordan Sponsor',
+    'sponsor_relationship' => 'Family friend',
+    'questions' => 'No questions at this time.',
+    'typed_parent_name' => 'Pat Sample',
+    'confirmation_acknowledgment' => '1',
+);
+
+$confirmation_result = PFORM_Validator::validate($confirmation_definition, $confirmation_valid);
+assert_true($confirmation_result['errors'] === array(), 'Valid Confirmation interest form should have no errors.');
+assert_true($confirmation_result['data']['parish'] === 'st-peter', 'Confirmation parish choice should be retained.');
+assert_true(isset($confirmation_result['data']['baptism_parish']), 'Baptism details should be retained when candidate is baptized.');
+assert_true(isset($confirmation_result['data']['sponsor_name']), 'Sponsor details should be retained when a sponsor is selected.');
+
+$confirmation_no_sponsor = $confirmation_valid;
+$confirmation_no_sponsor['sponsor_status'] = 'not-yet';
+$confirmation_result = PFORM_Validator::validate($confirmation_definition, $confirmation_no_sponsor);
+assert_true(! isset($confirmation_result['data']['sponsor_name']), 'Sponsor details must be discarded until a sponsor is selected.');
+
+$confirmation_not_baptized = $confirmation_valid;
+$confirmation_not_baptized['baptized'] = 'no';
+$confirmation_result = PFORM_Validator::validate($confirmation_definition, $confirmation_not_baptized);
+assert_true(! isset($confirmation_result['data']['baptism_date']), 'Baptism details must be discarded when candidate is not baptized.');
+
+$confirmation_invalid = $confirmation_valid;
+$confirmation_invalid['candidate_first_name'] = '';
+$confirmation_invalid['candidate_birth_date'] = '2035-01-01';
+$confirmation_invalid['parent_email'] = 'not-an-email';
+$confirmation_invalid['parish'] = 'invalid';
+$confirmation_invalid['confirmation_acknowledgment'] = '';
+$confirmation_result = PFORM_Validator::validate($confirmation_definition, $confirmation_invalid);
+assert_true(isset($confirmation_result['errors']['candidate_first_name']), 'Candidate first name should be required.');
+assert_true(isset($confirmation_result['errors']['candidate_birth_date']), 'Future candidate birth date should be rejected.');
+assert_true(isset($confirmation_result['errors']['parent_email']), 'Invalid parent email should be rejected.');
+assert_true(isset($confirmation_result['errors']['parish']), 'Unknown parish choices should be rejected.');
+assert_true(isset($confirmation_result['errors']['confirmation_acknowledgment']), 'Confirmation acknowledgment should be required.');
+
+$confirmation_formatted = PFORM_Formatter::plain_text(
+    $confirmation_definition,
+    PFORM_Validator::validate($confirmation_definition, $confirmation_valid)['data']
+);
+assert_true(strpos($confirmation_formatted, 'Alex') !== false, 'Confirmation notification should contain the candidate name.');
+assert_true(strpos($confirmation_formatted, 'Pat Sample') !== false, 'Confirmation notification should contain parent information.');
+
+$confirmation_html = PFORM_Renderer::render(
+    $confirmation_definition,
+    array('errors' => array(), 'values' => $confirmation_valid, 'success' => false)
+);
+assert_true(strpos($confirmation_html, 'Confirmation Interest Form') !== false, 'Renderer should display the Confirmation form title.');
+assert_true(strpos($confirmation_html, 'name="pf[candidate_first_name]"') !== false, 'Renderer should include candidate fields.');
+assert_true(strpos($confirmation_html, 'data-pform-condition-field="sponsor_status"') !== false, 'Renderer should expose conditional sponsor behavior.');
 
 echo "Validation tests passed.\n";

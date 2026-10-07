@@ -341,6 +341,7 @@ final class PFORM_Admin
                 <?php if ($baptism_page_id && get_post($baptism_page_id)) : ?>
                     <p><a class="button" href="<?php echo esc_url(get_edit_post_link($baptism_page_id)); ?>"><?php esc_html_e('Edit Draft Pre-Baptismal Page', 'parish-forms'); ?></a></p>
                 <?php endif; ?>
+                <p><strong><?php esc_html_e('Confirmation Interest Form:', 'parish-forms'); ?></strong> <code>[parish_form id="confirmation-interest"]</code></p>
             </section>
         </div>
         <?php
