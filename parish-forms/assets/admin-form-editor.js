@@ -450,6 +450,7 @@
         })));
 
         grid.appendChild(fieldRow('Width', select(field.width || 'full', widths, function (v) { field.width = v; })));
+        grid.appendChild(fieldRow('Help text', input(field.help || '', function (v) { field.help = v; }), 'Optional short instruction shown beneath the field.'));
 
         var requiredWrap = el('div', 'pform-editor-control');
         var requiredLabel = el('label', 'pform-editor-check', 'Required');
