@@ -176,7 +176,13 @@ final class PFORM_Definition_Sanitizer
         }
 
         foreach ($definition['sections'] as &$section) {
-            if (isset($section['condition']) && ! self::valid_condition($section['condition'], $fields)) {
+            $section_field_ids = array();
+            foreach ($section['fields'] as $section_field) {
+                $section_field_ids[] = $section_field['id'];
+            }
+            if (isset($section['condition'])
+                && (! self::valid_condition($section['condition'], $fields)
+                    || in_array($section['condition']['field'], $section_field_ids, true))) {
                 unset($section['condition']);
             }
             foreach ($section['fields'] as &$field) {
