@@ -38,7 +38,8 @@ final class CBP_Site_Displays
             $mode = 'full';
         }
 
-        $weekly = $this->weekly();
+        $selection = $this->weekly_selection($mode);
+        $weekly = $selection['weekly'];
         if (! $this->has_week($weekly)) {
             return $this->empty_message(__('The approved weekly worship schedule has not been published yet.', 'church-bulletin-publisher'));
         }
@@ -51,7 +52,7 @@ final class CBP_Site_Displays
         ob_start();
         ?>
         <div class="cbp-site-view cbp-worship-week cbp-site-view--<?php echo esc_attr($mode); ?>">
-            <?php echo $this->week_heading($weekly); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+            <?php echo $this->week_heading($weekly, $selection); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             <div class="cbp-site-grid cbp-site-grid--two">
                 <section class="cbp-site-card">
                     <h3><?php esc_html_e('This Week’s Masses', 'church-bulletin-publisher'); ?></h3>
@@ -96,7 +97,8 @@ final class CBP_Site_Displays
             $mode = 'full';
         }
 
-        $weekly = $this->weekly();
+        $selection = $this->weekly_selection($mode);
+        $weekly = $selection['weekly'];
         if (! $this->has_week($weekly)) {
             return $this->empty_message(__('The approved parish events calendar has not been published yet.', 'church-bulletin-publisher'));
         }
@@ -125,7 +127,7 @@ final class CBP_Site_Displays
         ?>
         <div class="cbp-site-view cbp-parish-events cbp-site-view--<?php echo esc_attr($mode); ?>">
             <?php if ($mode === 'full') : ?>
-                <?php echo $this->week_heading($weekly); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                <?php echo $this->week_heading($weekly, $selection); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             <?php endif; ?>
             <?php
             echo ! empty($events)
@@ -137,12 +139,61 @@ final class CBP_Site_Displays
         return ob_get_clean();
     }
 
-    private function weekly()
+    private function weekly_selection($mode)
     {
-        return wp_parse_args(
+        $fallback = wp_parse_args(
             get_option(CBP_Schedule::WEEKLY_OPTION, array()),
             CBP_Schedule::weekly_defaults()
         );
+
+        $selection = array(
+            'weekly' => $fallback,
+            'history' => false,
+            'selected_week_start' => isset($fallback['week_start']) ? (string) $fallback['week_start'] : '',
+            'current_week_start' => '',
+            'current_week_available' => false,
+            'previous_week_start' => '',
+            'next_week_start' => '',
+        );
+
+        // Compact displays keep their existing behavior. Full Mass Times and
+        // Parish Events pages use the permanent approved-week archive.
+        if ($mode !== 'full' || ! class_exists('CBP_Weekly_History')) {
+            return $selection;
+        }
+
+        $history = CBP_Weekly_History::instance();
+        $requested = isset($_GET['week']) ? sanitize_text_field(wp_unslash($_GET['week'])) : '';
+        $record = null;
+
+        if ($this->valid_date($requested)) {
+            $record = $history->get_week($requested);
+        }
+        if (! $record) {
+            $record = $history->default_week();
+        }
+        if (! is_array($record) || empty($record['weekly']) || ! is_array($record['weekly'])) {
+            return $selection;
+        }
+
+        $weekly = wp_parse_args($record['weekly'], CBP_Schedule::weekly_defaults());
+        if (! $this->has_week($weekly)) {
+            return $selection;
+        }
+
+        $selected_start = (string) $weekly['week_start'];
+        $current_start = $history->current_week_start();
+        $adjacent = $history->adjacent_week_starts($selected_start);
+
+        $selection['weekly'] = $weekly;
+        $selection['history'] = true;
+        $selection['selected_week_start'] = $selected_start;
+        $selection['current_week_start'] = $current_start;
+        $selection['current_week_available'] = (bool) $history->get_week($current_start);
+        $selection['previous_week_start'] = isset($adjacent['previous']) ? (string) $adjacent['previous'] : '';
+        $selection['next_week_start'] = isset($adjacent['next']) ? (string) $adjacent['next'] : '';
+
+        return $selection;
     }
 
     private function has_week(array $weekly)
@@ -150,14 +201,59 @@ final class CBP_Site_Displays
         return ! empty($weekly['week_start']) && ! empty($weekly['week_end']);
     }
 
-    private function week_heading(array $weekly)
+    private function week_heading(array $weekly, array $selection = array())
     {
         $start = $this->format_date($weekly['week_start'], 'F j');
         $end = $this->format_date($weekly['week_end'], 'F j, Y');
         if ($start === '' || $end === '') {
             return '';
         }
-        return '<p class="cbp-site-week">' . esc_html(sprintf(__('Week of %1$s–%2$s', 'church-bulletin-publisher'), $start, $end)) . '</p>';
+
+        $heading = '<p class="cbp-site-week">'
+            . esc_html(sprintf(__('Week of %1$s–%2$s', 'church-bulletin-publisher'), $start, $end))
+            . '</p>';
+
+        if (empty($selection['history'])) {
+            return $heading;
+        }
+
+        $base_url = remove_query_arg('week');
+        $previous = isset($selection['previous_week_start']) ? (string) $selection['previous_week_start'] : '';
+        $next = isset($selection['next_week_start']) ? (string) $selection['next_week_start'] : '';
+        $selected = isset($selection['selected_week_start']) ? (string) $selection['selected_week_start'] : '';
+        $current = isset($selection['current_week_start']) ? (string) $selection['current_week_start'] : '';
+
+        $html = '<nav class="cbp-site-week-nav" aria-label="' . esc_attr__('Weekly calendar navigation', 'church-bulletin-publisher') . '">';
+        $html .= '<div class="cbp-site-week-nav__side cbp-site-week-nav__side--previous">';
+        if ($this->valid_date($previous)) {
+            $html .= '<a class="cbp-site-week-nav__button" href="' . esc_url(add_query_arg('week', $previous, $base_url)) . '">'
+                . '&larr; ' . esc_html__('Previous Week', 'church-bulletin-publisher') . '</a>';
+        }
+        $html .= '</div>';
+
+        $html .= '<div class="cbp-site-week-nav__center">' . $heading;
+        if ($this->valid_date($selected) && $this->valid_date($current) && $selected !== $current) {
+            $status = $selected < $current
+                ? esc_html__('Past week', 'church-bulletin-publisher')
+                : esc_html__('Upcoming week', 'church-bulletin-publisher');
+            $html .= '<div class="cbp-site-week-nav__status">' . $status;
+            if (! empty($selection['current_week_available'])) {
+                $html .= ' <span aria-hidden="true">·</span> <a href="' . esc_url($base_url) . '">'
+                    . esc_html__('Return to This Week', 'church-bulletin-publisher') . '</a>';
+            }
+            $html .= '</div>';
+        }
+        $html .= '</div>';
+
+        $html .= '<div class="cbp-site-week-nav__side cbp-site-week-nav__side--next">';
+        if ($this->valid_date($next)) {
+            $html .= '<a class="cbp-site-week-nav__button" href="' . esc_url(add_query_arg('week', $next, $base_url)) . '">'
+                . esc_html__('Next Week', 'church-bulletin-publisher') . ' &rarr;</a>';
+        }
+        $html .= '</div>';
+        $html .= '</nav>';
+
+        return $html;
     }
 
     private function render_rows(array $rows, $limit, $kind)
