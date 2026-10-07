@@ -124,7 +124,7 @@ final class PFORM_Renderer
                 </fieldset>
             <?php elseif ($field['type'] === 'consent') : ?>
                 <label class="pform-consent" for="<?php echo esc_attr($html_id); ?>">
-                    <input id="<?php echo esc_attr($html_id); ?>" type="checkbox" name="<?php echo esc_attr($name); ?>" value="1" <?php checked($value, '1'); ?> required <?php echo $error ? 'aria-describedby="' . esc_attr($html_id . '-error') . '"' : ''; ?>>
+                    <input id="<?php echo esc_attr($html_id); ?>" type="checkbox" name="<?php echo esc_attr($name); ?>" value="1" <?php checked($value, '1'); ?> <?php echo ! empty($field['required']) ? 'required' : ''; ?> <?php echo $error ? 'aria-describedby="' . esc_attr($html_id . '-error') . '"' : ''; ?>>
                     <span><?php self::label_text($field); ?></span>
                 </label>
             <?php else : ?>
