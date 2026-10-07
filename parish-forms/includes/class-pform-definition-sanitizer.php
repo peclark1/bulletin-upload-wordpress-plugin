@@ -123,6 +123,7 @@ final class PFORM_Definition_Sanitizer
             'id' => $id,
             'type' => $type,
             'label' => self::text(isset($raw['label']) ? $raw['label'] : '', 240),
+            'help' => self::textarea(isset($raw['help']) ? $raw['help'] : '', 800),
             'required' => ! empty($raw['required']),
             'width' => self::width(isset($raw['width']) ? $raw['width'] : 'full'),
         );
