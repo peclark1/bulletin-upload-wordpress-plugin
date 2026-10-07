@@ -107,6 +107,17 @@ final class CBP_Home_Schedule
             CBP_Schedule::weekly_defaults()
         );
 
+        // If next week's bulletin is approved early, do not let its dated
+        // Mass rows replace this week's homepage Masses before Monday. Prefer
+        // the archived record for the week containing today when available.
+        if (class_exists('CBP_Weekly_History')) {
+            $history = CBP_Weekly_History::instance();
+            $current_record = $history->get_week($history->current_week_start());
+            if (is_array($current_record) && ! empty($current_record['weekly']) && is_array($current_record['weekly'])) {
+                $weekly = wp_parse_args($current_record['weekly'], CBP_Schedule::weekly_defaults());
+            }
+        }
+
         if (empty($weekly['masses']) || ! is_array($weekly['masses'])) {
             return $schedule;
         }
