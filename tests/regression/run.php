@@ -383,6 +383,59 @@ if (class_exists('CBP_Schedule_V34')) {
     }
 }
 
+if (class_exists('CBP_Schedule_V35')) {
+    $v35 = CBP_Schedule_V35::instance();
+
+    $canonicalize = new ReflectionMethod($v35, 'canonicalize_liturgy_events');
+    $canonicalize->setAccessible(true);
+    $live_events = array(
+        array('date' => '2026-10-12', 'time' => '10:00 AM', 'location' => 'Heritage Living Center', 'title' => 'Liturgy of the Word', 'description' => ''),
+        array('date' => '2026-10-14', 'time' => '', 'location' => '', 'title' => 'There will be Liturgy of the Word at Heritage Living Center', 'description' => 'There will be Liturgy of the Word at Heritage Living Center on Wednesday, October 14.'),
+        array('date' => '2026-10-14', 'time' => '10:00 AM', 'location' => '', 'title' => 'Heritage Living Center', 'description' => ''),
+        array('date' => '2026-10-18', 'time' => '', 'location' => 'St. Peter', 'title' => 'Coffee & Rolls Team 3', 'description' => ''),
+    );
+    $live_masses = array(
+        array('date' => '2026-10-14', 'time' => '10:00 AM', 'location' => 'Heritage Senior Living Center', 'title' => 'Liturgy of the Word', 'description' => ''),
+        array('date' => '2026-10-18', 'time' => '11:00 AM', 'location' => 'St. Mary’s', 'title' => 'Mass', 'description' => '† Kimberly Wettels'),
+    );
+    $fixed_liturgy = $canonicalize->invoke($v35, $live_events, $live_masses);
+    $liturgy_rows = array_values(array_filter($fixed_liturgy, function ($row) {
+        $text = strtolower((string) ($row['title'] ?? '') . ' ' . (string) ($row['description'] ?? '') . ' ' . (string) ($row['location'] ?? ''));
+        return strpos($text, 'heritage') !== false || strpos($text, 'liturgy of the word') !== false;
+    }));
+    if (count($liturgy_rows) !== 1
+        || ($liturgy_rows[0]['date'] ?? '') !== '2026-10-14'
+        || ($liturgy_rows[0]['time'] ?? '') !== '10:00 AM'
+        || ($liturgy_rows[0]['location'] ?? '') !== 'Heritage Living Center'
+        || ($liturgy_rows[0]['title'] ?? '') !== 'Liturgy of the Word') {
+        fwrite(STDERR, "V35 regression: live Heritage rows were not reconciled to the authoritative October 14 Liturgy.\n");
+        exit(1);
+    }
+
+    $resolve_after_mass = new ReflectionMethod($v35, 'resolve_after_mass_dates');
+    $resolve_after_mass->setAccessible(true);
+    $after_mass_events = array(
+        array('date' => '2026-10-12', 'time' => 'After Mass', 'location' => 'St. Mary’s', 'title' => 'Soup & Sandwich', 'description' => ''),
+        array('date' => '2026-10-18', 'time' => 'After Mass', 'location' => 'St. Mary’s', 'title' => 'Soup & Sandwich', 'description' => ''),
+    );
+    $fixed_after_mass = $resolve_after_mass->invoke($v35, $after_mass_events, $live_masses);
+    if (count($fixed_after_mass) !== 1
+        || ($fixed_after_mass[0]['date'] ?? '') !== '2026-10-18'
+        || ($fixed_after_mass[0]['location'] ?? '') !== 'St. Mary’s'
+        || ($fixed_after_mass[0]['title'] ?? '') !== 'Soup & Sandwich') {
+        fwrite(STDERR, "V35 regression: wrong-date Soup & Sandwich duplicate was not removed.\n");
+        exit(1);
+    }
+
+    $wrong_only = $resolve_after_mass->invoke($v35, array(
+        array('date' => '2026-10-12', 'time' => 'After Mass', 'location' => 'St. Mary’s', 'title' => 'Soup & Sandwich', 'description' => ''),
+    ), $live_masses);
+    if (count($wrong_only) !== 1 || ($wrong_only[0]['date'] ?? '') !== '2026-10-18') {
+        fwrite(STDERR, "V35 regression: unambiguous after-Mass event was not moved to the parish's only actual Mass date.\n");
+        exit(1);
+    }
+}
+
 $display_reflection = new ReflectionClass('CBP_Site_Displays');
 $display = $display_reflection->getMethod('instance')->invoke(null);
 $event_note = $display_reflection->getMethod('event_note');

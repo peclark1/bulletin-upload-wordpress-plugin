@@ -1,7 +1,7 @@
 {
   "name": "October 11, 2026 Liturgy of the Word dedupe and after-Mass recovery regression",
   "bulletin_date": "2026-10-11",
-  "notes": "Human-reviewed fixture based on the October 11 bulletin. Protects NO MASS rows, the Heritage Living Center Liturgy of the Word classification/deduplication, the missing St. Mary's Soup & Sandwich after-Mass event, and the ordinary recurring schedule/prayer rows. Event assertions focus on the parser failures observed in the live PDF rather than treating the connector-friendly text wrapper as a perfect reproduction of every PDF column.",
+  "notes": "Human-reviewed fixture based on the October 11 bulletin. Protects NO MASS rows, the Heritage Living Center Liturgy of the Word classification/deduplication, the missing St. Mary's Soup & Sandwich after-Mass event, and the ordinary recurring schedule/prayer rows. It also forbids the live-PDF failure mode where V34 inherited Monday, October 12 for recovered Heritage and Soup & Sandwich rows. Event assertions focus on the parser failures observed in the live PDF rather than treating the connector-friendly text wrapper as a perfect reproduction of every PDF column.",
   "current_schedule": {
     "st_peter_saturday": "5:00 PM",
     "st_peter_sunday": "9:00 AM",
@@ -197,6 +197,16 @@
       {
         "date": "2026-10-14",
         "title": "Heritage Living Center"
+      },
+      {
+        "date": "2026-10-12",
+        "location": "Heritage Living Center",
+        "title": "Liturgy of the Word"
+      },
+      {
+        "date": "2026-10-12",
+        "location": "St. Mary’s",
+        "title": "Soup & Sandwich"
       }
     ],
     "livestream_contains": [
