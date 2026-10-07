@@ -353,7 +353,7 @@ final class PFORM_Form_Manager
     private function small_action_form($action, $form_id, $label, $extra = array(), $confirm = '')
     {
         ?>
-        <form class="pform-manager__inline-form" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post" <?php echo $confirm ? 'onsubmit="return confirm('' . esc_js($confirm) . '');"' : ''; ?>>
+        <form class="pform-manager__inline-form" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post" <?php if ($confirm) : ?>onsubmit="return confirm('<?php echo esc_js($confirm); ?>');"<?php endif; ?>>
             <input type="hidden" name="action" value="<?php echo esc_attr($action); ?>">
             <input type="hidden" name="form_id" value="<?php echo esc_attr($form_id); ?>">
             <?php foreach ($extra as $name => $value) : ?>
