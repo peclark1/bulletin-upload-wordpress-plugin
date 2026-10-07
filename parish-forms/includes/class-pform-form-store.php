@@ -76,6 +76,7 @@ final class PFORM_Form_Store
             'success_title' => __('Submission Received', 'parish-forms'),
             'confirmation' => __('Thank you. Your submission has been received.', 'parish-forms'),
             'privacy_note' => __('Information submitted through this form is intended for parish-office follow-up.', 'parish-forms'),
+            'notification_emails' => '',
             'reply_to_field' => '',
             'admin_primary_fields' => array(),
             'admin_contact_fields' => array(),
