@@ -72,6 +72,34 @@ final class PFORM_Submissions
         return $form_id ? PFORM_Form_Registry::get($form_id) : null;
     }
 
+    public static function backfill_definition_snapshots()
+    {
+        $posts = get_posts(array(
+            'post_type' => self::POST_TYPE,
+            'post_status' => array('private', 'trash'),
+            'posts_per_page' => -1,
+            'fields' => 'ids',
+        ));
+
+        foreach ($posts as $post_id) {
+            $existing = get_post_meta($post_id, '_pform_definition_snapshot', true);
+            if (is_array($existing)) {
+                continue;
+            }
+            $form_id = sanitize_key(get_post_meta($post_id, '_pform_form_id', true));
+            if (! $form_id) {
+                continue;
+            }
+            $definition = PFORM_Form_Registry::builtin($form_id);
+            if (! $definition) {
+                $definition = PFORM_Form_Registry::get($form_id);
+            }
+            if (is_array($definition)) {
+                update_post_meta($post_id, '_pform_definition_snapshot', $definition);
+            }
+        }
+    }
+
     public static function is_submission($post_id)
     {
         return get_post_type($post_id) === self::POST_TYPE;
