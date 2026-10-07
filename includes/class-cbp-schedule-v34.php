@@ -473,6 +473,36 @@ final class CBP_Schedule_V34
     private function merge_canonical_liturgy_events(array $events, array $canonical)
     {
         foreach ($canonical as $wanted) {
+            $matching_indexes = array();
+            foreach ($events as $index => $row) {
+                if (is_array($row) && $this->is_same_liturgy_event($row, $wanted)) {
+                    $matching_indexes[] = $index;
+                }
+            }
+
+            if (count($matching_indexes) === 1) {
+                $existing = $events[$matching_indexes[0]];
+                $existing_time = trim((string) ($existing['time'] ?? ''));
+                $wanted_time = trim((string) ($wanted['time'] ?? ''));
+                $wanted_location = $this->semantic_text((string) ($wanted['location'] ?? ''));
+                $existing_location = $this->semantic_text((string) ($existing['location'] ?? ''));
+                $existing_title = $this->semantic_text((string) ($existing['title'] ?? ''));
+                $existing_description = $this->semantic_text((string) ($existing['description'] ?? ''));
+                $mentions_location = $wanted_location !== '' && (
+                    $existing_location === $wanted_location
+                    || strpos($existing_title, $wanted_location) !== false
+                    || strpos($existing_description, $wanted_location) !== false
+                );
+
+                // A single, timed location-named row is already a coherent
+                // representation (for example Crystal Brook in the August
+                // fixture). Preserve it. The October 11 failure had two rows:
+                // one prose fragment and one location-as-title fragment.
+                if ($existing_time !== '' && $existing_time === $wanted_time && $mentions_location) {
+                    continue;
+                }
+            }
+
             $kept = array();
             foreach ($events as $row) {
                 if (! is_array($row) || ! $this->is_same_liturgy_event($row, $wanted)) {
