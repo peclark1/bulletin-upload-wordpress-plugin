@@ -405,7 +405,8 @@ final class PFORM_Admin
                 $values[] = $value;
             }
         }
-        return implode(' · ', $values);
+        $separator = $definition_key === 'admin_primary_fields' ? ' ' : ' · ';
+        return implode($separator, $values);
     }
 
     private function csv_columns($definition, $datasets)
