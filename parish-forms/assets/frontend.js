@@ -28,11 +28,15 @@
             }
         });
         var count = repeater.querySelectorAll('[data-pform-repeater-item]').length;
+        var minimum = parseInt(repeater.getAttribute('data-min-items'), 10) || 0;
         var maximum = parseInt(repeater.getAttribute('data-max-items'), 10) || 10;
         var add = repeater.querySelector('[data-pform-add]');
         var limit = repeater.querySelector('[data-pform-limit]');
         add.hidden = count >= maximum;
         limit.hidden = count < maximum;
+        repeater.querySelectorAll('[data-pform-remove]').forEach(function (removeButton) {
+            removeButton.hidden = count <= Math.max(1, minimum);
+        });
     }
 
     function setupRepeater(repeater) {
@@ -57,6 +61,11 @@
                 }
             }
             if (event.target.matches('[data-pform-remove]')) {
+                var minimum = parseInt(repeater.getAttribute('data-min-items'), 10) || 0;
+                var count = items.querySelectorAll('[data-pform-repeater-item]').length;
+                if (count <= Math.max(1, minimum)) {
+                    return;
+                }
                 var item = event.target.closest('[data-pform-repeater-item]');
                 if (item) {
                     item.remove();
