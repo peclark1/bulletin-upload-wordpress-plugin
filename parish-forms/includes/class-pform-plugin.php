@@ -62,6 +62,7 @@ final class PFORM_Plugin
 
         self::ensure_default_pages();
         PFORM_Form_Store::seed_builtins(PFORM_Form_Registry::builtin_all());
+        PFORM_Submissions::backfill_definition_snapshots();
         update_option(self::VERSION_OPTION, PFORM_VERSION);
 
         flush_rewrite_rules(false);
@@ -76,6 +77,7 @@ final class PFORM_Plugin
 
         self::ensure_default_pages();
         PFORM_Form_Store::seed_builtins(PFORM_Form_Registry::builtin_all());
+        PFORM_Submissions::backfill_definition_snapshots();
         update_option(self::VERSION_OPTION, PFORM_VERSION);
     }
 
