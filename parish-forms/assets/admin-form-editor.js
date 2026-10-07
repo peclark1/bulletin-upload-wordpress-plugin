@@ -330,13 +330,14 @@
         return wrap;
     }
 
-    function renderCondition(owner, excludeFieldId) {
+    function renderCondition(owner, excludeFieldIds) {
         var wrap = el('div', 'pform-editor-condition');
+        excludeFieldIds = Array.isArray(excludeFieldIds) ? excludeFieldIds : [excludeFieldIds || ''];
         var enabled = !!owner.condition;
         var enabledControl = checkbox(enabled, function (checked) {
             if (checked) {
                 var candidates = topLevelFields().filter(function (field) {
-                    return field.id !== excludeFieldId && ['radio', 'text', 'email', 'tel'].indexOf(field.type) !== -1;
+                    return excludeFieldIds.indexOf(field.id) === -1 && ['radio', 'text', 'email', 'tel'].indexOf(field.type) !== -1;
                 });
                 owner.condition = {
                     field: candidates.length ? candidates[0].id : '',
@@ -357,7 +358,7 @@
 
         var choices = {'': 'Choose a field'};
         topLevelFields().forEach(function (field) {
-            if (field.id !== excludeFieldId && ['radio', 'text', 'email', 'tel'].indexOf(field.type) !== -1) {
+            if (excludeFieldIds.indexOf(field.id) === -1 && ['radio', 'text', 'email', 'tel'].indexOf(field.type) !== -1) {
                 choices[field.id] = field.label + ' (' + field.id + ')';
             }
         });
@@ -469,7 +470,7 @@
         }
 
         if (!nested) {
-            card.appendChild(renderCondition(field, field.id));
+            card.appendChild(renderCondition(field, [field.id]));
         }
 
         if (field.type === 'repeater') {
@@ -523,7 +524,7 @@
         grid.appendChild(fieldRow('Section description', textarea(section.description || '', function (v) { section.description = v; }, 2)));
         card.appendChild(grid);
 
-        card.appendChild(renderCondition(section, ''));
+        card.appendChild(renderCondition(section, (section.fields || []).map(function (field) { return field.id; })));
 
         var fieldsWrap = el('div', 'pform-editor-fields');
         (section.fields || []).forEach(function (field, fieldIndex) {
