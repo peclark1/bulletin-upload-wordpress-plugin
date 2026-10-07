@@ -142,7 +142,7 @@
 
         html += '<div class="pform-builder-field__settings">';
         html += '<label>Label<input type="text" data-prop="label" value="' + esc(field.label || '') + '"></label>';
-        html += '<label>Field ID<input type="text" data-prop="id" value="' + esc(field.id || '') + '"' + (nested ? '' : '') + '></label>';
+        html += '<label>Field ID <span class="description">advanced; avoid changing after publishing</span><input type="text" data-prop="id" value="' + esc(field.id || '') + '"></label>';
         html += '<label>Type<select data-prop="type">' + optionTags(types.filter(function (item) { return !nested || item[0] !== 'repeater'; }), field.type) + '</select></label>';
         html += '<label>Width<select data-prop="width">' + optionTags(widths, field.width || 'full') + '</select></label>';
         html += '<label class="pform-builder-check"><input type="checkbox" data-prop="required"' + (field.required ? ' checked' : '') + '> Required</label>';
@@ -194,7 +194,7 @@
         html += '</div></div>';
         html += '<div class="pform-builder-section__settings">';
         html += '<label>Section title<input type="text" data-section-prop="title" value="' + esc(section.title || '') + '"></label>';
-        html += '<label>Section ID<input type="text" data-section-prop="id" value="' + esc(section.id || '') + '"></label>';
+        html += '<label>Section ID <span class="description">advanced</span><input type="text" data-section-prop="id" value="' + esc(section.id || '') + '"></label>';
         html += '<label class="pform-builder-wide">Description<textarea rows="2" data-section-prop="description">' + esc(section.description || '') + '</textarea></label>';
         html += '<label>Show section when field<select data-section-prop="condition_field">' + conditionSelect(section) + '</select></label>';
         html += '<label>Equals value<input type="text" data-section-prop="condition_equals" value="' + esc(section.condition && section.condition.equals ? section.condition.equals : '') + '" placeholder="choice value"></label>';
