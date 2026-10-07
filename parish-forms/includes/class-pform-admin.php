@@ -356,7 +356,7 @@ final class PFORM_Admin
         $this->authorize();
         check_admin_referer('pform_export_csv');
         $form_id = isset($_GET['form_id']) ? sanitize_key(wp_unslash($_GET['form_id'])) : '';
-        $definition = PFORM_Form_Registry::get($form_id);
+        $definition = PFORM_Form_Registry::get($form_id, true);
         if (! $definition) {
             wp_die(esc_html__('Unknown form.', 'parish-forms'), '', array('response' => 400));
         }
