@@ -280,7 +280,9 @@
         var emailChoices = {'': 'No reply-to address'};
         var allChoices = {'': '—'};
         topLevelFields().forEach(function (field) {
-            allChoices[field.id] = field.label + ' (' + field.id + ')';
+            if (field.type !== 'repeater') {
+                allChoices[field.id] = field.label + ' (' + field.id + ')';
+            }
             if (field.type === 'email') {
                 emailChoices[field.id] = field.label;
             }
