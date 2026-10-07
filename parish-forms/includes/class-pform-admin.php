@@ -94,7 +94,7 @@ final class PFORM_Admin
             return;
         }
 
-        $forms = PFORM_Form_Registry::all();
+        $forms = PFORM_Form_Registry::all(true);
         $form_id = isset($_GET['form_id']) ? sanitize_key(wp_unslash($_GET['form_id'])) : 'parish-registration';
         if (! isset($forms[$form_id])) {
             $form_id = 'parish-registration';
@@ -117,7 +117,7 @@ final class PFORM_Admin
             $args['meta_query'][] = array('key' => '_pform_status', 'value' => $workflow_status);
         }
         $query = new WP_Query($args);
-        $definition = PFORM_Form_Registry::get($form_id);
+        $definition = PFORM_Form_Registry::get($form_id, true);
         ?>
         <div class="wrap pform-admin">
             <h1><?php esc_html_e('Parish Form Submissions', 'parish-forms'); ?></h1>
@@ -170,10 +170,14 @@ final class PFORM_Admin
                             <?php
                             $data = PFORM_Submissions::data($post->ID);
                             $status = get_post_meta($post->ID, '_pform_status', true) ?: 'new';
-                            $primary_summary = $this->summary_value($definition, $data, 'admin_primary_fields');
-                            $contact_summary = $this->summary_value($definition, $data, 'admin_contact_fields');
+                            $row_definition = PFORM_Submissions::definition($post->ID);
+                            if (! $row_definition) {
+                                $row_definition = $definition;
+                            }
+                            $primary_summary = $this->summary_value($row_definition, $data, 'admin_primary_fields');
+                            $contact_summary = $this->summary_value($row_definition, $data, 'admin_contact_fields');
                             $parish = isset($data['parish']) ? $data['parish'] : '';
-                            $definition_fields = isset($definition['sections']) ? PFORM_Form_Registry::fields($definition) : array();
+                            $definition_fields = isset($row_definition['sections']) ? PFORM_Form_Registry::fields($row_definition) : array();
                             $parish_label = isset($definition_fields['parish']['options'][$parish]) ? $definition_fields['parish']['options'][$parish] : $parish;
                             ?>
                             <tr>
@@ -215,7 +219,7 @@ final class PFORM_Admin
         }
         $post = get_post($submission_id);
         $form_id = get_post_meta($submission_id, '_pform_form_id', true);
-        $definition = PFORM_Form_Registry::get($form_id);
+        $definition = PFORM_Submissions::definition($submission_id);
         if (! $definition) {
             wp_die(esc_html__('The form definition for this submission is unavailable.', 'parish-forms'));
         }
@@ -230,6 +234,7 @@ final class PFORM_Admin
             <div class="pform-admin__meta">
                 <span><strong><?php esc_html_e('Received:', 'parish-forms'); ?></strong> <?php echo esc_html(get_the_date('F j, Y g:i a', $post)); ?></span>
                 <span><strong><?php esc_html_e('Status:', 'parish-forms'); ?></strong> <?php echo esc_html($is_trash ? __('Trash', 'parish-forms') : ucfirst($status)); ?></span>
+                <span><strong><?php esc_html_e('Form version:', 'parish-forms'); ?></strong> <?php echo esc_html('v' . absint(isset($definition['version']) ? $definition['version'] : get_post_meta($submission_id, '_pform_schema_version', true))); ?></span>
                 <span><strong><?php esc_html_e('Notification:', 'parish-forms'); ?></strong> <?php echo get_post_meta($submission_id, '_pform_email_sent', true) === '1' ? esc_html__('Sent', 'parish-forms') : esc_html__('Not sent', 'parish-forms'); ?></span>
             </div>
 
@@ -333,6 +338,8 @@ final class PFORM_Admin
             </form>
             <section class="pform-admin__help">
                 <h2><?php esc_html_e('Using Parish Forms', 'parish-forms'); ?></h2>
+                <p><?php esc_html_e('Create, edit, preview, publish, duplicate, and retire forms from the Form Manager. Each form shows its permanent shortcode there.', 'parish-forms'); ?></p>
+                <p><a class="button button-primary" href="<?php echo esc_url(admin_url('admin.php?page=parish-forms-manager')); ?>"><?php esc_html_e('Manage Forms', 'parish-forms'); ?></a></p>
                 <p><strong><?php esc_html_e('Parish Registration:', 'parish-forms'); ?></strong> <code>[parish_form id="parish-registration"]</code></p>
                 <?php if ($page_id && get_post($page_id)) : ?>
                     <p><a class="button" href="<?php echo esc_url(get_edit_post_link($page_id)); ?>"><?php esc_html_e('Edit Draft Registration Page', 'parish-forms'); ?></a></p>
@@ -352,7 +359,7 @@ final class PFORM_Admin
         $this->authorize();
         check_admin_referer('pform_export_csv');
         $form_id = isset($_GET['form_id']) ? sanitize_key(wp_unslash($_GET['form_id'])) : '';
-        $definition = PFORM_Form_Registry::get($form_id);
+        $definition = PFORM_Form_Registry::get($form_id, true);
         if (! $definition) {
             wp_die(esc_html__('Unknown form.', 'parish-forms'), '', array('response' => 400));
         }
@@ -367,27 +374,33 @@ final class PFORM_Admin
             'meta_value' => $form_id,
         ));
         $datasets = array();
+        $definitions = array();
         foreach ($posts as $post) {
             $datasets[$post->ID] = PFORM_Submissions::data($post->ID);
+            $definitions[$post->ID] = PFORM_Submissions::definition($post->ID);
         }
-        $columns = $this->csv_columns($definition, $datasets);
+        $columns = $this->csv_columns($definition, $datasets, $definitions);
 
         nocache_headers();
         header('Content-Type: text/csv; charset=UTF-8');
         header('Content-Disposition: attachment; filename="' . sanitize_file_name($form_id . '-' . gmdate('Y-m-d') . '.csv') . '"');
         $output = fopen('php://output', 'w');
         fwrite($output, "\xEF\xBB\xBF");
-        fputcsv($output, array_merge(array('Submission ID', 'Received', 'Status', 'Form'), wp_list_pluck($columns, 'label')));
+        fputcsv($output, array_merge(array('Submission ID', 'Received', 'Status', 'Form', 'Form Version'), wp_list_pluck($columns, 'label')));
         foreach ($posts as $post) {
             $data = $datasets[$post->ID];
             $row = array(
                 $post->ID,
                 get_the_date('Y-m-d H:i:s', $post),
                 get_post_meta($post->ID, '_pform_status', true) ?: 'new',
-                $definition['title'],
+                isset($definitions[$post->ID]['title']) ? $definitions[$post->ID]['title'] : $definition['title'],
+                isset($definitions[$post->ID]['version']) ? absint($definitions[$post->ID]['version']) : absint(get_post_meta($post->ID, '_pform_schema_version', true)),
             );
+            $row_definition = isset($definitions[$post->ID]) && is_array($definitions[$post->ID])
+                ? $definitions[$post->ID]
+                : $definition;
             foreach ($columns as $column) {
-                $row[] = $this->csv_safe($this->csv_value($column, $data));
+                $row[] = $this->csv_safe($this->csv_value($column, $data, $row_definition));
             }
             fputcsv($output, $row);
         }
@@ -402,11 +415,12 @@ final class PFORM_Admin
         }
 
         $values = array();
+        $fields = PFORM_Form_Registry::fields($definition);
         foreach ($definition[$definition_key] as $field_id) {
-            if (! isset($data[$field_id]) || ! is_scalar($data[$field_id])) {
+            if (! isset($data[$field_id]) || ! isset($fields[$field_id])) {
                 continue;
             }
-            $value = trim((string) $data[$field_id]);
+            $value = trim((string) PFORM_Formatter::display_value($fields[$field_id], $data[$field_id]));
             if ($value !== '') {
                 $values[] = $value;
             }
@@ -415,43 +429,111 @@ final class PFORM_Admin
         return implode($separator, $values);
     }
 
-    private function csv_columns($definition, $datasets)
+    private function csv_columns($definition, $datasets, $submission_definitions = array())
     {
-        $columns = array();
-        foreach ($definition['sections'] as $section) {
-            foreach ($section['fields'] as $field) {
-                if ($field['type'] !== 'repeater') {
-                    $columns[] = array('label' => $field['label'], 'field' => $field, 'id' => $field['id']);
-                    continue;
-                }
-                $maximum = 0;
-                foreach ($datasets as $data) {
-                    $maximum = max($maximum, isset($data[$field['id']]) && is_array($data[$field['id']]) ? count($data[$field['id']]) : 0);
-                }
-                for ($index = 0; $index < $maximum; $index++) {
-                    foreach ($field['fields'] as $item_field) {
-                        $columns[] = array(
-                            'label' => sprintf('%s %d - %s', $field['item_label'], $index + 1, $item_field['label']),
-                            'field' => $item_field,
-                            'id' => $field['id'],
-                            'index' => $index,
-                            'item_id' => $item_field['id'],
+        $catalog = array();
+        $repeaters = array();
+        $definition_set = array($definition);
+        foreach ($submission_definitions as $snapshot) {
+            if (is_array($snapshot)) {
+                $definition_set[] = $snapshot;
+            }
+        }
+
+        foreach ($definition_set as $source_definition) {
+            if (empty($source_definition['sections']) || ! is_array($source_definition['sections'])) {
+                continue;
+            }
+            foreach ($source_definition['sections'] as $section) {
+                foreach ((array) $section['fields'] as $field) {
+                    if ($field['type'] !== 'repeater') {
+                        $key = 'field:' . $field['id'];
+                        if (! isset($catalog[$key])) {
+                            $catalog[$key] = array('label' => $field['label'], 'field' => $field, 'id' => $field['id']);
+                        }
+                        continue;
+                    }
+
+                    if (! isset($repeaters[$field['id']])) {
+                        $repeaters[$field['id']] = array(
+                            'field' => $field,
+                            'items' => array(),
                         );
                     }
+                    foreach ((array) $field['fields'] as $item_field) {
+                        if (! isset($repeaters[$field['id']]['items'][$item_field['id']])) {
+                            $repeaters[$field['id']]['items'][$item_field['id']] = $item_field;
+                        }
+                    }
+                }
+            }
+        }
+
+        $columns = array_values($catalog);
+        foreach ($repeaters as $repeater_id => $repeater) {
+            $maximum = 0;
+            foreach ($datasets as $data) {
+                $maximum = max($maximum, isset($data[$repeater_id]) && is_array($data[$repeater_id]) ? count($data[$repeater_id]) : 0);
+            }
+            for ($index = 0; $index < $maximum; $index++) {
+                foreach ($repeater['items'] as $item_id => $item_field) {
+                    $columns[] = array(
+                        'label' => sprintf('%s %d - %s', $repeater['field']['item_label'], $index + 1, $item_field['label']),
+                        'field' => $item_field,
+                        'id' => $repeater_id,
+                        'index' => $index,
+                        'item_id' => $item_id,
+                    );
                 }
             }
         }
         return $columns;
     }
 
-    private function csv_value($column, $data)
+    private function csv_value($column, $data, $definition = null)
     {
+        $field = $column['field'];
+        if (is_array($definition)) {
+            $snapshot_field = $this->definition_field(
+                $definition,
+                $column['id'],
+                isset($column['item_id']) ? $column['item_id'] : ''
+            );
+            if ($snapshot_field) {
+                $field = $snapshot_field;
+            }
+        }
+
         if (isset($column['index'])) {
             $value = isset($data[$column['id']][$column['index']][$column['item_id']]) ? $data[$column['id']][$column['index']][$column['item_id']] : '';
         } else {
             $value = isset($data[$column['id']]) ? $data[$column['id']] : '';
         }
-        return PFORM_Formatter::display_value($column['field'], $value);
+        return PFORM_Formatter::display_value($field, $value);
+    }
+
+    private function definition_field($definition, $field_id, $item_id = '')
+    {
+        foreach ((array) $definition['sections'] as $section) {
+            foreach ((array) $section['fields'] as $field) {
+                if ($field['id'] !== $field_id) {
+                    continue;
+                }
+                if ($item_id === '') {
+                    return $field;
+                }
+                if ($field['type'] !== 'repeater') {
+                    return null;
+                }
+                foreach ((array) $field['fields'] as $item_field) {
+                    if ($item_field['id'] === $item_id) {
+                        return $item_field;
+                    }
+                }
+                return null;
+            }
+        }
+        return null;
     }
 
     private function csv_safe($value)

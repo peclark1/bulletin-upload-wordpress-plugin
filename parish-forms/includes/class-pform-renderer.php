@@ -6,7 +6,7 @@ if (! defined('ABSPATH')) {
 
 final class PFORM_Renderer
 {
-    public static function render($definition, $state)
+    public static function render($definition, $state, $preview = false)
     {
         $values = isset($state['values']) ? $state['values'] : array();
         $errors = isset($state['errors']) ? $state['errors'] : array();
@@ -36,17 +36,21 @@ final class PFORM_Renderer
                     </div>
                 <?php endif; ?>
 
-                <form class="pform" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post">
-                    <input type="hidden" name="action" value="pform_submit">
-                    <input type="hidden" name="pform_id" value="<?php echo esc_attr($definition['id']); ?>">
-                    <?php wp_nonce_field('pform_submit_' . $definition['id'], '_pform_nonce'); ?>
-                    <?php $started = time(); ?>
-                    <input type="hidden" name="pform_started" value="<?php echo esc_attr($started); ?>">
-                    <input type="hidden" name="pform_signature" value="<?php echo esc_attr(PFORM_Plugin::signature($definition['id'], $started)); ?>">
-                    <div class="pform-honeypot" aria-hidden="true">
-                        <label for="pform-website"><?php esc_html_e('Website', 'parish-forms'); ?></label>
-                        <input id="pform-website" type="text" name="pf[website]" tabindex="-1" autocomplete="off">
-                    </div>
+                <?php if ($preview) : ?>
+                    <div class="pform pform-preview">
+                <?php else : ?>
+                    <form class="pform" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post">
+                        <input type="hidden" name="action" value="pform_submit">
+                        <input type="hidden" name="pform_id" value="<?php echo esc_attr($definition['id']); ?>">
+                        <?php wp_nonce_field('pform_submit_' . $definition['id'], '_pform_nonce'); ?>
+                        <?php $started = time(); ?>
+                        <input type="hidden" name="pform_started" value="<?php echo esc_attr($started); ?>">
+                        <input type="hidden" name="pform_signature" value="<?php echo esc_attr(PFORM_Plugin::signature($definition['id'], $started)); ?>">
+                        <div class="pform-honeypot" aria-hidden="true">
+                            <label for="pform-website"><?php esc_html_e('Website', 'parish-forms'); ?></label>
+                            <input id="pform-website" type="text" name="pf[website]" tabindex="-1" autocomplete="off">
+                        </div>
+                <?php endif; ?>
 
                     <?php foreach ($definition['sections'] as $section) : ?>
                         <section class="pform-section" data-pform-section="<?php echo esc_attr($section['id']); ?>" <?php echo self::condition_attributes(isset($section['condition']) ? $section['condition'] : null); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
@@ -68,9 +72,13 @@ final class PFORM_Renderer
 
                     <div class="pform-submit">
                         <p><?php echo esc_html(! empty($definition['privacy_note']) ? $definition['privacy_note'] : __('Information submitted through this form is intended for parish-office follow-up.', 'parish-forms')); ?></p>
-                        <button class="pform-button" type="submit"><?php echo esc_html($definition['submit_label']); ?></button>
+                        <button class="pform-button" type="<?php echo $preview ? 'button' : 'submit'; ?>" <?php echo $preview ? 'disabled' : ''; ?>><?php echo esc_html($definition['submit_label']); ?></button>
                     </div>
-                </form>
+                <?php if ($preview) : ?>
+                    </div>
+                <?php else : ?>
+                    </form>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
         <?php
@@ -116,7 +124,7 @@ final class PFORM_Renderer
                 </fieldset>
             <?php elseif ($field['type'] === 'consent') : ?>
                 <label class="pform-consent" for="<?php echo esc_attr($html_id); ?>">
-                    <input id="<?php echo esc_attr($html_id); ?>" type="checkbox" name="<?php echo esc_attr($name); ?>" value="1" <?php checked($value, '1'); ?> required <?php echo $error ? 'aria-describedby="' . esc_attr($html_id . '-error') . '"' : ''; ?>>
+                    <input id="<?php echo esc_attr($html_id); ?>" type="checkbox" name="<?php echo esc_attr($name); ?>" value="1" <?php checked($value, '1'); ?> <?php echo ! empty($field['required']) ? 'required' : ''; ?> <?php echo $error ? 'aria-describedby="' . esc_attr($html_id . '-error') . '"' : ''; ?>>
                     <span><?php self::label_text($field); ?></span>
                 </label>
             <?php else : ?>
@@ -126,6 +134,9 @@ final class PFORM_Renderer
                 <?php else : ?>
                     <input id="<?php echo esc_attr($html_id); ?>" type="<?php echo esc_attr($field['type']); ?>" name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr($value); ?>" <?php self::input_attributes($field, $error, $html_id); ?>>
                 <?php endif; ?>
+            <?php endif; ?>
+            <?php if (! empty($field['help'])) : ?>
+                <p class="pform-help"><?php echo esc_html($field['help']); ?></p>
             <?php endif; ?>
             <?php if ($error) : ?>
                 <p id="<?php echo esc_attr($html_id . '-error'); ?>" class="pform-error"><?php echo esc_html($error); ?></p>
@@ -137,11 +148,12 @@ final class PFORM_Renderer
     private static function repeater($field, $values, $errors, $prefix, $path_prefix)
     {
         $items = isset($values[$field['id']]) && is_array($values[$field['id']]) ? array_values($values[$field['id']]) : array();
-        if (! $items) {
+        $minimum = max(1, absint(isset($field['min_items']) ? $field['min_items'] : 0));
+        while (count($items) < $minimum) {
             $items[] = array();
         }
         ?>
-        <div class="pform-repeater pform-field--full" data-pform-repeater data-max-items="<?php echo esc_attr(absint($field['max_items'])); ?>">
+        <div class="pform-repeater pform-field--full" data-pform-repeater data-min-items="<?php echo esc_attr(absint(isset($field['min_items']) ? $field['min_items'] : 0)); ?>" data-max-items="<?php echo esc_attr(absint($field['max_items'])); ?>" data-item-label="<?php echo esc_attr($field['item_label']); ?>">
             <div class="pform-repeater__items" data-pform-repeater-items>
                 <?php foreach ($items as $index => $item) : ?>
                     <?php self::repeater_item($field, $item, $errors, $prefix, $path_prefix, $index); ?>
@@ -168,7 +180,7 @@ final class PFORM_Renderer
                     <?php self::field($item_field, $item, $errors, $item_prefix, $item_path); ?>
                 <?php endforeach; ?>
             </div>
-            <button class="pform-remove" type="button" data-pform-remove><?php esc_html_e('Remove Child', 'parish-forms'); ?></button>
+            <button class="pform-remove" type="button" data-pform-remove><?php echo esc_html(sprintf(__('Remove %s', 'parish-forms'), $field['item_label'])); ?></button>
         </fieldset>
         <?php
     }

@@ -21,6 +21,7 @@ final class PFORM_Plugin
 
     private function __construct()
     {
+        add_action('init', array('PFORM_Form_Store', 'register_post_types'), 9);
         add_action('init', array('PFORM_Submissions', 'register_post_type'));
         add_action('init', array($this, 'register_assets'));
         add_action('init', array($this, 'maybe_upgrade'), 20);
@@ -29,10 +30,12 @@ final class PFORM_Plugin
         add_shortcode('parish_form', array($this, 'shortcode'));
         add_action('admin_init', array($this, 'privacy_policy_content'));
         PFORM_Admin::instance();
+        PFORM_Form_Manager::instance();
     }
 
     public static function activate()
     {
+        PFORM_Form_Store::register_post_types();
         PFORM_Submissions::register_post_type();
 
         $administrator = get_role('administrator');
@@ -58,6 +61,8 @@ final class PFORM_Plugin
         }
 
         self::ensure_default_pages();
+        PFORM_Form_Store::seed_builtins(PFORM_Form_Registry::builtin_all());
+        PFORM_Submissions::backfill_definition_snapshots();
         update_option(self::VERSION_OPTION, PFORM_VERSION);
 
         flush_rewrite_rules(false);
@@ -71,6 +76,8 @@ final class PFORM_Plugin
         }
 
         self::ensure_default_pages();
+        PFORM_Form_Store::seed_builtins(PFORM_Form_Registry::builtin_all());
+        PFORM_Submissions::backfill_definition_snapshots();
         update_option(self::VERSION_OPTION, PFORM_VERSION);
     }
 
@@ -188,7 +195,7 @@ final class PFORM_Plugin
         }
         wp_add_privacy_policy_content(
             __('Parish Forms', 'parish-forms'),
-            wp_kses_post(__('<p>Parish form submissions may include household and parent contact information, dates of birth, sacramental-preparation information, ministry interests, and registration choices. Submissions are stored privately in WordPress for parish-office use and may be sent to configured parish staff email addresses.</p><p>Access is limited to WordPress users granted the Parish Forms management capability. Submissions remain stored until an authorized administrator moves them to the trash or permanently deletes them under the parish records-retention policy.</p>', 'parish-forms'))
+            wp_kses_post(__('<p>Parish form submissions may include contact information, dates of birth, sacramental or ministry information, and other details requested on a parish form. Submissions are stored privately in WordPress for parish-office use and may be sent to configured parish staff email addresses.</p><p>Access is limited to WordPress users granted the Parish Forms management capability. Submissions remain stored until an authorized administrator moves them to the trash or permanently deletes them under the parish records-retention policy.</p>', 'parish-forms'))
         );
     }
 

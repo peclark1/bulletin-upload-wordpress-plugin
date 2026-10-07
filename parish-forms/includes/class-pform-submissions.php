@@ -49,6 +49,7 @@ final class PFORM_Submissions
         ));
         update_post_meta($post_id, '_pform_form_id', $definition['id']);
         update_post_meta($post_id, '_pform_schema_version', absint($definition['version']));
+        update_post_meta($post_id, '_pform_definition_snapshot', $definition);
         update_post_meta($post_id, '_pform_data', $data);
         update_post_meta($post_id, '_pform_status', 'new');
 
@@ -59,6 +60,45 @@ final class PFORM_Submissions
     {
         $data = get_post_meta($post_id, '_pform_data', true);
         return is_array($data) ? $data : array();
+    }
+
+    public static function backfill_definition_snapshots()
+    {
+        $posts = get_posts(array(
+            'post_type' => self::POST_TYPE,
+            'post_status' => array('private', 'trash'),
+            'posts_per_page' => -1,
+            'fields' => 'ids',
+        ));
+
+        foreach ($posts as $post_id) {
+            $existing = get_post_meta($post_id, '_pform_definition_snapshot', true);
+            if (is_array($existing)) {
+                continue;
+            }
+            $form_id = get_post_meta($post_id, '_pform_form_id', true);
+            if (! $form_id) {
+                continue;
+            }
+            $definition = PFORM_Form_Registry::get($form_id, true);
+            if (! $definition) {
+                continue;
+            }
+            update_post_meta($post_id, '_pform_definition_snapshot', $definition);
+            if (! get_post_meta($post_id, '_pform_schema_version', true)) {
+                update_post_meta($post_id, '_pform_schema_version', absint($definition['version']));
+            }
+        }
+    }
+
+    public static function definition($post_id)
+    {
+        $definition = get_post_meta($post_id, '_pform_definition_snapshot', true);
+        if (is_array($definition)) {
+            return $definition;
+        }
+        $form_id = get_post_meta($post_id, '_pform_form_id', true);
+        return $form_id ? PFORM_Form_Registry::get($form_id, true) : null;
     }
 
     public static function is_submission($post_id)

@@ -86,3 +86,213 @@
         width: 42%;
     }
 }
+
+
+/* Form Manager */
+.pform-manager__table td {
+    vertical-align: middle;
+}
+
+.pform-manager__actions,
+.pform-manager__inline-form,
+.pform-editor-mini-actions,
+.pform-form-editor__footer {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.pform-manager__inline-form {
+    margin: 0;
+}
+
+.pform-status--published {
+    background: #dff3e4;
+    color: #185c2d;
+}
+
+.pform-status--draft {
+    background: #fff3cd;
+    color: #6b5500;
+}
+
+.pform-status--changes {
+    background: #e8e2f8;
+    color: #4a3283;
+}
+
+.pform-status--retired {
+    background: #eee;
+    color: #50575e;
+}
+
+.pform-form-editor {
+    margin-top: 18px;
+}
+
+.pform-editor-panel,
+.pform-editor-section,
+.pform-manager__preview {
+    margin: 18px 0;
+    padding: 20px;
+    border: 1px solid #c3c4c7;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.pform-editor-panel > h2,
+.pform-editor-panel__heading h2,
+.pform-manager__preview > h2 {
+    margin-top: 0;
+}
+
+.pform-editor-panel__heading,
+.pform-editor-section__heading,
+.pform-editor-field__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.pform-editor-section__heading h3,
+.pform-editor-field__heading strong {
+    flex: 1 1 auto;
+    margin: 0;
+}
+
+.pform-editor-settings-grid,
+.pform-editor-field__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 18px;
+    margin-top: 14px;
+}
+
+.pform-editor-control label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-weight: 600;
+}
+
+.pform-editor-control input[type="text"],
+.pform-editor-control input[type="email"],
+.pform-editor-control input[type="number"],
+.pform-editor-control textarea,
+.pform-editor-control select {
+    width: 100%;
+    max-width: none;
+    font-weight: 400;
+}
+
+.pform-editor-control select[multiple] {
+    min-height: 100px;
+}
+
+.pform-editor-check {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 7px !important;
+    min-height: 32px;
+}
+
+.pform-editor-check input {
+    margin: 0;
+}
+
+.pform-editor-section {
+    border-left: 4px solid #255b8f;
+    background: #f8fafc;
+}
+
+.pform-editor-field {
+    margin: 14px 0;
+    padding: 16px;
+    border: 1px solid #ccd5df;
+    border-radius: 7px;
+    background: #fff;
+}
+
+.pform-editor-field__heading code {
+    color: #646970;
+}
+
+.pform-editor-drag {
+    color: #787c82;
+    cursor: grab;
+}
+
+.pform-editor-field.is-dragging,
+.pform-editor-section.is-dragging {
+    opacity: .55;
+}
+
+.pform-editor-condition,
+.pform-editor-repeater,
+.pform-editor-advanced {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 6px;
+    background: #f6f7f7;
+}
+
+.pform-editor-condition {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px 14px;
+    align-items: end;
+}
+
+.pform-editor-repeater {
+    border: 1px dashed #9da8b2;
+}
+
+.pform-editor-nested-fields {
+    margin: 10px 0;
+}
+
+.pform-editor-nested-fields .pform-editor-field {
+    background: #fbfbfb;
+}
+
+.pform-form-editor__footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    margin: 20px 0;
+    padding: 14px 16px;
+    border: 1px solid #c3c4c7;
+    background: rgba(255, 255, 255, .96);
+    box-shadow: 0 -3px 12px rgba(0, 0, 0, .07);
+}
+
+.pform-manager__preview {
+    margin-top: 30px;
+    border-color: #255b8f;
+}
+
+.pform-manager__preview .pform-shell {
+    margin-bottom: 0;
+}
+
+.pform-manager__versions form {
+    margin: 0;
+}
+
+@media (max-width: 900px) {
+    .pform-editor-settings-grid,
+    .pform-editor-field__grid,
+    .pform-editor-condition {
+        grid-template-columns: 1fr;
+    }
+
+    .pform-editor-panel__heading,
+    .pform-editor-section__heading,
+    .pform-editor-field__heading {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+}

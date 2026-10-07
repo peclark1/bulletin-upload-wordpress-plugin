@@ -1,27 +1,34 @@
 # Parish Forms
 
-Parish Forms is a small, purpose-built WordPress plugin for St. Peter the Apostle and St. Mary's Two Inlets. Version 0.3 provides Parish Registration, a Pre-Baptismal Questionnaire, and a Confirmation Interest Form without introducing a general-purpose form builder.
+Parish Forms is a purpose-built WordPress plugin for St. Peter the Apostle and St. Mary's Two Inlets. Version 0.4 adds a constrained staff Form Manager on top of the secure rendering, validation, private submission storage, email notification, admin review, and CSV export infrastructure introduced in earlier versions.
 
 ## Features
 
 - Responsive parish-branded frontend forms
-- Parish Registration, Pre-Baptismal Questionnaire, and Confirmation Interest Form
-- Conditional marriage and spouse fields
-- Repeatable child sections (up to 10 children)
+- Staff Form Manager under **Parish Forms > Forms**
+- Create, duplicate, edit, preview, publish, retire, and restore forms
+- Draft/publish workflow so staff can preview changes before they affect the public form
+- Immutable published version history with **Restore to Draft**
+- Existing Parish Registration, Pre-Baptismal Questionnaire, and Confirmation Interest Form migrated into the Form Manager on upgrade
+- Submission-time definition snapshots so later edits do not change the meaning or labels of historical submissions
+- Supported staff-editable field types: text, email, phone, date, long text, multiple choice, checkboxes, consent, and repeatable groups
+- Simple conditional display rules based on another field's value
+- Section and field reordering by drag-and-drop or move buttons
 - Schema-based server validation and sanitization
 - Non-public WordPress submission storage
-- Configurable staff email notifications containing the submitted data
+- Configurable staff email notifications containing submitted data, with optional per-form recipient overrides
 - Administrator-only submission review, status, trash, restore, and deletion tools
 - UTF-8 CSV export with spreadsheet-formula protection
-- Draft registration page created on activation
-- Reusable PHP form-definition architecture for future parish forms
+- Reusable shortcode rendering: `[parish_form id="your-form-id"]`
+
+The editor is intentionally constrained. It does not allow arbitrary PHP, JavaScript, HTML, payments, calculated fields, or external database queries.
 
 ## Requirements
 
 - WordPress 6.2 or later
 - PHP 7.4 or later
 
-## Install
+## Install / upgrade
 
 From the repository root, build the installable plugin ZIP:
 
@@ -29,31 +36,65 @@ From the repository root, build the installable plugin ZIP:
 make parish-forms
 ```
 
-Install the resulting `parish-forms-0.3.0.zip` in **Plugins > Add New > Upload Plugin**, then activate it.
+Install the resulting `parish-forms-0.4.0.zip` in **Plugins > Add New > Upload Plugin**. When upgrading an existing installation, choose **Replace current with uploaded**.
 
-Activation or upgrade creates draft **Parish Registration** and **Pre-Baptismal Questionnaire** pages. Review and publish those pages, or place either shortcode on another page:
+On the first 0.4 load, the plugin:
+
+1. Creates versioned Form Manager records for the three existing built-in forms.
+2. Publishes their current definitions as version 1.
+3. Backfills a definition snapshot onto existing submissions where possible.
+4. Leaves existing shortcodes and public pages working with the same form IDs.
+
+## Using the Form Manager
+
+Open **Parish Forms > Forms**.
+
+For each form you can:
+
+- **Edit** the saved draft.
+- **Preview** the draft without changing the public form.
+- **Publish Changes** to create a new immutable published version.
+- **Duplicate** a form as the starting point for a new form.
+- **Retire** a form so its shortcode stops rendering for visitors while its submissions and version history remain available.
+- **Restore** a retired form.
+- Restore an older published version **to the draft editor**, then publish it if you want that version to become live again.
+
+A new form receives a permanent Form ID when it is first saved. Its shortcode is then shown on the Forms screen.
+
+## Existing form shortcodes
 
 ```text
 [parish_form id="parish-registration"]
 [parish_form id="pre-baptismal-questionnaire"]
+[parish_form id="confirmation-interest"]
 ```
 
-Open **Parish Forms > Settings** to set one or more notification addresses. Open **Parish Forms > Submissions** to choose a form, review its submissions, or export them as CSV.
+## Submission history and form versions
+
+Every new submission stores both its submitted values and a snapshot of the exact published form definition used at submission time. The admin detail view therefore continues to show the labels and structure that were in effect when the person submitted the form, even if staff later rename, reorder, add, or remove fields.
+
+Published form versions are immutable. Editing always changes a draft; publishing creates the next version.
 
 ## Data handling
 
-Submissions are stored as private, non-public WordPress records. Access to the plugin screens and CSV exports requires the `manage_parish_forms` capability, which is added to the Administrator role on activation. The plugin does not expose submissions through the REST API.
+Submissions and form/version records are non-public WordPress content. Access to the plugin screens and CSV exports requires the `manage_parish_forms` capability, which is added to the Administrator role on activation. The plugin does not expose submissions through the REST API.
 
 Email delivery depends on the site's configured WordPress mail transport. A failed notification does not discard a submission; the administrator list records whether the email was sent.
 
-Deactivation does not delete registrations. Authorized administrators can trash and permanently delete individual registrations from the plugin interface according to parish record-retention policy.
+Deactivation does not delete forms or submissions. Authorized administrators can trash and permanently delete individual submissions according to parish record-retention policy.
 
-## Extending with another parish form
+## Developer architecture
 
-Add a definition class under `includes/forms/`, register its returned definition in `PFORM_Form_Registry::all()`, and render it with `[parish_form id="your-form-id"]`. The shared renderer, validator, storage, notification formatter, administration view, and CSV exporter consume the definition automatically.
+The PHP definitions under `includes/forms/` remain seed/fallback definitions for the original forms. Once version 0.4 migrates a form into the Form Manager, the versioned stored definition becomes authoritative; plugin upgrades do not overwrite staff edits.
 
-Definitions are code-reviewed PHP arrays, not administrator-created layouts. This keeps version 0.1 focused, auditable, and predictable.
+The shared renderer, validator, formatter, notification system, submission administration, and CSV exporter consume the same normalized definition schema whether a definition came from the built-in seed or the Form Manager.
 
 ## Developer checks
 
-Run `make test-parish-forms` from the repository root to lint the PHP, exercise validation/rendering edge cases, and check the frontend JavaScript syntax. The repository's GitHub Actions workflow runs the PHP checks for pushes and pull requests.
+Run:
+
+```bash
+make test-parish-forms
+```
+
+This lints PHP, exercises validation/rendering and definition-sanitization cases, and syntax-checks both frontend and Form Manager JavaScript. The repository's GitHub Actions workflow runs these checks for pushes and pull requests.

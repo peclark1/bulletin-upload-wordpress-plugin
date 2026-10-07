@@ -175,6 +175,13 @@
     font-weight: 650;
 }
 
+.pform-help {
+    margin: .4rem 0 0;
+    color: var(--pform-muted);
+    font-size: .9rem;
+    line-height: 1.45;
+}
+
 .pform-field--error input[type="text"],
 .pform-field--error input[type="email"],
 .pform-field--error input[type="tel"],
