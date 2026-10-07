@@ -37,7 +37,7 @@ final class PFORM_Definition_Sanitizer
             'sections' => array(),
         );
 
-        $sections = isset($raw['sections']) && is_array($raw['sections']) ? array_values($raw['sections']) : array();
+        $sections = isset($raw['sections']) && is_array($raw['sections']) ? array_slice(array_values($raw['sections']), 0, 50) : array();
         $section_ids = array();
         $field_ids = array();
 
@@ -58,12 +58,16 @@ final class PFORM_Definition_Sanitizer
                 'description' => self::textarea(isset($section['description']) ? $section['description'] : '', 2000),
                 'fields' => array(),
             );
+            if ($clean_section['title'] === '') {
+                $clean_section['title'] = sprintf(__('Section %d', 'parish-forms'), $section_index + 1);
+            }
+
             $condition = self::condition(isset($section['condition']) ? $section['condition'] : null);
             if ($condition) {
                 $clean_section['condition'] = $condition;
             }
 
-            $fields = isset($section['fields']) && is_array($section['fields']) ? array_values($section['fields']) : array();
+            $fields = isset($section['fields']) && is_array($section['fields']) ? array_slice(array_values($section['fields']), 0, 100) : array();
             foreach ($fields as $field_index => $field) {
                 $clean_field = self::field($field, $field_index, $field_ids, false);
                 if (is_wp_error($clean_field)) {
@@ -111,6 +115,9 @@ final class PFORM_Definition_Sanitizer
             'required' => ! empty($raw['required']),
             'width' => self::width(isset($raw['width']) ? $raw['width'] : 'full'),
         );
+        if ($field['label'] === '') {
+            return new WP_Error('pform_missing_field_label', __('Every form field needs a label.', 'parish-forms'));
+        }
 
         $condition = self::condition(isset($raw['condition']) ? $raw['condition'] : null);
         if ($condition) {
@@ -146,7 +153,7 @@ final class PFORM_Definition_Sanitizer
             }
             $field['fields'] = array();
             $nested_ids = array();
-            $nested_fields = isset($raw['fields']) && is_array($raw['fields']) ? array_values($raw['fields']) : array();
+            $nested_fields = isset($raw['fields']) && is_array($raw['fields']) ? array_slice(array_values($raw['fields']), 0, 50) : array();
             foreach ($nested_fields as $nested_index => $nested_field) {
                 $clean_nested = self::field($nested_field, $nested_index, $nested_ids, true);
                 if (is_wp_error($clean_nested)) {
@@ -268,7 +275,11 @@ final class PFORM_Definition_Sanitizer
             return array();
         }
         $options = array();
+        $count = 0;
         foreach ($raw as $value => $label) {
+            if ($count >= 100) {
+                break;
+            }
             if (is_int($value) && is_array($label)) {
                 $value = isset($label['value']) ? $label['value'] : '';
                 $label = isset($label['label']) ? $label['label'] : '';
@@ -289,6 +300,7 @@ final class PFORM_Definition_Sanitizer
                     $suffix++;
                 }
                 $options[$clean_value] = $clean_label;
+                $count++;
             }
         }
         return $options;
