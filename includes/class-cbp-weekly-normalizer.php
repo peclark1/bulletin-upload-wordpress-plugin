@@ -157,16 +157,46 @@ final class CBP_Weekly_Normalizer
         }
 
         // PDF table extraction sometimes promotes the location to the event
-        // title and leaves the location cell blank.
+        // title and leaves the location cell blank. In some live PDFs the
+        // parser also leaves the same time appended to that promoted title,
+        // e.g. "Heritage Living Center: 10:00 am".
         if ($row_location === ''
-            && $row_title === $wanted_location
             && $row_time !== ''
             && $wanted_time !== ''
-            && $row_time === $wanted_time) {
+            && $row_time === $wanted_time
+            && self::title_is_only_location_and_time($row_title, $wanted_location, $row_time)
+            && self::description_is_only_same_title_or_location_time(
+                $row_description,
+                $row_title,
+                $wanted_location,
+                $row_time
+            )) {
             return true;
         }
 
         return false;
+    }
+
+    private static function title_is_only_location_and_time($title, $location, $time)
+    {
+        if ($title === '' || $location === '' || $time === '') {
+            return false;
+        }
+
+        return $title === $location
+            || $title === trim($location . ' ' . $time)
+            || $title === trim($time . ' ' . $location);
+    }
+
+    private static function description_is_only_same_title_or_location_time($description, $title, $location, $time)
+    {
+        if ($description === '') {
+            return true;
+        }
+
+        return $description === $title
+            || $description === trim($location . ' ' . $time)
+            || $description === trim($time . ' ' . $location);
     }
 
     private static function recover_after_mass_events(
