@@ -96,6 +96,14 @@ final class CBP_Schedule_V5
         $existing = isset($parsed['source_lines']) && is_array($parsed['source_lines']) ? $parsed['source_lines'] : array();
         $parsed['source_lines'] = array_values(array_unique(array_merge($debug, $existing)));
 
+        // Cross-row reconciliation belongs in the extraction pipeline, before
+        // the pending review is saved. This avoids timing-sensitive shutdown
+        // repairs and ensures the editor receives the same normalized data
+        // that regression tests validate.
+        if (class_exists('CBP_Weekly_Normalizer')) {
+            $parsed = CBP_Weekly_Normalizer::normalize($parsed, $extracted['text']);
+        }
+
         set_transient($this->review_key(), $parsed, self::REVIEW_TTL);
         $this->redirect('success', __('Website information extracted. Review every proposed item before approving it.', 'church-bulletin-publisher'));
     }
