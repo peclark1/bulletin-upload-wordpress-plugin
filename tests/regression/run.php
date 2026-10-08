@@ -739,14 +739,10 @@ function cbp_extract_fixture($pdf, $bulletin_date, array $current_schedule)
         : array();
     $parsed['source_lines'] = array_values(array_unique(array_merge($debug, $existing)));
 
-    // Match production test66: reconcile the complete weekly result before
-    // saving the review transient.
-    $parsed = CBP_Weekly_Normalizer::normalize($parsed, $extracted['text']);
+    // Match production test66: use the review transient as a private working
+    // store for the historical V6-V33 repair stages, then normalize the
+    // complete result before the review is exposed.
     $GLOBALS['cbp_regression_transients'][$review_key] = $parsed;
-
-    // V6-V33 remain historical shutdown post-processors. V34 parser mutation
-    // and V35-V37 late cleanup are retired in production; V34 remains loaded
-    // only for the review-edit abilities.
     $_REQUEST['action'] = 'cbp_extract_schedule';
     foreach (range(6, 33) as $version) {
         $class = 'CBP_Schedule_V' . $version;
@@ -755,6 +751,14 @@ function cbp_extract_fixture($pdf, $bulletin_date, array $current_schedule)
         }
         $class::instance()->postprocess_review();
     }
+
+    $parsed = get_transient($review_key);
+    if (! is_array($parsed)) {
+        throw new RuntimeException('Legacy parser stages did not leave review data in the expected transient.');
+    }
+    $parsed = CBP_Weekly_Normalizer::normalize($parsed, $extracted['text']);
+    $GLOBALS['cbp_regression_transients'][$review_key] = $parsed;
+    $_REQUEST['action'] = 'cbp_extract_schedule_finalized';
 
     $review = get_transient($review_key);
     if (! is_array($review)) {
