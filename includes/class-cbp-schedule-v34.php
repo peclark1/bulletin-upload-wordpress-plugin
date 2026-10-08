@@ -42,6 +42,7 @@ final class CBP_Schedule_V34
         // but do not mutate the saved review during shutdown.
         add_action('wp_abilities_api_categories_init', array($this, 'register_ability_category'));
         add_action('wp_abilities_api_init', array($this, 'register_abilities'));
+        add_action('init', array($this, 'ensure_abilities_registered'), 99);
     }
 
     public function postprocess_review()
@@ -99,7 +100,7 @@ final class CBP_Schedule_V34
             return;
         }
 
-        wp_register_ability_category(
+        $this->register_ability_category_compat(
             self::ABILITY_CATEGORY,
             array(
                 'label' => __('Church Bulletin Publisher', 'church-bulletin-publisher'),
@@ -114,7 +115,7 @@ final class CBP_Schedule_V34
             return;
         }
 
-        wp_register_ability(
+        $this->register_ability_compat(
             'church-bulletin-publisher/get-review',
             array(
                 'label' => __('Get bulletin review', 'church-bulletin-publisher'),
@@ -141,7 +142,7 @@ final class CBP_Schedule_V34
             )
         );
 
-        wp_register_ability(
+        $this->register_ability_compat(
             'church-bulletin-publisher/update-review-row',
             array(
                 'label' => __('Update bulletin review row', 'church-bulletin-publisher'),
@@ -190,7 +191,7 @@ final class CBP_Schedule_V34
             )
         );
 
-        wp_register_ability(
+        $this->register_ability_compat(
             'church-bulletin-publisher/update-review-candidate',
             array(
                 'label' => __('Update bulletin recurring schedule candidate', 'church-bulletin-publisher'),
@@ -229,6 +230,77 @@ final class CBP_Schedule_V34
                 ),
             )
         );
+    }
+
+    /**
+     * Compatibility bootstrap for sites where another plugin initializes the
+     * Abilities registry before this plugin's registration hooks are attached.
+     *
+     * Ordinarily the dedicated Abilities API hooks above do all registration.
+     * This init fallback checks the live registry and registers only missing
+     * entries. It uses the registry directly only when the API init action has
+     * already passed, avoiding a plugin-load-order dependency.
+     */
+    public function ensure_abilities_registered()
+    {
+        $this->register_ability_category();
+        $this->register_abilities();
+    }
+
+    private function register_ability_category_compat($slug, array $args)
+    {
+        if (function_exists('wp_has_ability_category') && wp_has_ability_category($slug)) {
+            return;
+        }
+
+        if (function_exists('doing_action')
+            && doing_action('wp_abilities_api_categories_init')
+            && function_exists('wp_register_ability_category')) {
+            wp_register_ability_category($slug, $args);
+            return;
+        }
+
+        if (class_exists('WP_Ability_Categories_Registry')) {
+            $registry = WP_Ability_Categories_Registry::get_instance();
+            if ($registry && ! $registry->is_registered($slug)) {
+                $registry->register($slug, $args);
+                return;
+            }
+        }
+
+        // Regression stubs and older compatibility shims may expose only the
+        // registration function, so preserve that path outside production.
+        if (! class_exists('WP_Ability_Categories_Registry')
+            && function_exists('wp_register_ability_category')) {
+            wp_register_ability_category($slug, $args);
+        }
+    }
+
+    private function register_ability_compat($name, array $args)
+    {
+        if (function_exists('wp_has_ability') && wp_has_ability($name)) {
+            return;
+        }
+
+        if (function_exists('doing_action')
+            && doing_action('wp_abilities_api_init')
+            && function_exists('wp_register_ability')) {
+            wp_register_ability($name, $args);
+            return;
+        }
+
+        if (class_exists('WP_Abilities_Registry')) {
+            $registry = WP_Abilities_Registry::get_instance();
+            if ($registry && ! $registry->is_registered($name)) {
+                $registry->register($name, $args);
+                return;
+            }
+        }
+
+        if (! class_exists('WP_Abilities_Registry')
+            && function_exists('wp_register_ability')) {
+            wp_register_ability($name, $args);
+        }
     }
 
     public function ability_permission()
