@@ -36,12 +36,16 @@ if (! class_exists('WP_Error')) {
 $GLOBALS['cbp_regression_transients'] = array();
 $GLOBALS['cbp_regression_options'] = array();
 $GLOBALS['cbp_regression_removed_actions'] = array();
+$GLOBALS['cbp_regression_abilities'] = array();
+$GLOBALS['cbp_regression_ability_categories'] = array();
 
 function cbp_regression_reset_wordpress_state()
 {
     $GLOBALS['cbp_regression_transients'] = array();
     $GLOBALS['cbp_regression_options'] = array();
     $GLOBALS['cbp_regression_removed_actions'] = array();
+    $GLOBALS['cbp_regression_abilities'] = array();
+    $GLOBALS['cbp_regression_ability_categories'] = array();
     $_GET = array();
     $_POST = array();
     $_REQUEST = array();
@@ -59,6 +63,31 @@ function remove_action($hook = '', $callback = null, $priority = 10)
 }
 function add_filter() { return true; }
 function add_shortcode() { return true; }
+
+function wp_register_ability_category($name, $args)
+{
+    $GLOBALS['cbp_regression_ability_categories'][(string) $name] = (array) $args;
+    return (object) array('name' => (string) $name);
+}
+
+function wp_register_ability($name, $args)
+{
+    $GLOBALS['cbp_regression_abilities'][(string) $name] = (array) $args;
+    return (object) array('name' => (string) $name);
+}
+
+function wp_json_encode($value)
+{
+    return json_encode($value);
+}
+
+function get_bloginfo($field = '')
+{
+    if ((string) $field === 'version') {
+        return '7.1-test';
+    }
+    return '';
+}
 function do_action() { return true; }
 function check_admin_referer() { return true; }
 function current_user_can() { return true; }

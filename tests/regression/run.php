@@ -56,6 +56,88 @@ foreach ($version_files as $file) {
     require_once $file;
 }
 
+// Agent/API contract guards. The browser and API must share the same
+// production extraction method, and every Bulletin Publisher ability intended
+// for the agent must be explicitly public to the WordPress MCP Adapter.
+$v5_api_reflection = new ReflectionClass('CBP_Schedule_V5');
+if (! $v5_api_reflection->hasMethod('run_extraction_pipeline')
+    || ! $v5_api_reflection->getMethod('run_extraction_pipeline')->isPublic()) {
+    fwrite(STDERR, "Agent API regression: V5 does not expose the shared production extraction pipeline.\n");
+    exit(1);
+}
+
+$GLOBALS['cbp_regression_abilities'] = array();
+$GLOBALS['cbp_regression_ability_categories'] = array();
+
+$v34_api = CBP_Schedule_V34::instance();
+$v34_api->register_ability_category();
+$v34_api->register_abilities();
+
+$v38_api = CBP_Schedule_V38::instance();
+$v38_api->register_abilities();
+
+$expected_agent_abilities = array(
+    'church-bulletin-publisher/get-review',
+    'church-bulletin-publisher/update-review-row',
+    'church-bulletin-publisher/update-review-candidate',
+    'church-bulletin-publisher/parser-status',
+    'church-bulletin-publisher/run-current-preview-extraction',
+);
+foreach ($expected_agent_abilities as $ability_name) {
+    if (! isset($GLOBALS['cbp_regression_abilities'][$ability_name])) {
+        fwrite(STDERR, "Agent API regression: missing ability {$ability_name}.\n");
+        exit(1);
+    }
+    $args = $GLOBALS['cbp_regression_abilities'][$ability_name];
+    if (empty($args['meta']['show_in_rest'])
+        || empty($args['meta']['mcp']['public'])) {
+        fwrite(STDERR, "Agent API regression: {$ability_name} is not exposed to REST/MCP.\n");
+        exit(1);
+    }
+}
+if (! isset($GLOBALS['cbp_regression_ability_categories']['church-bulletin-publisher'])) {
+    fwrite(STDERR, "Agent API regression: Bulletin Publisher ability category was not registered.\n");
+    exit(1);
+}
+
+cbp_regression_reset_wordpress_state();
+$api_preview_path = $root . '/tests/regression/run.php';
+$GLOBALS['cbp_regression_transients']['cbp_preview_1'] = array(
+    'path' => $api_preview_path,
+    'date' => '2026-10-11',
+    'sha256' => hash_file('sha256', $api_preview_path),
+);
+$GLOBALS['cbp_regression_transients']['cbp_schedule_review_1'] = array(
+    'bulletin_date' => '2026-10-11',
+    'candidates' => array(),
+    'weekly' => array(
+        'masses' => array(),
+        'devotions' => array(),
+        'events' => array(),
+        'livestream' => array(),
+    ),
+    '_pipeline' => array('id' => 'cbp-production-extraction-v1'),
+);
+$api_status = $v38_api->ability_parser_status();
+if (! is_array($api_status)
+    || empty($api_status['preview']['available'])
+    || empty($api_status['preview']['sha256'])
+    || empty($api_status['review']['revision'])
+    || ($api_status['pipeline']['shared_browser_and_api_path'] ?? false) !== true
+    || ($api_status['safety']['can_approve_review'] ?? true) !== false
+    || ($api_status['safety']['can_publish_bulletin'] ?? true) !== false) {
+    fwrite(STDERR, "Agent API regression: parser-status did not report the safe shared pipeline contract.\n");
+    exit(1);
+}
+$stale_preview = $v38_api->ability_run_current_preview_extraction(array(
+    'expected_preview_sha256' => str_repeat('0', 64),
+));
+if (! is_wp_error($stale_preview)) {
+    fwrite(STDERR, "Agent API regression: stale preview SHA was not rejected.\n");
+    exit(1);
+}
+cbp_regression_reset_wordpress_state();
+
 // Targeted guards for the September 27 follow-up fixes that are not fully
 // represented by parser-only fixture comparisons.
 if (class_exists('CBP_Schedule_V26')) {
