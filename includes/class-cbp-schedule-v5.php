@@ -403,14 +403,24 @@ final class CBP_Schedule_V5
     {
         $_REQUEST['action'] = 'cbp_extract_schedule';
 
-        foreach (range(6, 33) as $version) {
-            $class = 'CBP_Schedule_V' . $version;
-            if (! class_exists($class) || ! method_exists($class, 'postprocess_review')) {
-                continue;
-            }
+        if (class_exists('CBP_Parser_Context')) {
+            CBP_Parser_Context::begin_internal_extraction();
+        }
 
-            $instance = $class::instance();
-            $instance->postprocess_review();
+        try {
+            foreach (range(6, 33) as $version) {
+                $class = 'CBP_Schedule_V' . $version;
+                if (! class_exists($class) || ! method_exists($class, 'postprocess_review')) {
+                    continue;
+                }
+
+                $instance = $class::instance();
+                $instance->postprocess_review();
+            }
+        } finally {
+            if (class_exists('CBP_Parser_Context')) {
+                CBP_Parser_Context::end_internal_extraction();
+            }
         }
     }
 
