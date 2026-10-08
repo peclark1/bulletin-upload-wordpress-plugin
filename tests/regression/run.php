@@ -16,6 +16,7 @@ $root = dirname(__DIR__, 2);
 require $root . '/tests/regression/wp-stubs.php';
 require $root . '/vendor/autoload.php';
 require $root . '/includes/class-cbp-schedule.php';
+require $root . '/includes/class-cbp-weekly-normalizer.php';
 require $root . '/includes/class-cbp-site-displays.php';
 require $root . '/includes/class-cbp-home-schedule.php';
 
@@ -504,6 +505,66 @@ if (class_exists('CBP_Schedule_V37')) {
     }
 }
 
+// Guard the architectural test66 path directly: the complete review must be
+// clean before any transient is saved.
+$normalizer_input = array(
+    'bulletin_date' => '2026-10-11',
+    'week_start' => '2026-10-12',
+    'week_end' => '2026-10-18',
+    'weekly' => array(
+        'masses' => array(
+            array('date' => '2026-10-14', 'time' => '10:00 AM', 'location' => 'Heritage Senior Living Center', 'title' => 'Mass', 'description' => 'Liturgy of the Word'),
+            array('date' => '2026-10-18', 'time' => '11:00 AM', 'location' => 'St. Mary’s', 'title' => 'Mass', 'description' => '† Kimberly Wettels'),
+        ),
+        'devotions' => array(),
+        'events' => array(
+            array('date' => '2026-10-14', 'time' => '', 'location' => '', 'title' => 'There will be Liturgy of the Word at Heritage Living Center', 'description' => 'There will be Liturgy of the Word at Heritage Living Center on Wednesday, October 14.'),
+            array('date' => '2026-10-14', 'time' => '10:00 AM', 'location' => '', 'title' => 'Heritage Living Center', 'description' => 'Heritage Living Center: 10:00 am'),
+        ),
+        'livestream' => array(),
+    ),
+    'source_lines' => array(),
+);
+$normalizer_text = implode("\n", array(
+    'Wednesday, October 14',
+    'Heritage Living Center: 10:00 am',
+    'Liturgy of the Word',
+    'Sunday, October 18',
+    'SM: Soup & Sandwich after Mass',
+));
+$normalizer_output = CBP_Weekly_Normalizer::normalize($normalizer_input, $normalizer_text);
+$normalizer_masses = $normalizer_output['weekly']['masses'] ?? array();
+$normalizer_events = $normalizer_output['weekly']['events'] ?? array();
+
+if (($normalizer_masses[0]['title'] ?? '') !== 'Liturgy of the Word') {
+    fwrite(STDERR, "Pre-save normalizer regression: off-site Liturgy was not reclassified before review save.\n");
+    exit(1);
+}
+
+$heritage = array_values(array_filter($normalizer_events, function ($row) {
+    $text = strtolower((string) ($row['title'] ?? '') . ' ' . (string) ($row['description'] ?? '') . ' ' . (string) ($row['location'] ?? ''));
+    return strpos($text, 'heritage') !== false || strpos($text, 'liturgy of the word') !== false;
+}));
+if (count($heritage) !== 1
+    || ($heritage[0]['date'] ?? '') !== '2026-10-14'
+    || ($heritage[0]['time'] ?? '') !== '10:00 AM'
+    || ($heritage[0]['location'] ?? '') !== 'Heritage Living Center'
+    || ($heritage[0]['title'] ?? '') !== 'Liturgy of the Word') {
+    fwrite(STDERR, "Pre-save normalizer regression: Heritage duplicate was not collapsed before review save.\n");
+    exit(1);
+}
+
+$soup = array_values(array_filter($normalizer_events, function ($row) {
+    return ($row['title'] ?? '') === 'Soup & Sandwich';
+}));
+if (count($soup) !== 1
+    || ($soup[0]['date'] ?? '') !== '2026-10-18'
+    || ($soup[0]['time'] ?? '') !== 'After Mass'
+    || ($soup[0]['location'] ?? '') !== 'St. Mary’s') {
+    fwrite(STDERR, "Pre-save normalizer regression: St. Mary's after-Mass event was not recovered before review save.\n");
+    exit(1);
+}
+
 $display_reflection = new ReflectionClass('CBP_Site_Displays');
 $display = $display_reflection->getMethod('instance')->invoke(null);
 $event_note = $display_reflection->getMethod('event_note');
@@ -677,18 +738,27 @@ function cbp_extract_fixture($pdf, $bulletin_date, array $current_schedule)
         ? $parsed['source_lines']
         : array();
     $parsed['source_lines'] = array_values(array_unique(array_merge($debug, $existing)));
-    $GLOBALS['cbp_regression_transients'][$review_key] = $parsed;
 
-    // V6+ are shutdown post-processors. Execute them in numeric order exactly
-    // once, with the same request marker they see in wp-admin.
+    // Match production test66: use the review transient as a private working
+    // store for the historical V6-V33 repair stages, then normalize the
+    // complete result before the review is exposed.
+    $GLOBALS['cbp_regression_transients'][$review_key] = $parsed;
     $_REQUEST['action'] = 'cbp_extract_schedule';
-    foreach (range(6, 99) as $version) {
+    foreach (range(6, 33) as $version) {
         $class = 'CBP_Schedule_V' . $version;
         if (! class_exists($class) || ! method_exists($class, 'postprocess_review')) {
             continue;
         }
         $class::instance()->postprocess_review();
     }
+
+    $parsed = get_transient($review_key);
+    if (! is_array($parsed)) {
+        throw new RuntimeException('Legacy parser stages did not leave review data in the expected transient.');
+    }
+    $parsed = CBP_Weekly_Normalizer::normalize($parsed, $extracted['text']);
+    $GLOBALS['cbp_regression_transients'][$review_key] = $parsed;
+    $_REQUEST['action'] = 'cbp_extract_schedule_finalized';
 
     $review = get_transient($review_key);
     if (! is_array($review)) {

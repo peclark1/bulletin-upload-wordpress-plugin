@@ -96,7 +96,29 @@ final class CBP_Schedule_V5
         $existing = isset($parsed['source_lines']) && is_array($parsed['source_lines']) ? $parsed['source_lines'] : array();
         $parsed['source_lines'] = array_values(array_unique(array_merge($debug, $existing)));
 
+        // Run the historical V6-V33 repair stages synchronously as part of the
+        // extraction request. They still use the review transient as their
+        // working store, but the user never sees that intermediate state.
+        // The final normalizer then reconciles the complete result before the
+        // request redirects to the review screen.
         set_transient($this->review_key(), $parsed, self::REVIEW_TTL);
+        $this->run_legacy_postprocessors();
+
+        $final = get_transient($this->review_key());
+        if (! is_array($final)) {
+            $final = $parsed;
+        }
+
+        if (class_exists('CBP_Weekly_Normalizer')) {
+            $final = CBP_Weekly_Normalizer::normalize($final, $extracted['text']);
+        }
+
+        set_transient($this->review_key(), $final, self::REVIEW_TTL);
+
+        // Prevent the same legacy stages from running a second time during PHP
+        // shutdown. The finalized review is now authoritative for this request.
+        $_REQUEST['action'] = 'cbp_extract_schedule_finalized';
+
         $this->redirect('success', __('Website information extracted. Review every proposed item before approving it.', 'church-bulletin-publisher'));
     }
 
@@ -318,6 +340,21 @@ final class CBP_Schedule_V5
         $ak = (isset($a['date']) ? $a['date'] : '') . ' ' . (isset($a['time']) ? $a['time'] : '');
         $bk = (isset($b['date']) ? $b['date'] : '') . ' ' . (isset($b['time']) ? $b['time'] : '');
         return strcmp($ak, $bk);
+    }
+
+    private function run_legacy_postprocessors()
+    {
+        $_REQUEST['action'] = 'cbp_extract_schedule';
+
+        foreach (range(6, 33) as $version) {
+            $class = 'CBP_Schedule_V' . $version;
+            if (! class_exists($class) || ! method_exists($class, 'postprocess_review')) {
+                continue;
+            }
+
+            $instance = $class::instance();
+            $instance->postprocess_review();
+        }
     }
 
     private function valid_date($date)
