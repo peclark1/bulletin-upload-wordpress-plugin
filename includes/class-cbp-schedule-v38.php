@@ -27,6 +27,7 @@ final class CBP_Schedule_V38
     private function __construct()
     {
         add_action('wp_abilities_api_init', array($this, 'register_abilities'));
+        add_action('init', array($this, 'ensure_abilities_registered'), 100);
     }
 
     public function register_abilities()
@@ -35,7 +36,7 @@ final class CBP_Schedule_V38
             return;
         }
 
-        wp_register_ability(
+        $this->register_ability_compat(
             'church-bulletin-publisher/parser-status',
             array(
                 'label' => __('Get Bulletin Publisher parser status', 'church-bulletin-publisher'),
@@ -51,7 +52,7 @@ final class CBP_Schedule_V38
             )
         );
 
-        wp_register_ability(
+        $this->register_ability_compat(
             'church-bulletin-publisher/run-current-preview-extraction',
             array(
                 'label' => __('Run Bulletin Publisher extraction on current preview', 'church-bulletin-publisher'),
@@ -82,6 +83,41 @@ final class CBP_Schedule_V38
                 'meta' => $this->ability_meta(false, true, true),
             )
         );
+    }
+
+    public function ensure_abilities_registered()
+    {
+        if (class_exists('CBP_Schedule_V34')) {
+            CBP_Schedule_V34::instance()->ensure_abilities_registered();
+        }
+        $this->register_abilities();
+    }
+
+    private function register_ability_compat($name, array $args)
+    {
+        if (function_exists('wp_has_ability') && wp_has_ability($name)) {
+            return;
+        }
+
+        if (function_exists('doing_action')
+            && doing_action('wp_abilities_api_init')
+            && function_exists('wp_register_ability')) {
+            wp_register_ability($name, $args);
+            return;
+        }
+
+        if (class_exists('WP_Abilities_Registry')) {
+            $registry = WP_Abilities_Registry::get_instance();
+            if ($registry && ! $registry->is_registered($name)) {
+                $registry->register($name, $args);
+                return;
+            }
+        }
+
+        if (! class_exists('WP_Abilities_Registry')
+            && function_exists('wp_register_ability')) {
+            wp_register_ability($name, $args);
+        }
     }
 
     public function ability_permission()
