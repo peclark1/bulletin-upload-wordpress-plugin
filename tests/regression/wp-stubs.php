@@ -35,18 +35,28 @@ if (! class_exists('WP_Error')) {
 
 $GLOBALS['cbp_regression_transients'] = array();
 $GLOBALS['cbp_regression_options'] = array();
+$GLOBALS['cbp_regression_removed_actions'] = array();
 
 function cbp_regression_reset_wordpress_state()
 {
     $GLOBALS['cbp_regression_transients'] = array();
     $GLOBALS['cbp_regression_options'] = array();
+    $GLOBALS['cbp_regression_removed_actions'] = array();
     $_GET = array();
     $_POST = array();
     $_REQUEST = array();
 }
 
 function add_action() { return true; }
-function remove_action() { return true; }
+function remove_action($hook = '', $callback = null, $priority = 10)
+{
+    $GLOBALS['cbp_regression_removed_actions'][] = array(
+        'hook' => (string) $hook,
+        'callback' => $callback,
+        'priority' => (int) $priority,
+    );
+    return true;
+}
 function add_filter() { return true; }
 function add_shortcode() { return true; }
 function do_action() { return true; }
