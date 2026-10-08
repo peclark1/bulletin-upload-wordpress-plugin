@@ -37,7 +37,9 @@ final class CBP_Schedule_V34
 
     private function __construct()
     {
-        add_action('shutdown', array($this, 'postprocess_review'), 350);
+        // Parser normalization moved into the primary extraction pipeline in
+        // test66. Keep this class instantiated for the review-edit abilities,
+        // but do not mutate the saved review during shutdown.
         add_action('wp_abilities_api_categories_init', array($this, 'register_ability_category'));
         add_action('wp_abilities_api_init', array($this, 'register_abilities'));
     }
