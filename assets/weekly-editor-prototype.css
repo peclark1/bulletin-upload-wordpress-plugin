@@ -1,0 +1,378 @@
+.cbp-weekly-prototype-wrap {
+    max-width: 1280px;
+}
+
+.cbp-proto-title-row,
+.cbp-proto-toolbar,
+.cbp-proto-actions,
+.cbp-proto-workspace,
+.cbp-proto-dialog-head,
+.cbp-proto-dialog-actions {
+    display: flex;
+    align-items: center;
+}
+
+.cbp-proto-title-row {
+    justify-content: space-between;
+    gap: 24px;
+    margin: 18px 0 10px;
+}
+
+.cbp-proto-title-row h1 {
+    margin-bottom: 4px;
+}
+
+.cbp-proto-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: #fff4cc;
+    border: 1px solid #dba617;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.cbp-proto-notice {
+    margin: 14px 0 18px !important;
+}
+
+.cbp-proto-toolbar {
+    justify-content: center;
+    gap: 18px;
+    margin-bottom: 10px;
+}
+
+.cbp-proto-week-label {
+    min-width: 260px;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 650;
+}
+
+.cbp-proto-actions {
+    gap: 8px;
+    margin: 0 0 8px;
+}
+
+.cbp-proto-spacer {
+    flex: 1;
+}
+
+.cbp-proto-help {
+    margin: 0 0 16px;
+    color: #50575e;
+}
+
+.cbp-proto-workspace {
+    align-items: flex-start;
+    gap: 28px;
+}
+
+.cbp-proto-paper {
+    width: min(760px, calc(100vw - 420px));
+    min-width: 600px;
+    min-height: 980px;
+    box-sizing: border-box;
+    padding: 54px 66px 72px;
+    background: #fff;
+    border: 1px solid #dcdcde;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .10);
+    color: #202124;
+    font-family: Georgia, "Times New Roman", serif;
+}
+
+.cbp-proto-paper-heading {
+    text-align: center;
+    margin-bottom: 26px;
+}
+
+.cbp-proto-parish-name {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: .01em;
+    margin-bottom: 10px;
+}
+
+.cbp-proto-section-title {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.15;
+}
+
+.cbp-proto-week-subtitle {
+    margin-top: 6px;
+    font-size: 14px;
+    font-style: italic;
+}
+
+.cbp-proto-day {
+    position: relative;
+    padding: 0 0 15px;
+    margin: 0 0 13px;
+    border-bottom: 1px solid #e6e6e6;
+}
+
+.cbp-proto-day:last-child {
+    border-bottom: 0;
+}
+
+.cbp-proto-day-heading {
+    margin: 0 0 5px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.cbp-proto-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 29px;
+    margin: 0;
+    padding: 3px 54px 3px 7px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 15px;
+    line-height: 1.45;
+    text-align: left;
+    cursor: pointer;
+}
+
+.cbp-proto-item:hover,
+.cbp-proto-item:focus-visible {
+    border-color: #72aee6;
+    background: #f0f6fc;
+    outline: none;
+}
+
+.cbp-proto-edit-hint {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #2271b1;
+    transition: opacity .12s ease;
+}
+
+.cbp-proto-item:hover .cbp-proto-edit-hint,
+.cbp-proto-item:focus-visible .cbp-proto-edit-hint {
+    opacity: 1;
+}
+
+.cbp-proto-add-here,
+.cbp-proto-empty {
+    display: block;
+    width: 100%;
+    margin: 2px 0 0;
+    padding: 4px 7px;
+    border: 1px dashed transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: #2271b1;
+    text-align: left;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.cbp-proto-day:hover .cbp-proto-add-here,
+.cbp-proto-empty {
+    opacity: .72;
+}
+
+.cbp-proto-add-here:hover,
+.cbp-proto-add-here:focus-visible,
+.cbp-proto-empty:hover,
+.cbp-proto-empty:focus-visible {
+    opacity: 1;
+    border-color: #72aee6;
+    background: #f6f7f7;
+    outline: none;
+}
+
+.cbp-proto-side-note {
+    width: 300px;
+    box-sizing: border-box;
+    padding: 20px 22px;
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, .05);
+}
+
+.cbp-proto-side-note h2 {
+    margin-top: 0;
+    font-size: 17px;
+}
+
+.cbp-proto-side-note ul {
+    margin-bottom: 0;
+    padding-left: 18px;
+}
+
+.cbp-proto-side-note li {
+    margin-bottom: 8px;
+}
+
+.cbp-proto-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    background: rgba(20, 30, 40, .38);
+}
+
+.cbp-proto-dialog {
+    position: fixed;
+    z-index: 100001;
+    left: 50%;
+    top: 50%;
+    width: min(640px, calc(100vw - 40px));
+    transform: translate(-50%, -50%);
+    box-sizing: border-box;
+    padding: 0 22px 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 20px 70px rgba(0, 0, 0, .3);
+}
+
+.cbp-proto-dialog-head {
+    justify-content: space-between;
+    gap: 20px;
+    padding: 16px 0 10px;
+    border-bottom: 1px solid #dcdcde;
+    margin-bottom: 18px;
+}
+
+.cbp-proto-dialog-head h2 {
+    margin: 0;
+}
+
+.cbp-proto-dialog-close {
+    width: 36px;
+    height: 36px;
+    border: 0;
+    background: transparent;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.cbp-proto-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 16px;
+}
+
+.cbp-proto-form-grid label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-weight: 600;
+}
+
+.cbp-proto-form-grid input,
+.cbp-proto-form-grid select {
+    width: 100%;
+    min-height: 38px;
+    font-weight: 400;
+}
+
+.cbp-proto-form-wide {
+    grid-column: 1 / -1;
+}
+
+.cbp-proto-live-example {
+    margin: 18px 0;
+    padding: 12px 14px;
+    background: #f6f7f7;
+    border-left: 4px solid #2271b1;
+    font-family: Georgia, "Times New Roman", serif;
+}
+
+.cbp-proto-dialog-actions {
+    gap: 8px;
+}
+
+.cbp-proto-delete {
+    color: #b32d2e !important;
+    border-color: #d63638 !important;
+}
+
+body.cbp-proto-dialog-open {
+    overflow: hidden;
+}
+
+body.cbp-proto-preview-mode .cbp-proto-item {
+    padding-right: 7px;
+    cursor: default;
+}
+
+body.cbp-proto-preview-mode .cbp-proto-item:hover,
+body.cbp-proto-preview-mode .cbp-proto-item:focus-visible {
+    border-color: transparent;
+    background: transparent;
+}
+
+body.cbp-proto-preview-mode .cbp-proto-edit-hint,
+body.cbp-proto-preview-mode .cbp-proto-add-here,
+body.cbp-proto-preview-mode .cbp-proto-empty {
+    display: none;
+}
+
+body.cbp-proto-preview-mode .cbp-proto-side-note {
+    display: none;
+}
+
+body.cbp-proto-preview-mode .cbp-proto-paper {
+    width: min(820px, 100%);
+    min-width: 0;
+    margin: 0 auto;
+}
+
+@media (max-width: 1100px) {
+    .cbp-proto-workspace {
+        flex-direction: column;
+    }
+
+    .cbp-proto-paper {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .cbp-proto-side-note {
+        width: 100%;
+    }
+}
+
+@media (max-width: 720px) {
+    .cbp-proto-toolbar,
+    .cbp-proto-actions,
+    .cbp-proto-title-row {
+        flex-wrap: wrap;
+    }
+
+    .cbp-proto-week-label {
+        order: -1;
+        width: 100%;
+    }
+
+    .cbp-proto-paper {
+        padding: 34px 24px 50px;
+    }
+
+    .cbp-proto-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cbp-proto-form-wide {
+        grid-column: auto;
+    }
+}
