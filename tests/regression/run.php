@@ -101,7 +101,7 @@ if (! isset($GLOBALS['cbp_regression_ability_categories']['church-bulletin-publi
 }
 
 cbp_regression_reset_wordpress_state();
-$api_preview_path = __FILE__;
+$api_preview_path = $root . '/tests/regression/run.php';
 $GLOBALS['cbp_regression_transients']['cbp_preview_1'] = array(
     'path' => $api_preview_path,
     'date' => '2026-10-11',
