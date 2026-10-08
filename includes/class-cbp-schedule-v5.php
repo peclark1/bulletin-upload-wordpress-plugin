@@ -44,14 +44,55 @@ final class CBP_Schedule_V5
         }
         check_admin_referer('cbp_extract_schedule');
 
+        $result = $this->run_extraction_pipeline('browser');
+        if (is_wp_error($result)) {
+            set_transient(
+                $this->review_key(),
+                array('error' => $result->get_error_message()),
+                self::REVIEW_TTL
+            );
+            $this->redirect('error', $result->get_error_message());
+        }
+
+        $this->redirect(
+            'success',
+            __('Website information extracted. Review every proposed item before approving it.', 'church-bulletin-publisher')
+        );
+    }
+
+    /**
+     * Run the exact production extraction pipeline without redirecting.
+     *
+     * Browser extraction and the WordPress Ability API both call this method so
+     * they cannot silently diverge. The method updates only the pending review
+     * transient. It never approves the review or publishes the bulletin.
+     *
+     * @param string $source Short diagnostic label such as browser or ability.
+     * @return array|WP_Error Final pending review or an extraction error.
+     */
+    public function run_extraction_pipeline($source = 'internal')
+    {
+        if (! current_user_can('manage_options')) {
+            return new WP_Error(
+                'cbp_schedule_forbidden',
+                __('You are not allowed to update the parish schedule.', 'church-bulletin-publisher')
+            );
+        }
+
         $preview = get_transient($this->preview_key());
         if (! is_array($preview) || empty($preview['path']) || ! is_readable($preview['path'])) {
-            $this->redirect('error', __('The private preview is missing or expired. Create it again.', 'church-bulletin-publisher'));
+            return new WP_Error(
+                'cbp_schedule_preview_missing',
+                __('The private preview is missing or expired. Create it again.', 'church-bulletin-publisher')
+            );
         }
 
         $bulletin_date = isset($preview['date']) ? sanitize_text_field($preview['date']) : '';
         if (! $this->valid_date($bulletin_date)) {
-            $this->redirect('error', __('The bulletin date is missing or invalid. Create the preview again.', 'church-bulletin-publisher'));
+            return new WP_Error(
+                'cbp_schedule_date_invalid',
+                __('The bulletin date is missing or invalid. Create the preview again.', 'church-bulletin-publisher')
+            );
         }
 
         try {
@@ -60,14 +101,14 @@ final class CBP_Schedule_V5
             $extract_method->setAccessible(true);
             $extracted = $extract_method->invoke($v4, $preview['path']);
         } catch (Throwable $e) {
-            $message = __('The bulletin PDF could not be read by the bundled PHP parser. No website content has been changed.', 'church-bulletin-publisher') . ' ' . $e->getMessage();
-            set_transient($this->review_key(), array('error' => $message), self::REVIEW_TTL);
-            $this->redirect('error', $message);
+            return new WP_Error(
+                'cbp_schedule_pdf_extract',
+                __('The bulletin PDF could not be read by the bundled PHP parser. No website content has been changed.', 'church-bulletin-publisher') . ' ' . $e->getMessage()
+            );
         }
 
         if (is_wp_error($extracted)) {
-            set_transient($this->review_key(), array('error' => $extracted->get_error_message()), self::REVIEW_TTL);
-            $this->redirect('error', $extracted->get_error_message());
+            return $extracted;
         }
 
         try {
@@ -76,9 +117,10 @@ final class CBP_Schedule_V5
             $parse_method->setAccessible(true);
             $parsed = $parse_method->invoke($v2, $extracted['text'], $bulletin_date);
         } catch (Throwable $e) {
-            $message = __('The bulletin text was read, but the schedule parser could not process it. No website content has been changed.', 'church-bulletin-publisher') . ' ' . $e->getMessage();
-            set_transient($this->review_key(), array('error' => $message), self::REVIEW_TTL);
-            $this->redirect('error', $message);
+            return new WP_Error(
+                'cbp_schedule_parse',
+                __('The bulletin text was read, but the schedule parser could not process it. No website content has been changed.', 'church-bulletin-publisher') . ' ' . $e->getMessage()
+            );
         }
 
         $parsed = $this->fix_ordinal_spacing($parsed);
@@ -93,14 +135,13 @@ final class CBP_Schedule_V5
             $debug = array('[debug] Encoding diagnostics unavailable: ' . $e->getMessage());
         }
 
-        $existing = isset($parsed['source_lines']) && is_array($parsed['source_lines']) ? $parsed['source_lines'] : array();
+        $existing = isset($parsed['source_lines']) && is_array($parsed['source_lines'])
+            ? $parsed['source_lines']
+            : array();
         $parsed['source_lines'] = array_values(array_unique(array_merge($debug, $existing)));
 
-        // Run the historical V6-V33 repair stages synchronously as part of the
-        // extraction request. They still use the review transient as their
-        // working store, but the user never sees that intermediate state.
-        // The final normalizer then reconciles the complete result before the
-        // request redirects to the review screen.
+        // V6-V33 are historical repair stages. Run them synchronously now so
+        // the final review can be normalized before it becomes visible.
         set_transient($this->review_key(), $parsed, self::REVIEW_TTL);
         $this->run_legacy_postprocessors();
 
@@ -113,19 +154,29 @@ final class CBP_Schedule_V5
             $final = CBP_Weekly_Normalizer::normalize($final, $extracted['text']);
         }
 
-        set_transient($this->review_key(), $final, self::REVIEW_TTL);
-
-        // The legacy V6-V33 repair classes are also registered on PHP shutdown.
-        // We just ran them synchronously above, so remove those shutdown hooks
-        // now; otherwise they would mutate the already-finalized review a second
-        // time after the response has been prepared.
         $this->unregister_legacy_shutdown_postprocessors();
 
-        // Leave a non-matching action marker as a second guard for any future
-        // postprocessor that checks the request action before doing work.
+        $final['_pipeline'] = array(
+            'id' => 'cbp-production-extraction-v1',
+            'plugin_version' => defined('CBP_VERSION') ? (string) CBP_VERSION : '',
+            'source' => sanitize_key((string) $source),
+            'executed_utc' => gmdate('c'),
+            'stages' => array(
+                'v4-pdf-text',
+                'v2-base-parse',
+                'v5-event-recovery',
+                'v6-v33-legacy-repairs',
+                'weekly-normalizer',
+                'legacy-shutdown-hooks-removed',
+            ),
+        );
+
+        set_transient($this->review_key(), $final, self::REVIEW_TTL);
+
+        // A second guard for any later postprocessor that checks the request.
         $_REQUEST['action'] = 'cbp_extract_schedule_finalized';
 
-        $this->redirect('success', __('Website information extracted. Review every proposed item before approving it.', 'church-bulletin-publisher'));
+        return $final;
     }
 
     private function fix_ordinal_spacing($value)
