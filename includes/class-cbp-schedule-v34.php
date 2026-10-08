@@ -129,6 +129,9 @@ final class CBP_Schedule_V34
                 'meta' => array(
                     'public' => true,
                     'show_in_rest' => true,
+                    'mcp' => array(
+                        'public' => true,
+                    ),
                     'annotations' => array(
                         'readonly' => true,
                         'destructive' => false,
@@ -175,6 +178,9 @@ final class CBP_Schedule_V34
                 'meta' => array(
                     'public' => true,
                     'show_in_rest' => true,
+                    'mcp' => array(
+                        'public' => true,
+                    ),
                     'annotations' => array(
                         'readonly' => false,
                         'destructive' => true,
@@ -212,6 +218,9 @@ final class CBP_Schedule_V34
                 'meta' => array(
                     'public' => true,
                     'show_in_rest' => true,
+                    'mcp' => array(
+                        'public' => true,
+                    ),
                     'annotations' => array(
                         'readonly' => false,
                         'destructive' => false,
@@ -336,15 +345,42 @@ final class CBP_Schedule_V34
 
     private function ability_review_payload(array $review)
     {
+        $weekly = isset($review['weekly']) && is_array($review['weekly'])
+            ? $review['weekly']
+            : array();
+
         return array(
             'bulletin_date' => (string) ($review['bulletin_date'] ?? ''),
             'revision' => $this->review_revision($review),
             'candidates' => isset($review['candidates']) && is_array($review['candidates']) ? $review['candidates'] : array(),
             'current' => isset($review['current']) && is_array($review['current']) ? $review['current'] : array(),
-            'weekly' => isset($review['weekly']) && is_array($review['weekly']) ? $review['weekly'] : array(),
+            'weekly' => $weekly,
             'warnings' => isset($review['warnings']) && is_array($review['warnings']) ? $review['warnings'] : array(),
+            'pipeline' => isset($review['_pipeline']) && is_array($review['_pipeline']) ? $review['_pipeline'] : array(),
+            'diagnostics' => $this->review_diagnostics($review),
+            'counts' => array(
+                'masses' => isset($weekly['masses']) && is_array($weekly['masses']) ? count($weekly['masses']) : 0,
+                'devotions' => isset($weekly['devotions']) && is_array($weekly['devotions']) ? count($weekly['devotions']) : 0,
+                'events' => isset($weekly['events']) && is_array($weekly['events']) ? count($weekly['events']) : 0,
+                'livestream' => isset($weekly['livestream']) && is_array($weekly['livestream']) ? count($weekly['livestream']) : 0,
+            ),
             'note' => __('Pending review only. A human must still approve the PDF review and website information before publication.', 'church-bulletin-publisher'),
         );
+    }
+
+    private function review_diagnostics(array $review)
+    {
+        $result = array();
+        foreach (($review['source_lines'] ?? array()) as $line) {
+            $line = trim((string) $line);
+            if ($line === '') {
+                continue;
+            }
+            if (preg_match('/^\[(?:v\d+|normalize|debug)\]/i', $line)) {
+                $result[] = $line;
+            }
+        }
+        return array_values(array_unique($result));
     }
 
     private function require_revision(array $review, $expected)
