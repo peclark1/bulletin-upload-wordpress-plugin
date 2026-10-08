@@ -38,6 +38,7 @@ $GLOBALS['cbp_regression_options'] = array();
 $GLOBALS['cbp_regression_removed_actions'] = array();
 $GLOBALS['cbp_regression_abilities'] = array();
 $GLOBALS['cbp_regression_ability_categories'] = array();
+$GLOBALS['cbp_regression_is_admin'] = true;
 
 function cbp_regression_reset_wordpress_state()
 {
@@ -46,6 +47,7 @@ function cbp_regression_reset_wordpress_state()
     $GLOBALS['cbp_regression_removed_actions'] = array();
     $GLOBALS['cbp_regression_abilities'] = array();
     $GLOBALS['cbp_regression_ability_categories'] = array();
+    $GLOBALS['cbp_regression_is_admin'] = true;
     $_GET = array();
     $_POST = array();
     $_REQUEST = array();
@@ -91,7 +93,7 @@ function get_bloginfo($field = '')
 function do_action() { return true; }
 function check_admin_referer() { return true; }
 function current_user_can() { return true; }
-function is_admin() { return true; }
+function is_admin() { return (bool) ($GLOBALS['cbp_regression_is_admin'] ?? true); }
 function get_current_user_id() { return 1; }
 function wp_nonce_field() { return ''; }
 function submit_button() { return ''; }
