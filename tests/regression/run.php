@@ -623,7 +623,7 @@ $normalizer_input = array(
         'devotions' => array(),
         'events' => array(
             array('date' => '2026-10-14', 'time' => '', 'location' => '', 'title' => 'There will be Liturgy of the Word at Heritage Living Center', 'description' => 'There will be Liturgy of the Word at Heritage Living Center on Wednesday, October 14.'),
-            array('date' => '2026-10-14', 'time' => '10:00 AM', 'location' => '', 'title' => 'Heritage Living Center', 'description' => 'Heritage Living Center: 10:00 am'),
+            array('date' => '2026-10-14', 'time' => '10:00 AM', 'location' => '', 'title' => 'Heritage Living Center: 10:00 am', 'description' => 'Heritage Living Center: 10:00 am'),
         ),
         'livestream' => array(),
     ),
@@ -655,6 +655,33 @@ if (count($heritage) !== 1
     || ($heritage[0]['location'] ?? '') !== 'Heritage Living Center'
     || ($heritage[0]['title'] ?? '') !== 'Liturgy of the Word') {
     fwrite(STDERR, "Pre-save normalizer regression: Heritage duplicate was not collapsed before review save.\n");
+    exit(1);
+}
+
+$normalizer_preserve = CBP_Weekly_Normalizer::normalize(array(
+    'bulletin_date' => '2026-10-11',
+    'week_start' => '2026-10-12',
+    'week_end' => '2026-10-18',
+    'weekly' => array(
+        'masses' => array(
+            array('date' => '2026-10-14', 'time' => '10:00 AM', 'location' => 'Heritage Senior Living Center', 'title' => 'Liturgy of the Word', 'description' => ''),
+        ),
+        'devotions' => array(),
+        'events' => array(
+            array('date' => '2026-10-14', 'time' => '10:00 AM', 'location' => '', 'title' => 'Heritage Living Center: 10:00 am', 'description' => 'Heritage Living Center: 10:00 am - volunteers meet in lobby'),
+        ),
+        'livestream' => array(),
+    ),
+    'source_lines' => array(),
+), '');
+$preserved_heritage_detail = array_values(array_filter(
+    $normalizer_preserve['weekly']['events'] ?? array(),
+    function ($row) {
+        return stripos((string) ($row['description'] ?? ''), 'volunteers meet in lobby') !== false;
+    }
+));
+if (count($preserved_heritage_detail) !== 1) {
+    fwrite(STDERR, "Pre-save normalizer regression: independent Heritage event detail was removed.\n");
     exit(1);
 }
 
