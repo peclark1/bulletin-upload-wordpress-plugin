@@ -33,7 +33,7 @@ final class CBP_Schedule_V7
 
     public function postprocess_review()
     {
-        if (! is_admin() || ! current_user_can('manage_options')) {
+        if (! CBP_Parser_Context::allows_legacy_postprocess()) {
             return;
         }
         $action = isset($_REQUEST['action']) ? sanitize_key(wp_unslash($_REQUEST['action'])) : '';
