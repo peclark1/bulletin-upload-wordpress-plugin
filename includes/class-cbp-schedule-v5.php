@@ -115,8 +115,14 @@ final class CBP_Schedule_V5
 
         set_transient($this->review_key(), $final, self::REVIEW_TTL);
 
-        // Prevent the same legacy stages from running a second time during PHP
-        // shutdown. The finalized review is now authoritative for this request.
+        // The legacy V6-V33 repair classes are also registered on PHP shutdown.
+        // We just ran them synchronously above, so remove those shutdown hooks
+        // now; otherwise they would mutate the already-finalized review a second
+        // time after the response has been prepared.
+        $this->unregister_legacy_shutdown_postprocessors();
+
+        // Leave a non-matching action marker as a second guard for any future
+        // postprocessor that checks the request action before doing work.
         $_REQUEST['action'] = 'cbp_extract_schedule_finalized';
 
         $this->redirect('success', __('Website information extracted. Review every proposed item before approving it.', 'church-bulletin-publisher'));
@@ -355,6 +361,52 @@ final class CBP_Schedule_V5
             $instance = $class::instance();
             $instance->postprocess_review();
         }
+    }
+
+    private function unregister_legacy_shutdown_postprocessors()
+    {
+        foreach ($this->legacy_postprocessor_priorities() as $version => $priority) {
+            $class = 'CBP_Schedule_V' . $version;
+            if (! class_exists($class) || ! method_exists($class, 'postprocess_review')) {
+                continue;
+            }
+
+            $instance = $class::instance();
+            remove_action('shutdown', array($instance, 'postprocess_review'), $priority);
+        }
+    }
+
+    private function legacy_postprocessor_priorities()
+    {
+        return array(
+            6 => 10,
+            7 => 10,
+            8 => 10,
+            9 => 10,
+            10 => 10,
+            12 => 40,
+            13 => 60,
+            14 => 80,
+            15 => 100,
+            16 => 120,
+            17 => 140,
+            18 => 160,
+            19 => 180,
+            20 => 200,
+            21 => 220,
+            22 => 230,
+            23 => 240,
+            24 => 250,
+            25 => 260,
+            26 => 270,
+            27 => 280,
+            28 => 290,
+            29 => 300,
+            30 => 310,
+            31 => 320,
+            32 => 330,
+            33 => 340,
+        );
     }
 
     private function valid_date($date)

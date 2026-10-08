@@ -565,6 +565,37 @@ if (count($soup) !== 1
     exit(1);
 }
 
+// Test67 guard: once the synchronous V6-V33 repair stages have run, V5 must
+// unregister their shutdown hooks so finalized review data cannot be mutated a
+// second time after the response is prepared.
+$GLOBALS['cbp_regression_removed_actions'] = array();
+$v5_for_unhook = CBP_Schedule_V5::instance();
+$unregister = new ReflectionMethod($v5_for_unhook, 'unregister_legacy_shutdown_postprocessors');
+$unregister->setAccessible(true);
+$unregister->invoke($v5_for_unhook);
+
+$removed_shutdown = array_values(array_filter(
+    $GLOBALS['cbp_regression_removed_actions'],
+    function ($row) {
+        return is_array($row) && ($row['hook'] ?? '') === 'shutdown';
+    }
+));
+if (count($removed_shutdown) !== 27) {
+    fwrite(STDERR, "Test67 regression: expected 27 legacy shutdown hooks to be removed, got " . count($removed_shutdown) . ".\n");
+    exit(1);
+}
+
+$removed_priorities = array_map(function ($row) {
+    return (int) ($row['priority'] ?? -1);
+}, $removed_shutdown);
+$expected_priorities = array(
+    10,10,10,10,10,40,60,80,100,120,140,160,180,200,220,230,240,250,260,270,280,290,300,310,320,330,340
+);
+if ($removed_priorities !== $expected_priorities) {
+    fwrite(STDERR, "Test67 regression: legacy shutdown hook priorities did not match production registration order.\n");
+    exit(1);
+}
+
 $display_reflection = new ReflectionClass('CBP_Site_Displays');
 $display = $display_reflection->getMethod('instance')->invoke(null);
 $event_note = $display_reflection->getMethod('event_note');
