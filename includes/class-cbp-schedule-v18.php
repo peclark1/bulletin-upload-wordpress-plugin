@@ -37,7 +37,7 @@ final class CBP_Schedule_V18
 
     public function postprocess_review()
     {
-        if (! is_admin() || ! current_user_can('manage_options')) {
+        if (! CBP_Parser_Context::allows_legacy_postprocess()) {
             return;
         }
 

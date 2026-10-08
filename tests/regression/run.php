@@ -16,6 +16,7 @@ $root = dirname(__DIR__, 2);
 require $root . '/tests/regression/wp-stubs.php';
 require $root . '/vendor/autoload.php';
 require $root . '/includes/class-cbp-schedule.php';
+require $root . '/includes/class-cbp-parser-context.php';
 require $root . '/includes/class-cbp-weekly-normalizer.php';
 require $root . '/includes/class-cbp-site-displays.php';
 require $root . '/includes/class-cbp-home-schedule.php';
@@ -55,6 +56,27 @@ usort($version_files, function ($a, $b) {
 foreach ($version_files as $file) {
     require_once $file;
 }
+
+// Trusted parser context guard: REST requests are not wp-admin, but the
+// legacy repair stages must still run when invoked by the authenticated
+// production parser pipeline. Outside that explicit context they must remain
+// blocked.
+$GLOBALS['cbp_regression_is_admin'] = false;
+if (CBP_Parser_Context::allows_legacy_postprocess()) {
+    fwrite(STDERR, "Parser context regression: REST request was allowed outside trusted extraction context.\n");
+    exit(1);
+}
+CBP_Parser_Context::begin_internal_extraction();
+if (! CBP_Parser_Context::allows_legacy_postprocess()) {
+    fwrite(STDERR, "Parser context regression: trusted REST extraction was not allowed.\n");
+    exit(1);
+}
+CBP_Parser_Context::end_internal_extraction();
+if (CBP_Parser_Context::allows_legacy_postprocess()) {
+    fwrite(STDERR, "Parser context regression: trusted REST context did not close cleanly.\n");
+    exit(1);
+}
+$GLOBALS['cbp_regression_is_admin'] = true;
 
 // Agent/API contract guards. The browser and API must share the same
 // production extraction method, and every Bulletin Publisher ability intended
@@ -857,12 +879,23 @@ function cbp_extract_fixture($pdf, $bulletin_date, array $current_schedule)
     // complete result before the review is exposed.
     $GLOBALS['cbp_regression_transients'][$review_key] = $parsed;
     $_REQUEST['action'] = 'cbp_extract_schedule';
-    foreach (range(6, 33) as $version) {
-        $class = 'CBP_Schedule_V' . $version;
-        if (! class_exists($class) || ! method_exists($class, 'postprocess_review')) {
-            continue;
+
+    // Exercise the same trusted internal context used by REST/MCP extraction:
+    // the request itself is not wp-admin, but the parser is deliberately
+    // invoking the historical repair stages for an administrator.
+    $GLOBALS['cbp_regression_is_admin'] = false;
+    CBP_Parser_Context::begin_internal_extraction();
+    try {
+        foreach (range(6, 33) as $version) {
+            $class = 'CBP_Schedule_V' . $version;
+            if (! class_exists($class) || ! method_exists($class, 'postprocess_review')) {
+                continue;
+            }
+            $class::instance()->postprocess_review();
         }
-        $class::instance()->postprocess_review();
+    } finally {
+        CBP_Parser_Context::end_internal_extraction();
+        $GLOBALS['cbp_regression_is_admin'] = true;
     }
 
     $parsed = get_transient($review_key);
