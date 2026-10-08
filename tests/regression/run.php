@@ -436,6 +436,40 @@ if (class_exists('CBP_Schedule_V35')) {
     }
 }
 
+if (class_exists('CBP_Schedule_V36')) {
+    $v36 = CBP_Schedule_V36::instance();
+    $dedupe_location_title = new ReflectionMethod($v36, 'remove_location_title_duplicates');
+    $dedupe_location_title->setAccessible(true);
+
+    $rows = $dedupe_location_title->invoke($v36, array(
+        array('date' => '2026-10-14', 'time' => '10:00 AM', 'location' => '', 'title' => 'Heritage Living Center', 'description' => ''),
+        array('date' => '2026-10-14', 'time' => '10:00 AM', 'location' => 'Heritage Living Center', 'title' => 'Liturgy of the Word', 'description' => ''),
+        array('date' => '2026-10-14', 'time' => '1:00 PM', 'location' => 'St. Peter', 'title' => 'Faith Formation Grades 1 - 6', 'description' => ''),
+    ));
+    if (count($rows) !== 2) {
+        fwrite(STDERR, "V36 regression: blank-location location-as-title duplicate was not removed.\n");
+        exit(1);
+    }
+    foreach ($rows as $row) {
+        if (($row['date'] ?? '') === '2026-10-14'
+            && ($row['time'] ?? '') === '10:00 AM'
+            && ($row['location'] ?? '') === ''
+            && ($row['title'] ?? '') === 'Heritage Living Center') {
+            fwrite(STDERR, "V36 regression: malformed Heritage companion row survived.\n");
+            exit(1);
+        }
+    }
+
+    $preserved = $dedupe_location_title->invoke($v36, array(
+        array('date' => '2026-10-14', 'time' => '10:00 AM', 'location' => '', 'title' => 'Heritage Living Center', 'description' => 'Independent outreach meeting'),
+        array('date' => '2026-10-14', 'time' => '10:00 AM', 'location' => 'Heritage Living Center', 'title' => 'Liturgy of the Word', 'description' => ''),
+    ));
+    if (count($preserved) !== 2) {
+        fwrite(STDERR, "V36 regression: a same-name row with independent details was removed too aggressively.\n");
+        exit(1);
+    }
+}
+
 $display_reflection = new ReflectionClass('CBP_Site_Displays');
 $display = $display_reflection->getMethod('instance')->invoke(null);
 $event_note = $display_reflection->getMethod('event_note');
