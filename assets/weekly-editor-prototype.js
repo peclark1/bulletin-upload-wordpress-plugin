@@ -95,8 +95,12 @@
         return (hour * 60) + minute;
     }
 
-    function sortedIndexedItems() {
-        return items.map((item, index) => ({ item, index })).sort((a, b) => {
+    function indexedItems() {
+        return items.map((item, index) => ({ item, index }));
+    }
+
+    function sortedMassItems(indexed) {
+        return indexed.filter((entry) => massTypes.has(entry.item.type)).sort((a, b) => {
             const dateCompare = String(a.item.date).localeCompare(String(b.item.date));
             if (dateCompare !== 0) {
                 return dateCompare;
@@ -240,7 +244,7 @@
     function renderMassSchedule(indexed) {
         massScheduleEl.innerHTML = '';
 
-        indexed.filter((entry) => massTypes.has(entry.item.type)).forEach((entry) => {
+        sortedMassItems(indexed).forEach((entry) => {
             const item = entry.item;
             const button = document.createElement('button');
             button.type = 'button';
@@ -332,7 +336,7 @@
             }
             if (adoration.length >= 2) {
                 const second = adoration[1].item;
-                prose += ' and ' + dayName(second.date) + 's from ' + formatCalendarTime(second.time);
+                prose += ' and ' + dayName(second.date) + 's from ' + formatCalendarTime(second.time).replace(' – ', ' to ');
             }
             prose += '.';
             adorationLine.appendChild(document.createTextNode(prose));
@@ -408,7 +412,7 @@
     }
 
     function render() {
-        const indexed = sortedIndexedItems();
+        const indexed = indexedItems();
         renderMassSchedule(indexed);
         renderSummaryLines(indexed);
         renderCalendar(indexed);
