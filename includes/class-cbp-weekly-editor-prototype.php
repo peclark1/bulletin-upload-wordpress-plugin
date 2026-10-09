@@ -67,6 +67,7 @@ final class CBP_Weekly_Editor_Prototype
             'cbpWeeklyPrototype',
             array(
                 'weekLabel' => 'October 12–18, 2026',
+                'bulletinDate' => 'October 11, 2026',
                 'weekStart' => '2026-10-12',
                 'days' => $this->days(),
                 'items' => $this->items(),
@@ -99,8 +100,8 @@ final class CBP_Weekly_Editor_Prototype
         <div class="wrap cbp-weekly-prototype-wrap">
             <div class="cbp-proto-title-row">
                 <div>
-                    <h1><?php esc_html_e('Weekly Bulletin Schedule', 'church-bulletin-publisher'); ?></h1>
-                    <p class="description"><?php esc_html_e('Visual prototype — designed to feel like editing the bulletin, while keeping the schedule structured.', 'church-bulletin-publisher'); ?></p>
+                    <h1><?php esc_html_e('Weekly Bulletin Section', 'church-bulletin-publisher'); ?></h1>
+                    <p class="description"><?php esc_html_e('Prototype v2 — modeled directly on the schedule section Lynn already edits in Word.', 'church-bulletin-publisher'); ?></p>
                 </div>
                 <span class="cbp-proto-badge"><?php esc_html_e('Prototype only', 'church-bulletin-publisher'); ?></span>
             </div>
@@ -126,27 +127,31 @@ final class CBP_Weekly_Editor_Prototype
             </div>
 
             <div class="cbp-proto-help" id="cbp-proto-help">
-                <?php esc_html_e('Click any bulletin line to edit it. Hover between days to add another item.', 'church-bulletin-publisher'); ?>
+                <?php esc_html_e('The white page now mirrors the bulletin layout. Click a Mass or calendar line to edit its structured information.', 'church-bulletin-publisher'); ?>
             </div>
 
             <div class="cbp-proto-workspace">
                 <main class="cbp-proto-paper" aria-label="<?php esc_attr_e('Bulletin schedule preview', 'church-bulletin-publisher'); ?>">
-                    <div class="cbp-proto-paper-heading">
-                        <div class="cbp-proto-parish-name"><?php esc_html_e('St. Peter the Apostle & St. Mary’s Two Inlets', 'church-bulletin-publisher'); ?></div>
-                        <div class="cbp-proto-section-title"><?php esc_html_e('This Week at the Parishes', 'church-bulletin-publisher'); ?></div>
-                        <div class="cbp-proto-week-subtitle" id="cbp-proto-paper-week"></div>
-                    </div>
-                    <div id="cbp-proto-document"></div>
+                    <div class="cbp-proto-bulletin-date" id="cbp-proto-bulletin-date"></div>
+
+                    <section class="cbp-proto-mass-box" aria-labelledby="cbp-proto-mass-heading">
+                        <div class="cbp-proto-mass-title" id="cbp-proto-mass-heading"><?php esc_html_e('This week’s Mass schedule:', 'church-bulletin-publisher'); ?></div>
+                        <div id="cbp-proto-mass-schedule"></div>
+                    </section>
+
+                    <div class="cbp-proto-summary-lines" id="cbp-proto-summary-lines"></div>
+
+                    <div class="cbp-proto-calendar" id="cbp-proto-calendar"></div>
                 </main>
 
                 <aside class="cbp-proto-side-note">
-                    <h2><?php esc_html_e('What we are testing', 'church-bulletin-publisher'); ?></h2>
-                    <p><?php esc_html_e('Does this feel more like editing a familiar bulletin than filling out a database?', 'church-bulletin-publisher'); ?></p>
+                    <h2><?php esc_html_e('Prototype v2', 'church-bulletin-publisher'); ?></h2>
+                    <p><?php esc_html_e('This version intentionally follows the real bulletin section instead of presenting a generic weekly planner.', 'church-bulletin-publisher'); ?></p>
                     <ul>
-                        <li><?php esc_html_e('Most of last week is already present.', 'church-bulletin-publisher'); ?></li>
-                        <li><?php esc_html_e('The schedule stays in chronological order automatically.', 'church-bulletin-publisher'); ?></li>
-                        <li><?php esc_html_e('Location, time, event type, and intentions remain separate structured fields.', 'church-bulletin-publisher'); ?></li>
-                        <li><?php esc_html_e('Preview hides all editing controls.', 'church-bulletin-publisher'); ?></li>
+                        <li><?php esc_html_e('Masses appear in the familiar boxed schedule.', 'church-bulletin-publisher'); ?></li>
+                        <li><?php esc_html_e('Reconciliation, Rosary and Adoration read like the bulletin prose.', 'church-bulletin-publisher'); ?></li>
+                        <li><?php esc_html_e('The parish calendar uses the same underlined day headings and SP / SM lines.', 'church-bulletin-publisher'); ?></li>
+                        <li><?php esc_html_e('The same structured item can appear in two bulletin places when appropriate, such as Liturgy of the Word.', 'church-bulletin-publisher'); ?></li>
                     </ul>
                 </aside>
             </div>
