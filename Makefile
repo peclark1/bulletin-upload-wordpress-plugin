@@ -12,9 +12,9 @@ PARISH_ZIP_PATH := ../$(PARISH_ZIP_NAME)
 
 all: plugins
 
-plugins: zip parish-forms
+plugins: zip parish-forms church-site-controls
 	@echo
-	@echo "Built both WordPress plugins."
+	@echo "Built all three WordPress plugins."
 
 info:
 	@echo "Plugin directory: $(PLUGIN_DIR)"
@@ -42,7 +42,8 @@ zip: deps
 		   "$(PLUGIN_DIR)/.DS_Store" \
 		   "$(PLUGIN_DIR)/Thumbs.db" \
 		   "$(PLUGIN_DIR)/composer.lock" \
-		   "$(PLUGIN_DIR)/parish-forms/*"
+		   "$(PLUGIN_DIR)/parish-forms/*" \
+		   "$(PLUGIN_DIR)/church-site-controls/*"
 	@echo
 	@echo "Built: $(ZIP_PATH)"
 
@@ -64,5 +65,18 @@ test-parish-forms:
 	@command -v node >/dev/null 2>&1 && node --check parish-forms/assets/frontend.js && node --check parish-forms/assets/form-editor.js || true
 
 clean:
-	@rm -f "$(ZIP_PATH)" "$(PARISH_ZIP_PATH)"
+	@rm -f "$(ZIP_PATH)" "$(PARISH_ZIP_PATH)" "$(CSC_ZIP_PATH)"
 	@echo "Removed: $(ZIP_PATH) and $(PARISH_ZIP_PATH)"
+
+CSC_VERSION := $(shell sed -n 's/^[[:space:]]*\* Version:[[:space:]]*//p' church-site-controls/church-site-controls.php | head -n 1)
+CSC_ZIP_PATH := ../church-site-controls-$(CSC_VERSION).zip
+.PHONY: church-site-controls test-church-site-controls
+church-site-controls:
+	@test -n "$(CSC_VERSION)"
+	@rm -f "$(CSC_ZIP_PATH)"
+	@zip -qr "$(CSC_ZIP_PATH)" church-site-controls -x 'church-site-controls/tests/*'
+	@echo "Built: $(CSC_ZIP_PATH)"
+
+test-church-site-controls:
+	@find church-site-controls -name '*.php' -print0 | xargs -0 -n1 php -l
+	@php church-site-controls/tests/run.php

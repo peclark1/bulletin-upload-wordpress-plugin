@@ -1,6 +1,8 @@
 # Church Bulletin Publisher
 
-This repository also contains the separately installable **Parish Forms** companion plugin. See `parish-forms/README.md`. Run `make` to build both WordPress plugins, or `make parish-forms` to build Parish Forms by itself.
+Experimental **Church Site Controls** is separately packaged under `church-site-controls/`. See its README for staging-only appearance inspection, guarded hero edits, undo, and integration limitations.
+
+This repository also contains the separately installable **Parish Forms** companion plugin. See `parish-forms/README.md`. Run `make` to build all WordPress plugins, or `make parish-forms` to build Parish Forms by itself.
 
 A small WordPress plugin for assembling weekly church bulletins without giving the secretary WordPress or hosting access.
 
