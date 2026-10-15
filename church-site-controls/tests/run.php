@@ -163,11 +163,26 @@ check(call_csc('inspect-header')['supported']===false,'non-Kadence theme refused
 $GLOBALS['template']='kadence'; $GLOBALS['option_type']='theme_mod';
 $GLOBALS['mods']['header_sticky_background']=array('desktop'=>array('color'=>'#ffffff'));
 $GLOBALS['mods']['footer_middle_background']=array('desktop'=>array('color'=>'#eeeeee'));
+$GLOBALS['mods']['footer_bottom_background']=array('desktop'=>array('color'=>'#eeeeee'));
+$GLOBALS['mods']['footer_wrap_background']=array('desktop'=>array('color'=>'#eeeeee'));
+$GLOBALS['mods']['header_main_background']=array('desktop'=>array('color'=>'#ffffff'));
+$GLOBALS['mods']['header_main_height']=array('size'=>array('desktop'=>80));
 $GLOBALS['options']['theme_mods_kadence']=array('unrelated'=>array('keep'=>'yes'));
 $initial=$GLOBALS['options']['theme_mods_kadence'];
 $global=call_csc('inspect-global');
 check(count($global['fields'])>=6 && !$global['fields']['header.sticky_background_desktop']['stored_present'],'allowlisted target matrix and absent override');
 check(error_is(call_csc('update-global',array('target'=>'header.sticky_background_desktop','value'=>'red','expected_revision'=>$global['expected_revision'])),'csc_invalid_value'),'invalid global color refused');
+check(error_is(call_csc('update-global',array('target'=>'header.sticky_background_desktop','value'=>'#ffffff','expected_revision'=>str_repeat('0',64))),'csc_stale_revision'),'stale global input refused before write');
+$GLOBALS['url']='https://stpeterpr.org';
+check(error_is(call_csc('inspect-global'),'csc_wrong_site'),'global read blocked outside staging');
+$GLOBALS['url']='https://stpeterpr.org/design-demo';
+foreach (array('header.main_background_desktop'=>'#123456','header.main_height_desktop'=>90,'footer.bottom_background_desktop'=>'#123456','footer.wrap_background_desktop'=>'#123456') as $field=>$value) {
+    $before=call_csc('inspect-global');
+    $changed=call_csc('update-global',array('target'=>$field,'value'=>$value,'expected_revision'=>$before['expected_revision']));
+    check(!is_wp_error($changed) && $changed['readback']['fields'][$field]['stored']===$value,'reusable field '.$field);
+    $restored=call_csc('undo',array('change_id'=>$changed['change']['change_id'],'expected_revision'=>$changed['readback']['expected_revision']));
+    check(!is_wp_error($restored) && $GLOBALS['options']['theme_mods_kadence']===$initial,'exact per-field undo '.$field);
+}
 $hargs=array('target'=>'header.sticky_background_desktop','value'=>'#234567','expected_revision'=>$global['expected_revision']);
 $GLOBALS['wpdb']->race=true;
 check(error_is(call_csc('update-global',$hargs),'csc_conflict'),'theme CAS refuses concurrent option edit');

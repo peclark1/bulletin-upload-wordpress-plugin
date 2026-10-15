@@ -21,6 +21,12 @@ final class CSC_Global {
         }
         return true;
     }
+    private static function valid_mapping($definition) {
+        if (apply_filters('kadence_settings_key_custom_mapping','',$definition['key'])) {
+            return new WP_Error('csc_custom_storage','This Kadence setting has custom storage and cannot be edited as a theme mod.');
+        }
+        return true;
+    }
     private static function raw() { return get_option(self::OPTION, array()); }
     private static function revision($raw) { return hash('sha256', CSC_Controls::SITE . ':' . self::OPTION . ':' . serialize($raw)); }
     private static function at($raw, $definition) {
@@ -70,10 +76,12 @@ final class CSC_Global {
         $fields=array();
         foreach ($defs as $name=>$def) {
             if ($target!==null && $target!==$name) { continue; }
+            $mapped=self::valid_mapping($def);
             list($present,$stored)=self::at($raw,$def);
             $effective=\Kadence\kadence()->option($def['key'], null);
             $fields[$name]=array('type'=>$def['type'],'range'=>isset($def['min'])?array($def['min'],$def['max']):null,
                 'storage'=>self::OPTION.'.'.$def['key'].'.'.implode('.',$def['path']),
+                'editable'=>!is_wp_error($mapped) && self::at(array($def['key']=>$effective),$def)[0],
                 'stored_present'=>$present,'stored'=>$stored,'effective_option'=>$effective);
         }
         return array('theme_version'=>wp_get_theme()->get('Version'),'expected_revision'=>self::revision($raw),'fields'=>$fields);
@@ -95,6 +103,7 @@ final class CSC_Global {
         if (!is_string($target) || !isset($defs[$target])) { return new WP_Error('csc_invalid_field','Unsupported target.'); }
         $def=$defs[$target]; if (!self::validate($def,$args['value'])) { return new WP_Error('csc_invalid_value','Value does not match field schema.'); }
         $ok=self::valid_site(); if (is_wp_error($ok)) { return $ok; }
+        $ok=self::valid_mapping($def); if (is_wp_error($ok)) { return $ok; }
         $old=self::raw(); if (!is_array($old)) { return new WP_Error('csc_bad_storage','Unexpected Kadence theme mods.'); }
         if (!hash_equals(self::revision($old),$args['expected_revision'])) { return new WP_Error('csc_stale_revision','Theme settings changed; inspect again.'); }
         $effective=\Kadence\kadence()->option($def['key'],null);
@@ -113,6 +122,7 @@ final class CSC_Global {
     public static function undo($record,$expected_revision) {
         $defs=self::definitions(); $target=$record['target']; if (!isset($defs[$target])) { return new WP_Error('csc_invalid_field','Unsupported historical field.'); }
         $ok=self::valid_site(); if (is_wp_error($ok)) { return $ok; }
+        $ok=self::valid_mapping($defs[$target]); if (is_wp_error($ok)) { return $ok; }
         $old=self::raw(); if (!is_array($old)) { return new WP_Error('csc_bad_storage','Unexpected Kadence theme mods.'); }
         if (!hash_equals(self::revision($old),$expected_revision)) { return new WP_Error('csc_stale_revision','Theme settings changed; inspect again.'); }
         if ($record['status']==='prepared' && !hash_equals(self::revision($old),$record['after_revision'])) {
