@@ -1,4 +1,4 @@
-# Church Site Controls 0.2.0 — experimental staging build
+# Church Site Controls 0.2.1 — experimental staging build
 
 ## v0.2 global editors
 
@@ -44,7 +44,7 @@ approved media asset and safe content adapter are verified.
 
 Before global staging edits, confirm a restorable database/site snapshot.
 Build `make church-site-controls`; save the 0.1.0 ZIP for plugin rollback.
-Install 0.2.0 by replacing the existing Church Site Controls plugin, verify it
+Install 0.2.1 by replacing the existing Church Site Controls plugin, verify it
 is active, then discover and grant the four named MCP abilities only with user
 approval. Inspect fresh revisions after installation; test each change in the
 browser (desktop/mobile and scroll state) and undo diagnostics independently.
@@ -142,7 +142,7 @@ make church-site-controls
 make plugins
 ```
 
-Install `../church-site-controls-0.2.0.zip` through **staging** Plugins → Add New →
+Install `../church-site-controls-0.2.1.zip` through **staging** Plugins → Add New →
 Upload Plugin, then activate. Do not replace Bulletin Publisher or Parish Forms.
 `make plugins` builds all three separately; CI runs all suites and uploads each
 ZIP. The tests use the observed Home Cover markup plus isolated WordPress/DB
