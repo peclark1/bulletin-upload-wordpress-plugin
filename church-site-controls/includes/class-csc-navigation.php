@@ -11,7 +11,7 @@ final class CSC_Navigation {
         $locations=array(); foreach (get_nav_menu_locations() as $location=>$menu_id) { if ((int)$menu_id===$menu) { $locations[]=$location; } }
         if (!$locations) { return new WP_Error('csc_inactive_menu','Item is not in an assigned menu.'); }
         $data=array('item_id'=>$id,'menu_id'=>$menu,'locations'=>$locations,'type'=>$item->type,'object'=>$item->object,'object_id'=>(int)$item->object_id,
-            'parent_id'=>(int)$item->menu_item_parent,'order'=>(int)$item->menu_order,'label'=>$item->title,'url'=>$item->url,
+            'parent_id'=>(int)$item->menu_item_parent,'order'=>(int)$item->menu_order,'label'=>html_entity_decode($item->title, ENT_QUOTES | ENT_HTML5, 'UTF-8'),'url'=>$item->url,
             'target'=>$item->target,'attr_title'=>$item->attr_title,'description'=>$item->description,'classes'=>array_values((array)$item->classes),'xfn'=>$item->xfn);
         $data['expected_revision']=hash('sha256',CSC_Controls::SITE.':nav:'.serialize($data));
         return $data;
@@ -29,7 +29,7 @@ final class CSC_Navigation {
             'menu-item-url'=>$field==='url'?$value:$item['url'],'menu-item-status'=>'publish','menu-item-type'=>$item['type'],
             'menu-item-object'=>$item['object'],'menu-item-object-id'=>$item['object_id'],'menu-item-parent-id'=>$item['parent_id'],
             'menu-item-position'=>$item['order'],'menu-item-target'=>$item['target'],'menu-item-description'=>$item['description'],
-            'menu-item-classes'=>$item['classes'],'menu-item-xfn'=>$item['xfn']);
+            'menu-item-classes'=>implode(' ', $item['classes']),'menu-item-xfn'=>$item['xfn']);
         return wp_update_nav_menu_item($item['menu_id'],$item['item_id'],$args);
     }
     public static function update($args) {
