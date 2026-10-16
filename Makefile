@@ -12,9 +12,9 @@ PARISH_ZIP_PATH := ../$(PARISH_ZIP_NAME)
 
 all: plugins
 
-plugins: zip parish-forms church-site-controls
+plugins: zip parish-forms church-site-controls church-plugin-deployer
 	@echo
-	@echo "Built all three WordPress plugins."
+	@echo "Built all four WordPress plugins."
 
 info:
 	@echo "Plugin directory: $(PLUGIN_DIR)"
@@ -65,7 +65,7 @@ test-parish-forms:
 	@command -v node >/dev/null 2>&1 && node --check parish-forms/assets/frontend.js && node --check parish-forms/assets/form-editor.js || true
 
 clean:
-	@rm -f "$(ZIP_PATH)" "$(PARISH_ZIP_PATH)" "$(CSC_ZIP_PATH)"
+	@rm -f "$(ZIP_PATH)" "$(PARISH_ZIP_PATH)" "$(CSC_ZIP_PATH)" "$(CPD_ZIP_PATH)"
 	@echo "Removed: $(ZIP_PATH) and $(PARISH_ZIP_PATH)"
 
 CSC_VERSION := $(shell sed -n 's/^[[:space:]]*\* Version:[[:space:]]*//p' church-site-controls/church-site-controls.php | head -n 1)
@@ -80,3 +80,16 @@ church-site-controls:
 test-church-site-controls:
 	@find church-site-controls -name '*.php' -print0 | xargs -0 -n1 php -l
 	@php church-site-controls/tests/run.php
+
+CPD_VERSION := $(shell sed -n 's/^[[:space:]]*\* Version:[[:space:]]*//p' church-plugin-deployer/church-plugin-deployer.php | head -n 1)
+CPD_ZIP_PATH := ../church-plugin-deployer-$(CPD_VERSION).zip
+.PHONY: church-plugin-deployer test-church-plugin-deployer
+church-plugin-deployer:
+	@test -n "$(CPD_VERSION)"
+	@rm -f "$(CPD_ZIP_PATH)"
+	@zip -qr "$(CPD_ZIP_PATH)" church-plugin-deployer -x 'church-plugin-deployer/tests/*'
+	@echo "Built: $(CPD_ZIP_PATH)"
+
+test-church-plugin-deployer:
+	@find church-plugin-deployer -name '*.php' -print0 | xargs -0 -n1 php -l
+	@php church-plugin-deployer/tests/run.php
