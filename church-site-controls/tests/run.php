@@ -233,4 +233,17 @@ check(!is_wp_error($clear_undo) && $clear_undo['readback']['attr_title']==="St. 
 $attr_undo=call_csc('undo',array('change_id'=>$attr['change']['change_id'],'expected_revision'=>$clear_undo['readback']['expected_revision']));
 check(!is_wp_error($attr_undo) && $attr_undo['readback']['attr_title']==='' && $GLOBALS['menu_item']->post_excerpt==='','undo restores originally blank title attribute');
 check($attr_undo['readback']['label']===$nav['label'] && $attr_undo['readback']['url']===$nav['url'],'attribute editing preserves label and destination');
+
+$css=file_get_contents(__DIR__.'/../assets/mega-navigation.css');
+check(strpos($css,'@media (min-width: 1025px)')!==false &&
+    strpos($css,'.primary-menu-container.csc-mega-ready > ul.menu > li.menu-item-has-children > a .dropdown-nav-toggle')!==false,
+    'desktop chevron suppressed only after mega enhancement initializes');
+check(strpos($css,'#mobile-drawer .drawer-inner')!==false &&
+    strpos($css,'#mobile-drawer .mobile-navigation button')!==false,
+    'native mobile drawer disclosures and scrolling styles preserved');
+$js=file_get_contents(__DIR__.'/../assets/mega-navigation.js');
+check(strpos($js,"nav.classList.add('csc-mega-ready')")!==false &&
+    strpos($js,"window.matchMedia('(min-width: 1025px)')")!==false,
+    'JS readiness marker and desktop-only breakpoint remain aligned with chevron CSS');
+
 echo "$count tests passed. Local fakes only; live MCP verification remains separate.\n";
