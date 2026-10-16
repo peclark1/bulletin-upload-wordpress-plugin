@@ -19,7 +19,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-          extensions: xml, mbstring, zlib, iconv
+          extensions: xml, mbstring, zlib, iconv, zip
           tools: composer:v2
 
       - name: Install production dependencies
@@ -49,6 +49,9 @@ jobs:
           make test-church-site-controls
           node --check church-site-controls/assets/mega-navigation.js
 
+      - name: Run Church Plugin Deployer tests
+        run: make test-church-plugin-deployer
+
       - name: Build all plugin ZIPs
         id: build
         run: |
@@ -60,6 +63,7 @@ jobs:
           PARISH_ZIP_NAME="parish-forms-${PARISH_VERSION}.zip"
           cp "../${PARISH_ZIP_NAME}" "./${PARISH_ZIP_NAME}"
           cp ../church-site-controls-*.zip .
+          cp ../church-plugin-deployer-*.zip .
           echo "zip_name=${ZIP_NAME}" >> "$GITHUB_OUTPUT"
           echo "parish_zip_name=${PARISH_ZIP_NAME}" >> "$GITHUB_OUTPUT"
 
@@ -75,6 +79,13 @@ jobs:
         with:
           name: ${{ steps.build.outputs.parish_zip_name }}
           path: ${{ steps.build.outputs.parish_zip_name }}
+          if-no-files-found: error
+
+      - name: Upload Church Plugin Deployer ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: church-plugin-deployer
+          path: church-plugin-deployer-*.zip
           if-no-files-found: error
 
       - name: Upload Church Site Controls ZIP
