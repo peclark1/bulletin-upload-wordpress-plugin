@@ -1,8 +1,10 @@
-# Church Site Controls v0.3.0 — experimental navigation prototype
+# Church Site Controls v0.3.1 — experimental navigation prototype
 
 Built from the v0.2.2 staging plugin. Adds *progressive* navigation on `/design-demo` only; no classic menu item data is modified.
 
 ## Desktop
+- Warm ivory (#f7f5ef) navigation panel, navy (#213b5c) text, and gold (#c49b45) separators distinguish the expanded menu from the blue header.
+- Menu labels are extracted without Kadence's nested screen-reader \"Expand\" controls (fixes \"GETTING STARTEDEXPAND\").
 - Mouse hover over Worship / Parish Life / About opens the entire section as a stable panel, not cascading flyouts.
 - Top-level click toggles the panel; Escape, outside click, or leaving nav/panel for 260ms closes it.
 - Current classic menu subitems and links are reused, grouping nested children into columns.

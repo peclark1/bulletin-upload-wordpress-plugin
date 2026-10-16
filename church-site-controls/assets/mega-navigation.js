@@ -25,10 +25,18 @@
   let active = null;
   let closeTimer = null;
   const cancelClose = () => { window.clearTimeout(closeTimer); closeTimer = null; };
+  // Kadence appends toggle buttons, icon labels and screen-reader "Expand" text
+  // inside some menu anchors. Clone only for display-label extraction so the
+  // original navigation and accessible controls remain intact.
+  const displayLabel = anchor => {
+    const copy = anchor.cloneNode(true);
+    copy.querySelectorAll('button, .dropdown-nav-toggle, .menu-item-dropdown-toggle, .screen-reader-text, [aria-hidden="true"], svg').forEach(el => el.remove());
+    return copy.textContent.replace(/\\s+/g, ' ').trim();
+  };
   const linkFrom = (anchor, className) => {
     const el = document.createElement('a');
     el.className = className;
-    el.textContent = anchor.textContent.trim();
+    el.textContent = displayLabel(anchor);
     el.href = anchor.href;
     if (anchor.target) el.target = anchor.target;
     if (anchor.rel) el.rel = anchor.rel;
@@ -94,7 +102,8 @@
     const header = document.querySelector('#masthead') || document.querySelector('.site-header') || nav;
     const rect = header.getBoundingClientRect();
     // Position at bottom of visible header (sticky and non-sticky).
-    const bottom = Math.min(window.innerHeight - 60, Math.max(0, rect.bottom));
+    // Overlap by 2px to prevent underlying hero text peeking through at the seam.
+    const bottom = Math.min(window.innerHeight - 60, Math.max(0, rect.bottom - 2));
     panel.style.top = bottom + 'px';
     panel.style.setProperty('--csc-mega-room', Math.max(170, window.innerHeight - bottom - 12) + 'px');
   }
