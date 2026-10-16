@@ -262,8 +262,25 @@ final class CPD_Package {
             'backup_size_bytes'=>$backupResult['size'],'approval_token'=>$token,
             'expires_in_seconds'=>CPD::TTL,'note'=>'Preparation does NOT install. Deploy separately with the one-time token after approval.');
     }
+    /**
+     * Legacy internal token path, not exposed as an MCP ability in v0.2.
+     * Both entry points call the same guarded, audited WordPress updater.
+     */
     public static function deploy($token) {
-        $name=CPD::STATE_PREFIX.hash('sha256',$token);
+        if (!is_string($token) || !preg_match('/\\A[a-f0-9]{48}\\z/', $token)) {
+            return self::fail('approval','Invalid prepared authorization.');
+        }
+        return self::deploy_record(CPD::STATE_PREFIX.hash('sha256',$token));
+    }
+    public static function deploy_prepared($name) {
+        if (!is_string($name) || !preg_match('/\\Acpd_ready_[a-f0-9]{64}\\z/', $name)) {
+            return self::fail('approval','Invalid prepared deployment record.');
+        }
+        return self::deploy_record($name);
+    }
+    private static function deploy_record($name) {
+        $ok=CPD::guard();
+        if (is_wp_error($ok)) { return $ok; }
         $record=get_option($name,false);
         if (!is_array($record) || ($record['status']??'')!=='ready' || ($record['expires']??0)<time() ||
             ($record['prepared_by']??0)!==get_current_user_id()) {

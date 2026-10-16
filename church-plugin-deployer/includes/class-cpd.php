@@ -4,7 +4,7 @@
  * Do not expose arbitrary URLs, plugin paths, branch filters, or credentials.
  */
 final class CPD {
-    const VERSION = '0.1.0';
+    const VERSION = '0.2.0';
     const SITE = 'https://stpeterpr.org/design-demo';
     const REPO = 'peclark1/bulletin-upload-wordpress-plugin';
     const WORKFLOW = '.github/workflows/build-test.yml';
@@ -38,7 +38,7 @@ final class CPD {
     public static function permission() {
         return current_user_can('manage_options') && current_user_can('install_plugins') && current_user_can('update_plugins');
     }
-    private static function guard() {
+    public static function guard() {
         if (!self::permission()) { return new WP_Error('cpd_forbidden','Administrator plugin-install and plugin-update privileges are required.'); }
         if (untrailingslashit(home_url()) !== self::SITE || untrailingslashit(site_url()) !== self::SITE) {
             return new WP_Error('cpd_wrong_site','This plugin runs only on the /design-demo WordPress installation.');
@@ -56,7 +56,6 @@ final class CPD {
         $fields=array(
             'inspect'=>array('description'=>'Inspect allowed staging plugins and deployment prerequisites; no changes.','props'=>array(),'required'=>array(),'readonly'=>true),
             'prepare'=>array('description'=>'Validate one successful GitHub Actions artifact and create a private rollback snapshot; never installs.','props'=>array('plugin'=>array('type'=>'string','enum'=>array_keys(self::targets())),'run_id'=>array('type'=>'integer','minimum'=>1)),'required'=>array('plugin','run_id'),'readonly'=>false),
-            'deploy'=>array('description'=>'Deploy one previously prepared approved artifact with a short-lived, one-time token; changes executable PHP on staging.','props'=>array('approval_token'=>array('type'=>'string','pattern'=>'^[a-f0-9]{48}$')),'required'=>array('approval_token'),'readonly'=>false),
         );
         foreach ($fields as $name=>$f) {
             wp_register_ability('church-plugin-deployer/'.$name,array(
@@ -75,7 +74,7 @@ final class CPD {
     public static function dispatch($name,$args=array()) {
         $ok=self::guard(); if (is_wp_error($ok)) { return $ok; }
         if (!is_array($args)) { return new WP_Error('cpd_invalid_input','Expected an object.'); }
-        $keys=array('inspect'=>array(),'prepare'=>array('plugin','run_id'),'deploy'=>array('approval_token'));
+        $keys=array('inspect'=>array(),'prepare'=>array('plugin','run_id'));
         if (!isset($keys[$name]) || array_diff(array_keys($args),$keys[$name]) || array_diff($keys[$name],array_keys($args))) {
             return new WP_Error('cpd_invalid_input','Missing or unexpected arguments.');
         }
@@ -87,10 +86,7 @@ final class CPD {
             }
             return CPD_Package::prepare($args['plugin'],$args['run_id']);
         }
-        if (!is_string($args['approval_token']) || !preg_match('/\\A[a-f0-9]{48}\\z/',$args['approval_token'])) {
-            return new WP_Error('cpd_invalid_token','Invalid deployment authorization token.');
-        }
-        return CPD_Package::deploy($args['approval_token']);
+        return new WP_Error('cpd_unknown_ability', 'Deployment requires administrator confirmation inside WordPress.');
     }
     public static function installed($slug) {
         if (!function_exists('get_plugins')) { require_once ABSPATH.'wp-admin/includes/plugin.php'; }

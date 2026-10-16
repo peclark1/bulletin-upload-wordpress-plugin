@@ -1,46 +1,59 @@
-# Church Plugin Deployer v0.1.0 — staging only
+# Church Plugin Deployer v0.2.0 — Staging-only GitHub updates with WordPress confirmation
 
-A **separate** plugin using WordPress 6.9+ Abilities API and the same authenticated MCP Server for WordPress connection as Church Site Controls.
+This is a **separate WordPress plugin** using WordPress 6.9+ Abilities API and the existing MCP Server for WordPress connection. It streamlines our own versioned plugin upgrades on `https://stpeterpr.org/design-demo`, without granting the assistant executable-code installation privileges.
 
-It replaces our repeated manual ZIP uploads with a **two-step, explicitly approved** deployment of GitHub Actions plugin artifacts. It does not update itself, activate an inactive plugin, alter WP STAGING, or touch production.
+## Workflow
 
-## Capabilities
+1. ChatGPT codes a reviewed change in `peclark1/bulletin-upload-wordpress-plugin`, runs CI, and identifies the completed successful **Build WordPress plugin ZIPs** workflow run ID.
+2. The authenticated MCP `church-plugin-deployer/prepare` ability verifies the workflow source, build result, plugin ZIP folder/header/version/path safety, and downloads its GitHub Actions artifact using a read-only **server-side** credential.
+3. Preparation creates a private recovery ZIP of the already-installed plugin (SHA-256 verified) and records an **unexpired, 15-minute, owner-bound** prepared update. It **never installs**.
+4. A WordPress administrator visits **Tools → Church Plugin Deployer** on the staging site. The page shows only preparations belonging to that same administrator, with plugin name, from/to versions, run/commit, package and recovery SHA-256 excerpts, and remaining validity.
+5. A click on **Install Prepared Update** submits an **authenticated POST with a WordPress nonce scoped to the prepared record**. All staging/administrator, TTL, currently-installed version, target allowlist, package and backup SHA-256, exclusive lock and audit checks run again before native `Plugin_Upgrader` replaces files.
+6. WordPress displays success or a safe error. ChatGPT independently inspects the installed plugin/version and website behavior through existing read-only abilities.
 
-- `church-plugin-deployer/inspect` — read-only installed versions, active status, and whether prerequisites are configured. No secrets or server paths returned.
-- `church-plugin-deployer/prepare` — choose **only** one of `church-site-controls`, `parish-forms`, `bulletin-publisher` and a successful GitHub Actions `run_id`; check repository/run/workflow/artifact provenance, retrieve the ZIP, verify plugin folder, header, version and archive paths, then create a **private backup ZIP** of the installed plugin. Returns a 15-minute, administrator-bound, single-use `approval_token`. Does not install anything.
-- `church-plugin-deployer/deploy` — explicitly invoke with that one-time token *after the operator agrees*. Recheck package and backup SHA-256, installed version/active state, and WordPress filesystem method, then use **WordPress's native `Plugin_Upgrader::install(..., overwrite_package=true)`**. Verify the installed version and preserve the existing plugin's active state; keep backup; record an audit. Uses an exclusive lock, refuses overlap, and never accepts arbitrary URLs, repository names, paths, ZIP bytes, or plugin slugs.
+There is **no custom update server, scheduled deployment, arbitrary URL, GitHub credentials in Chat, or background installation**.
 
-**Authorization:** `manage_options`, `install_plugins`, and `update_plugins` on the designated `https://stpeterpr.org/design-demo` installation; multisite refused. Add only the three Administrator abilities to the MCP agent. The `deploy` ability is flagged as destructive. Don't grant other roles. The program does not implement ChatGPT-side confirmation UI on its own: the human should explicitly authorize each use of `deploy`.
+## MCP abilities
 
-## One-time server setup
+- `church-plugin-deployer/inspect`: read-only plugin versions and prerequisites
+- `church-plugin-deployer/prepare`: authenticated source validation and private pre-update snapshot, **no installation**
+- The former v0.1 `church-plugin-deployer/deploy` **is no longer registered through MCP** in v0.2. The installation must be initiated inside WordPress by the Administrator. A shared internal backend method continues the same validation path for all installations.
 
-1. From the main plugin repository's successful CI run, download the **church-plugin-deployer** artifact, extract its inner `church-plugin-deployer-0.1.0.zip`, and manually install/activate it on `/design-demo` only. This is the final manual installation needed for the intended workflow **if the site supports direct WordPress filesystem upgrades**. Leave the existing plugins, WP STAGING state, and staff login access alone.
-2. Create a **fine-grained GitHub Personal Access Token** belonging to a trusted owner with access only to private repository `peclark1/bulletin-upload-wordpress-plugin`. Grant **Actions: Read-only** and the minimum automatic Metadata read permission. Avoid repository-write/admin scopes. Prefer expiration and planned rotation. **Do not paste the token in ChatGPT, GitHub issues, comments, logs, or MCP responses.** A GitHub App installation credential can replace this later.
-3. Store the credential in a *server-side* environment variable or directly in a **protected wp-config.php** `define('CPD_GITHUB_TOKEN', getenv('CPD_GITHUB_TOKEN'));`. If env configuration is unavailable, an administrator can securely set the constant to the token in wp-config.php, never in plugin files committed to GitHub.
-4. Strongly recommended: create a writable **private directory outside all web-accessible document roots**, and set `define('CPD_PRIVATE_DIR','/private/absolute/server/path');` in wp-config.php. The plugin rejects the known public document roots and otherwise uses WordPress's system temp directory. The folder holds staged ZIPs, **backup copies of executable plugins** and metadata; it must not be web accessible.
-5. Run `inspect`: ensure the token and safe temp directory are ready, and the three target plugins have the expected filenames and active status. If the site uses FTP credentials rather than WordPress's `direct` filesystem method, `deploy` stops and manual upgrades remain necessary.
+Do not change the MCP permissions for other church plugins or activate WP STAGING.
 
-## The standard workflow
+## Supported plugins
 
-1. Commit code, run the full test suite and await the successful **Build WordPress plugin ZIPs** workflow. Record the GitHub Actions **run ID**.
-2. Call `prepare({plugin: 'church-site-controls', run_id: ...})`; read proposed version, commit SHA, package hash, backup hash/size and expiration. It only accepts `main` or branches under `feature/` or `fix/` from the **same private repository** with a successful approved `.github/workflows/build-test.yml` run.
-3. **Operator explicitly approves** that specific version and target. Only then call `deploy({approval_token: ...})`.
-4. Verify the installed version through the target plugin's own MCP ability, the WordPress plugin list, and site behavior. Test undo for visual/content edits where applicable.
-5. Preserve the server-side recovery ZIP. If installation or runtime verification fails, stop and use a hosting administrator or WP-CLI to restore the backup. The **v0.1 deployer does not have an automatic rollback ability**; a backup alone does not prove a restoration drill. Do not test rollback by restoring the site without an explicit recovery requirement.
+| Slug | Existing WordPress directory |
+| --- | --- |
+| `church-site-controls` | `church-site-controls/` |
+| `parish-forms` | `parish-forms/` |
+| `bulletin-publisher` | `bulletin-upload-wordpress-plugin/` |
 
-## Limitations and safety
+No self-update, new-plugin installation, WP STAGING, unrelated plugins, themes, database migration or production-site deployment.
 
-- **Only the three existing site plugins can be upgraded**. The deployer itself is excluded.
-- **No production install, self-update, or new-plugin installation**. It only replaces an already-installed and active approved plugin.
-- ZIP content validation rejects path traversal, symlinks, unexpected directory structures, excess entries and oversized decompressed packages. GitHub download redirects are explicitly allowlisted and the server's GitHub token is never forwarded to signed artifact storage.
-- The private backup is a plugin-code snapshot, **not a WordPress database backup**. The existing Oct 14 validated WP STAGING backup remains our separate database/site restore point, and WP STAGING remains intentionally disabled for staff access.
-- Successful CI in a trusted repository establishes expected test/provenance context, **not cryptographic signing independent of repository maintainers**. Only trusted users with write access to the repo should be able to land source/workflow changes.
-- `wp_remote_get` GitHub access and `ZipArchive` must work from HostGator. The site may block outbound artifact storage domains; `prepare` must fail safely and report a clear blocker, not fall back to arbitrary downloads.
-- The WordPress native install operation can disrupt a plugin if the upgrade fails; the private plugin snapshot is for manual recovery. Do not present this as zero-risk or automatic rollback.
-- A PHP fatal can bypass finally/lock cleanup; review the durable `cpd_deploy_lock` option before any manual stale-lock removal.
-- Backup archives in system temp can be purged by hosting cleanup; configure private durable storage if long-term recovery copies are needed.
+## Initial installation / update from v0.1
 
-## Development / checks
+- Download the CI artifact for `church-plugin-deployer` from the successful PR run, extracting the **inner WordPress plugin ZIP**. The installer file is `church-plugin-deployer-0.2.0.zip`.
+- Manually upload and **replace v0.1.0 with v0.2.0 once** in **staging** `/design-demo/wp-admin` → Plugins → Add New → Upload Plugin.
+- Existing private deployment configuration `CPD_PRIVATE_DIR` and `CPD_GITHUB_TOKEN` remain unchanged, stored securely on HostGator. Never paste the token into ChatGPT or write it into GitHub.
+- After installation, verify **Tools → Church Plugin Deployer** appears for the Administrator; independently verify `inspect` reports version `0.2.0` and `prepare` remains available, while the MCP `deploy` ability is absent.
+- The old `v0.3.2` prepare-only candidate may have expired. Re-run `prepare` against successful candidate workflow run `38905794069` (Church Site Controls v0.3.2, **version-only/no behavior change**, see draft PR #45) to create a new 15-minute record.
+- Open **Tools → Church Plugin Deployer** under the **same WordPress administrator account used for MCP preparation**. Check the details, then approve by clicking Install Prepared Update. Ask ChatGPT to independently check installed v0.3.2, menu behavior and WordPress audit status afterward.
+
+## Safeguards and failure handling
+
+- Hardcoded `/design-demo` `home_url` and `site_url` guard, Administrator `manage_options`, `install_plugins`, `update_plugins` checks, no multisite.
+- Only successful builds from the allowlisted private repository/workflow and `main` or `feature/`/`fix/` branches; only approved plugin ZIP folders, header/version, entry counts and symlink/path checks; disallow stale/downgrade/same-version updates.
+- Configured server-only GitHub token has **Actions: Read-only** on this repository; signed artifact storage receives no GitHub Authorization header.
+- Plugin packages and recovery ZIPs stay **outside all public website document roots**, with filesystem permissions and SHA-256 verification. Recovery ZIP is code-only; existing Oct 14 full-site staging backup remains the separate database/content recovery path.
+- Only unexpired preparation records for the **logged-in preparer** show up, and install requires a POST+scoped nonce (no GET deployment).
+- A single-use record, lock, and durable minimal audit protect against replay and overlapping updates.
+- If deployment fails or plugin PHP fatals, **there is no automatic rollback**. Stop, preserve the backup, use HostGator file access/WP-CLI to restore previous files, and verify the site. Fatal errors can leave stale locks; inspect before clearing.
+- The full site may briefly be affected while plugin code changes. Do not promise zero downtime or execute without operator approval.
+- Browser access to `tools.php?page=church-plugin-deployer` is authenticated. Non-Administrator users and production never see the management menu.
+- The UI is intentionally small and uses native WordPress styles. No new theme styling or menu changes are involved.
+
+## Development and test
 
 ```sh
 make test-church-plugin-deployer
@@ -48,6 +61,6 @@ make church-plugin-deployer
 make plugins
 ```
 
-CI additionally runs the existing Church Site Controls, Parish Forms and Bulletin Publisher suites.
+The offline PHP tests simulate permission, production guard, GitHub run/artifact verification, ZIP identity and snapshot, nonce and method restrictions, other-admin isolation, expiry, stale version, audited install, replay prevention and MCP's lack of direct deploy. GitHub Actions additionally runs PHP lint and the existing Church Site Controls / Parish Forms / Bulletin Publisher suites.
 
-**Staging acceptance sequence:** install v0.1.0 manually, grant only the Administrator abilities, call `inspect`, attempt `prepare` for one known successful run, verify backup creation and identity, approve one deliberately small future plugin version update, then inspect, deploy, and independently verify that upgrade. Do not consider the install pathway proven until those live steps succeed.
+**Caution:** passing offline tests does not prove the administrator button can replace plugins on HostGator. Treat the first user-approved staging update as an acceptance test, and inspect the installed version and site behavior independently afterward.
