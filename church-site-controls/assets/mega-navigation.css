@@ -1,5 +1,16 @@
 /* Staging-only Kadence full-section menu; native mobile menu remains available. */
 @media (min-width: 1025px) {
+  /*
+   * The full-width desktop panel itself conveys expandability.
+   * Suppress native Kadence top-level chevrons, but do not touch the
+   * mobile/off-canvas submenu disclosure buttons.
+   * The mega script adds csc-mega-ready only once the panel is functional.
+   */
+  #site-navigation .primary-menu-container.csc-mega-ready > ul.menu > li.menu-item-has-children > a .dropdown-nav-toggle,
+  #site-navigation .primary-menu-container.csc-mega-ready > ul.menu > li.menu-item-has-children > a .menu-item-dropdown-toggle,
+  #site-navigation .primary-menu-container.csc-mega-ready > ul.menu > li.menu-item-has-children > a > .kadence-svg-iconset {
+    display: none !important;
+  }
   /* Hide native cascading flyouts only after the JS enhancement is ready. */
   #site-navigation .primary-menu-container.csc-mega-ready ul.sub-menu {
     display: none !important;
