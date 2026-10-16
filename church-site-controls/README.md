@@ -1,4 +1,4 @@
-# Church Site Controls 0.2.1 — experimental staging build
+# Church Site Controls 0.2.2 — experimental staging build
 
 ## v0.2 global editors
 
@@ -36,6 +36,7 @@ WordPress's menu API is used, retaining parent, order, target, rel, classes and
 destination. It lacks an atomic compare-and-swap operation: the adapter checks
 the revision immediately before the API call and verifies readback, but a
 simultaneous menu editor in that tiny interval remains a limitation.
+Menu title attributes and descriptions are read from their raw WordPress post fields, not the wptexturize-filtered display values; title attributes can be cleared to an empty string. The WordPress menu API receives pre-slashed text as its contract requires.
 
 The actual footer consists of Kadence Footer Builder HTML in its middle row
 and a block widget in the bottom row. v0.2 edits allowlisted footer appearance
@@ -44,7 +45,7 @@ approved media asset and safe content adapter are verified.
 
 Before global staging edits, confirm a restorable database/site snapshot.
 Build `make church-site-controls`; save the 0.1.0 ZIP for plugin rollback.
-Install 0.2.1 by replacing the existing Church Site Controls plugin, verify it
+Install 0.2.2 by replacing the existing Church Site Controls plugin, verify it
 is active, then discover and grant the four named MCP abilities only with user
 approval. Inspect fresh revisions after installation; test each change in the
 browser (desktop/mobile and scroll state) and undo diagnostics independently.
@@ -142,7 +143,7 @@ make church-site-controls
 make plugins
 ```
 
-Install `../church-site-controls-0.2.1.zip` through **staging** Plugins → Add New →
+Install `../church-site-controls-0.2.2.zip` through **staging** Plugins → Add New →
 Upload Plugin, then activate. Do not replace Bulletin Publisher or Parish Forms.
 `make plugins` builds all three separately; CI runs all suites and uploads each
 ZIP. The tests use the observed Home Cover markup plus isolated WordPress/DB

@@ -12,23 +12,25 @@ final class CSC_Navigation {
         if (!$locations) { return new WP_Error('csc_inactive_menu','Item is not in an assigned menu.'); }
         $data=array('item_id'=>$id,'menu_id'=>$menu,'locations'=>$locations,'type'=>$item->type,'object'=>$item->object,'object_id'=>(int)$item->object_id,
             'parent_id'=>(int)$item->menu_item_parent,'order'=>(int)$item->menu_order,'label'=>html_entity_decode($item->title, ENT_QUOTES | ENT_HTML5, 'UTF-8'),'url'=>$item->url,
-            'target'=>$item->target,'attr_title'=>$item->attr_title,'description'=>$item->description,'classes'=>array_values((array)$item->classes),'xfn'=>$item->xfn);
+            // WordPress's nav_menu_attr_title/description display filters apply wptexturize; use raw post fields for exact readback and undo.
+            'target'=>$item->target,'attr_title'=>(string)$post->post_excerpt,'description'=>(string)$post->post_content,'classes'=>array_values((array)$item->classes),'xfn'=>$item->xfn);
         $data['expected_revision']=hash('sha256',CSC_Controls::SITE.':nav:'.serialize($data));
         return $data;
     }
     public static function inspect($id) { return self::snapshot($id); }
     private static function valid($field,$value,$snapshot) {
-        if ($field==='label' || $field==='attr_title') { return is_string($value) && $value!=='' && strlen($value)<=100 && strip_tags($value)===$value && !preg_match('/[\x00-\x1f]/',$value); }
+        if ($field==='label' || $field==='attr_title') { return is_string($value) && ($field!=='label' || $value!=='') && strlen($value)<=100 && strip_tags($value)===$value && !preg_match('/[\x00-\x1f]/',$value); }
         if ($field==='url' && $snapshot['type']==='custom' && is_string($value) && strlen($value)<500) {
             return strpos($value,CSC_Controls::SITE.'/')===0 && wp_http_validate_url($value);
         }
         return false;
     }
     private static function save($item,$field,$value) {
-        $args=array('menu-item-title'=>$field==='label'?$value:$item['label'],'menu-item-attr-title'=>$field==='attr_title'?$value:$item['attr_title'],
+        // wp_update_nav_menu_item expects pre-slashed title, title attribute and description.
+        $args=array('menu-item-title'=>wp_slash($field==='label'?$value:$item['label']),'menu-item-attr-title'=>wp_slash($field==='attr_title'?$value:$item['attr_title']),
             'menu-item-url'=>$field==='url'?$value:$item['url'],'menu-item-status'=>'publish','menu-item-type'=>$item['type'],
             'menu-item-object'=>$item['object'],'menu-item-object-id'=>$item['object_id'],'menu-item-parent-id'=>$item['parent_id'],
-            'menu-item-position'=>$item['order'],'menu-item-target'=>$item['target'],'menu-item-description'=>$item['description'],
+            'menu-item-position'=>$item['order'],'menu-item-target'=>$item['target'],'menu-item-description'=>wp_slash($item['description']),
             'menu-item-classes'=>implode(' ', $item['classes']),'menu-item-xfn'=>$item['xfn']);
         return wp_update_nav_menu_item($item['menu_id'],$item['item_id'],$args);
     }

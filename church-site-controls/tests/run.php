@@ -15,12 +15,20 @@ function untrailingslashit($s) { return rtrim($s,'/'); }
 function get_post($id) { return $id===3498 ? clone $GLOBALS['page'] : ($id===3812 ? clone $GLOBALS['menu_item'] : null); }
 function wp_get_object_terms($id,$taxonomy,$args) { return $id===3812 ? array(10) : array(); }
 function get_nav_menu_locations() { return array('primary'=>10,'mobile'=>10); }
-function wp_setup_nav_menu_item($post) { return $post; }
+function wp_setup_nav_menu_item($post) {
+    // Mirror the default nav_menu_attr_title / nav_menu_description wptexturize display filters.
+    $post->attr_title=str_replace("'", '&#8217;', $post->post_excerpt);
+    $post->description=str_replace("'", '&#8217;', $post->post_content);
+    return $post;
+}
 function wp_http_validate_url($url) { return strpos($url,'https://')===0 ? $url : false; }
+function wp_slash($value) { return addslashes($value); }
 function wp_update_nav_menu_item($menu,$id,$args) {
     if (!empty($GLOBALS['menu_fail'])) { return new WP_Error('fake_failure','Menu API failed'); }
-    $GLOBALS['menu_item']->title=$args['menu-item-title'];
-    $GLOBALS['menu_item']->attr_title=$args['menu-item-attr-title'];
+    if (!is_string($args['menu-item-classes'])) { return new WP_Error('fake_classes','Classes must be a string'); }
+    $GLOBALS['menu_item']->title=stripslashes($args['menu-item-title']);
+    $GLOBALS['menu_item']->post_excerpt=stripslashes($args['menu-item-attr-title']);
+    $GLOBALS['menu_item']->post_content=stripslashes($args['menu-item-description']);
     $GLOBALS['menu_item']->url=$args['menu-item-url'];
     return $id;
 }
@@ -82,7 +90,7 @@ $fixture=file_get_contents(__DIR__.'/fixtures/home-cover.html');
 $GLOBALS['page']=(object)array('ID'=>3498,'post_type'=>'page','post_content'=>$fixture);
 $GLOBALS['menu_item']=(object)array('ID'=>3812,'post_type'=>'nav_menu_item','type'=>'post_type','object'=>'page','object_id'=>3510,'menu_item_parent'=>0,
     'menu_order'=>4,'title'=>'St. Mary’s Two Inlets & Grotto','url'=>'https://stpeterpr.org/design-demo/?page_id=3510','target'=>'','attr_title'=>'',
-    'description'=>'','classes'=>array('custom'),'xfn'=>'');
+    'description'=>'','post_excerpt'=>'','post_content'=>'','classes'=>array('custom'),'xfn'=>'');
 $count=0;
 function check($condition,$name) { global $count; if (!$condition) { fwrite(STDERR,"FAIL: $name\n"); exit(1); } $count++; echo "PASS: $name\n"; }
 function call_csc($name,$args=array()) { return CSC_Controls::dispatch($name,$args); }
@@ -208,4 +216,21 @@ check(error_is(call_csc('update-navigation',$nargs),'csc_stale_revision'),'stale
 check(error_is(call_csc('update-navigation',array('item_id'=>3812,'field'=>'url','value'=>'https://evil.example','expected_revision'=>$n['readback']['expected_revision'])),'csc_invalid_value'),'post-type URL mutation refused');
 $nu=call_csc('undo',array('change_id'=>$n['change']['change_id'],'expected_revision'=>$n['readback']['expected_revision']));
 check(!is_wp_error($nu) && $nu['readback']['label']===$nav['label'],'navigation undo restores exact label');
+$nav=call_csc('inspect-navigation',array('item_id'=>3812));
+check($nav['attr_title']==='','blank raw title attribute is represented accurately');
+check(error_is(call_csc('update-navigation',array('item_id'=>3812,'field'=>'label','value'=>'','expected_revision'=>$nav['expected_revision'])),'csc_invalid_value'),'empty menu label remains forbidden');
+check(error_is(call_csc('update-navigation',array('item_id'=>3812,'field'=>'attr_title','value'=>'<script>','expected_revision'=>$nav['expected_revision'])),'csc_invalid_value'),'HTML in title attribute is rejected');
+$attr_args=array('item_id'=>3812,'field'=>'attr_title','value'=>"St. Mary's Parish",'expected_revision'=>$nav['expected_revision']);
+$attr=call_csc('update-navigation',$attr_args);
+check(!is_wp_error($attr) && $attr['readback']['attr_title']==="St. Mary's Parish" && $GLOBALS['menu_item']->post_excerpt==="St. Mary's Parish",'apostrophe title attribute round-trips through raw storage');
+$formatted=wp_setup_nav_menu_item(get_post(3812));
+check($formatted->attr_title==='St. Mary&#8217;s Parish' && $attr['readback']['attr_title']!==$formatted->attr_title,'formatted WordPress title attribute does not break revision/readback');
+check(error_is(call_csc('update-navigation',$attr_args),'csc_stale_revision'),'stale title-attribute revision rejected');
+$clear=call_csc('update-navigation',array('item_id'=>3812,'field'=>'attr_title','value'=>'','expected_revision'=>$attr['readback']['expected_revision']));
+check(!is_wp_error($clear) && $clear['readback']['attr_title']==='' && $GLOBALS['menu_item']->post_excerpt==='','title attribute can be explicitly cleared');
+$clear_undo=call_csc('undo',array('change_id'=>$clear['change']['change_id'],'expected_revision'=>$clear['readback']['expected_revision']));
+check(!is_wp_error($clear_undo) && $clear_undo['readback']['attr_title']==="St. Mary's Parish",'undo restores the nonempty title attribute');
+$attr_undo=call_csc('undo',array('change_id'=>$attr['change']['change_id'],'expected_revision'=>$clear_undo['readback']['expected_revision']));
+check(!is_wp_error($attr_undo) && $attr_undo['readback']['attr_title']==='' && $GLOBALS['menu_item']->post_excerpt==='','undo restores originally blank title attribute');
+check($attr_undo['readback']['label']===$nav['label'] && $attr_undo['readback']['url']===$nav['url'],'attribute editing preserves label and destination');
 echo "$count tests passed. Local fakes only; live MCP verification remains separate.\n";
