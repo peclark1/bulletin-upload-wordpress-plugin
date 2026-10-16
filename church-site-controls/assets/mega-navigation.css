@@ -1,0 +1,76 @@
+/* Staging-only Kadence full-section menu; native mobile menu remains available. */
+@media (min-width: 1025px) {
+  /* Hide native cascading flyouts only after the JS enhancement is ready. */
+  #site-navigation .primary-menu-container.csc-mega-ready ul.sub-menu {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+  #site-navigation .csc-mega-active > a {
+    text-decoration: underline;
+    text-underline-offset: 0.3em;
+  }
+  .csc-mega-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 99990;
+    box-sizing: border-box;
+    background: #243b63;
+    color: #fff;
+    box-shadow: 0 12px 24px rgba(0,0,0,.23);
+    max-height: min(72dvh, var(--csc-mega-room, 65vh));
+    overscroll-behavior: contain;
+    overflow-y: auto;
+  }
+  .csc-mega-panel[hidden] { display: none !important; }
+  .csc-mega-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+    gap: 1.7rem;
+    max-width: 1220px;
+    margin: auto;
+    padding: 1.7rem clamp(1.5rem, 4vw, 3rem) 2rem;
+  }
+  .csc-mega-column { min-width: 0; }
+  .csc-mega-heading {
+    color: #fff;
+    font: inherit;
+    font-size: .94rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    border-bottom: 2px solid #d6b251;
+    margin: 0 0 .7rem;
+    padding-bottom: .45rem;
+  }
+  .csc-mega-heading-link, .csc-mega-plain > a {
+    color: #fff !important;
+    text-decoration: none;
+  }
+  .csc-mega-plain { margin-bottom: .6rem; font-weight: 600; }
+  .csc-mega-links { list-style: none; margin: 0; padding: 0; }
+  .csc-mega-links li { margin: 0; padding: 0; }
+  .csc-mega-links .csc-mega-link {
+    color: #fff !important;
+    display: block;
+    padding: .38rem .35rem;
+    line-height: 1.4;
+    border-radius: 4px;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+  .csc-mega-links .csc-mega-link:is(:hover, :focus-visible),
+  .csc-mega-heading-link:is(:hover, :focus-visible) {
+    background: rgba(255,255,255,.16);
+    color: #fff !important;
+    outline-offset: 2px;
+  }
+  .csc-mega-indented { padding-left: .7rem !important; }
+}
+/* Kadence's hamburger drawer: guarantee menu can scroll on shorter viewports. */
+#mobile-drawer .drawer-inner { max-height: 100dvh; overflow-y: auto; overscroll-behavior: contain; }
+#mobile-drawer .drawer-content { min-height: 0; }
+#mobile-drawer .mobile-navigation a,
+#mobile-drawer .mobile-navigation button { min-height: 42px; }
