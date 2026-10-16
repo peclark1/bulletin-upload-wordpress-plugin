@@ -31,7 +31,7 @@
   const displayLabel = anchor => {
     const copy = anchor.cloneNode(true);
     copy.querySelectorAll('button, .dropdown-nav-toggle, .menu-item-dropdown-toggle, .screen-reader-text, [aria-hidden="true"], svg').forEach(el => el.remove());
-    return copy.textContent.replace(/\\s+/g, ' ').trim();
+    return copy.textContent.replace(/\s+/g, ' ').trim();
   };
   const linkFrom = (anchor, className) => {
     const el = document.createElement('a');
