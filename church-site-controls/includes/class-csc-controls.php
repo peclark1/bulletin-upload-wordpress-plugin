@@ -1,6 +1,6 @@
 <?php
 final class CSC_Controls {
-    const VERSION = '0.1.0';
+    const VERSION = '0.2.2';
     const SITE = 'https://stpeterpr.org/design-demo';
     const PREFIX = 'csc_change_';
 
@@ -31,7 +31,11 @@ final class CSC_Controls {
             'update-hero' => array('Change only first Cover hero top padding in px on staging. Requires expected_revision; returns durable undo change_id.', false, array('page_id' => $id, 'field' => array('type'=>'string','enum'=>array('padding_top_px')), 'value' => array('type'=>'integer','minimum'=>0,'maximum'=>200), 'expected_revision'=>$revision), array('page_id','field','value','expected_revision')),
             'recent-changes' => array('List the 20 most recent minimal audit records, including interrupted prepared changes, for recovery.', true, array(), array()),
             'get-change' => array('Read a sanitized audit/undo record by change ID, including prepared records after an interrupted call.', true, array('change_id'=>$change), array('change_id')),
-            'undo' => array('Restore a hero change only if current full content still matches the recorded after state and expected revision. Never overwrites intervening edits.', false, array('change_id'=>$change,'expected_revision'=>$revision), array('change_id','expected_revision')),
+            'undo' => array('Conditionally restore a supported hero, global theme field or menu item change.', false, array('change_id'=>$change,'expected_revision'=>$revision), array('change_id','expected_revision')),
+            'inspect-global' => array('Inspect allowlisted Kadence header/footer fields, their raw state and revision.', true, array('target'=>array('type'=>'string')), array()),
+            'update-global' => array('Update one schema-validated Kadence header/footer field with a fresh revision and audit ID.', false, array('target'=>array('type'=>'string'),'value'=>array('type'=>array('string','integer')),'expected_revision'=>$revision), array('target','value','expected_revision')),
+            'inspect-navigation' => array('Inspect one classic menu item, assigned location, destination and revision.', true, array('item_id'=>$id), array('item_id')),
+            'update-navigation' => array('Update label, title attribute or validated custom URL for one assigned classic menu item.', false, array('item_id'=>$id,'field'=>array('type'=>'string','enum'=>array('label','attr_title','url')),'value'=>array('type'=>'string'),'expected_revision'=>$revision), array('item_id','field','value','expected_revision')),
         );
         foreach ($defs as $name => $d) {
             wp_register_ability('church-site-controls/' . $name, array(
@@ -50,24 +54,33 @@ final class CSC_Controls {
         if (is_wp_error($ok)) { return $ok; }
         if (!is_array($args)) { return new WP_Error('csc_invalid_input', 'Arguments must be an object.'); }
         $keys = array('capabilities'=>array(),'inspect-header'=>array(),'inspect-hero'=>array('page_id'),
-            'update-hero'=>array('page_id','field','value','expected_revision'), 'recent-changes'=>array(), 'get-change'=>array('change_id'), 'undo'=>array('change_id','expected_revision'));
-        if (!isset($keys[$name]) || array_diff(array_keys($args), $keys[$name]) || array_diff($keys[$name], array_keys($args))) {
+            'update-hero'=>array('page_id','field','value','expected_revision'), 'recent-changes'=>array(), 'get-change'=>array('change_id'), 'undo'=>array('change_id','expected_revision'),
+            'inspect-global'=>array('target'), 'update-global'=>array('target','value','expected_revision'),
+            'inspect-navigation'=>array('item_id'), 'update-navigation'=>array('item_id','field','value','expected_revision'));
+        $required=$keys[$name] ?? array();
+        if ($name==='inspect-global') { $required=array(); }
+        if (!isset($keys[$name]) || array_diff(array_keys($args), $keys[$name]) || array_diff($required, array_keys($args))) {
             return new WP_Error('csc_invalid_input', 'Unknown ability, missing argument or unallowlisted field.');
         }
         if (isset($args['expected_revision']) && (!is_string($args['expected_revision']) || !preg_match('/\A[a-f0-9]{64}\z/', $args['expected_revision']))) {
             return new WP_Error('csc_invalid_input', 'Expected revision must be a SHA-256 token.');
         }
         switch ($name) {
-            case 'capabilities': return array('version'=>self::VERSION,'site'=>home_url(),'manage_options'=>self::permission(), 'header_write'=>false,
+            case 'capabilities': return array('version'=>self::VERSION,'site'=>home_url(),'manage_options'=>self::permission(), 'header_write'=>true,
+                'global_fields'=>CSC_Global::definitions(),'navigation_fields'=>array('label','attr_title','url_for_custom_items'),
                 'hero_write'=>array('field'=>'padding_top_px','range'=>array(0,200),'requires'=>'first top-level core/cover with matching px attribute and saved HTML'),
                 'undo'=>'Full-content revision checked; intervening edits are refused. Audit options are retained on deactivation/uninstall.',
-                'unsupported'=>array('arbitrary CSS','arbitrary options','header mutation','nested or non-Cover heroes'));
+                'unsupported'=>array('arbitrary CSS','arbitrary options','nested or non-Cover heroes','Navigation blocks'));
             case 'inspect-header': return self::header();
             case 'inspect-hero': return self::hero($args['page_id']);
             case 'update-hero': return self::update($args);
             case 'recent-changes': return self::recent_changes();
             case 'get-change': return self::change($args['change_id']);
             case 'undo': return self::undo($args);
+            case 'inspect-global': return CSC_Global::inspect(isset($args['target']) ? $args['target'] : null);
+            case 'update-global': return CSC_Global::update($args);
+            case 'inspect-navigation': return CSC_Navigation::inspect($args['item_id']);
+            case 'update-navigation': return CSC_Navigation::update($args);
         }
     }
     private static function page($id) {
@@ -158,6 +171,15 @@ final class CSC_Controls {
         if (is_wp_error($record)) { return $record; }
         if ($record['site'] !== self::SITE || !in_array($record['status'], array('prepared','applied'), true)) {
             return new WP_Error('csc_invalid_change', 'Change is not pending restoration on this site.');
+        }
+        if (isset($record['target_type'])) {
+            if ($record['target_type']==='theme_mod') { $readback=CSC_Global::undo($record,$args['expected_revision']); }
+            elseif ($record['target_type']==='menu_item') { $readback=CSC_Navigation::undo($record,$args['expected_revision']); }
+            else { return new WP_Error('csc_invalid_change','Unknown adapter.'); }
+            if (is_wp_error($readback)) { return $readback; }
+            $record['status']='undone'; $record['undone_at']=gmdate('c'); $record['undo_actor']=get_current_user_id();
+            $saved=update_option(self::PREFIX.$record['change_id'],$record,false);
+            return array('change_id'=>$record['change_id'],'restored'=>true,'audit_updated'=>(bool)$saved,'readback'=>$readback);
         }
         $page = self::page($record['page_id']);
         if (is_wp_error($page)) { return $page; }

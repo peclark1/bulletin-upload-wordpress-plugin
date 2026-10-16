@@ -1,4 +1,55 @@
-# Church Site Controls 0.1.0 — experimental staging build
+# Church Site Controls 0.2.2 — experimental staging build
+
+## v0.2 global editors
+
+This version extends the proven v0.1 hero code without changing its storage or
+undo format. Four new abilities require explicit Administrator grants in the
+ChatGPT Design Demo MCP agent: `inspect-global`, `update-global`,
+`inspect-navigation`, and `update-navigation`. Do not grant other roles.
+
+`inspect-global` reports the verified Kadence 1.5.2 Customizer control IDs,
+raw presence/value, effective composite and a SHA revision of the full
+`theme_mods_kadence` option. `update-global` accepts one named target, typed
+value and fresh expected revision. The same code handles:
+
+| Target | Storage leaf | Input |
+|---|---|---|
+| `header.sticky_background_desktop` | `header_sticky_background.desktop.color` | six-digit hex |
+| `header.sticky_navigation_color` | `header_sticky_navigation_color.desktop.color` | six-digit hex; verify shape before live use |
+| `header.main_background_desktop` | `header_main_background.desktop.color` | six-digit hex |
+| `header.main_height_desktop` | `header_main_height.size.desktop` | integer 40–180 |
+| `footer.middle_background_desktop` | `footer_middle_background.desktop.color` | six-digit hex |
+| `footer.bottom_background_desktop` | `footer_bottom_background.desktop.color` | six-digit hex |
+| `footer.wrap_background_desktop` | `footer_wrap_background.desktop.color` | six-digit hex |
+
+Writes refuse a field whose actual effective Kadence shape differs from the
+declared path. An option SQL compare-and-swap protects all sibling settings,
+followed by WordPress option hooks/cache invalidation. Undo restores only the
+selected leaf, removes an override that was originally absent, and preserves
+unrelated later edits. A fresh full-option revision is still required.
+
+`inspect-navigation` takes a classic `nav_menu_item` ID and reports its one
+menu, assigned locations, metadata, and revision. `update-navigation` supports
+`label`, `attr_title`, and local `url` only on a custom menu item; the page
+link for St. Mary's (item 3812) therefore cannot be changed by this adapter.
+WordPress's menu API is used, retaining parent, order, target, rel, classes and
+destination. It lacks an atomic compare-and-swap operation: the adapter checks
+the revision immediately before the API call and verifies readback, but a
+simultaneous menu editor in that tiny interval remains a limitation.
+Menu title attributes and descriptions are read from their raw WordPress post fields, not the wptexturize-filtered display values; title attributes can be cleared to an empty string. The WordPress menu API receives pre-slashed text as its contract requires.
+
+The actual footer consists of Kadence Footer Builder HTML in its middle row
+and a block widget in the bottom row. v0.2 edits allowlisted footer appearance
+settings; logo placement and raw HTML/widget editing are excluded until the
+approved media asset and safe content adapter are verified.
+
+Before global staging edits, confirm a restorable database/site snapshot.
+Build `make church-site-controls`; save the 0.1.0 ZIP for plugin rollback.
+Install 0.2.2 by replacing the existing Church Site Controls plugin, verify it
+is active, then discover and grant the four named MCP abilities only with user
+approval. Inspect fresh revisions after installation; test each change in the
+browser (desktop/mobile and scroll state) and undo diagnostics independently.
+Neither a plugin undo nor the 0.1.0 ZIP is a full database restore.
 
 A separately installable plugin for `https://stpeterpr.org/design-demo` only. Both
 WordPress home and site URLs must match. Every ability requires the authenticated
@@ -7,9 +58,9 @@ Installing this plugin does not change appearance or grant any user capability.
 WordPress 6.9+ supplies the Abilities API. A compatible MCP server is separately
 required (the staging site uses MCP Server for WordPress).
 
-## Scope and storage
+## Preserved v0.1 scope and storage
 
-- Global Kadence header: **inspection only**. Reports selected raw theme mods,
+- Legacy `inspect-header`: **inspection only**. Reports selected raw theme mods,
   effective values through Kadence's accessor, custom storage mappings, active
   theme/version, and Additional CSS fingerprint. Missing/default values are not
   invented. An option-backed configuration is identified but its raw option
@@ -22,8 +73,8 @@ required (the staging site uses MCP Server for WordPress).
   structures are rejected. This is a block property, not a Kadence theme mod.
 - Other hero layers: the Home page uses `_kad_post_transparent=enable`; Additional
   CSS gives the Cover text a shadow. Neither is changed by this plugin.
-- Footer, arbitrary CSS/options, nested/non-Cover heroes, image/overlay controls,
-  and general header mutation are unsupported.
+- Arbitrary CSS/options, nested/non-Cover heroes and image/overlay controls
+  remain unsupported.
 
 The adapter intentionally accepts a narrow saved markup format. It does not
 serialize the whole block tree, inject CSS, or change page status/title/meta.
@@ -92,7 +143,7 @@ make church-site-controls
 make plugins
 ```
 
-Install `../church-site-controls-0.1.0.zip` through **staging** Plugins → Add New →
+Install `../church-site-controls-0.2.2.zip` through **staging** Plugins → Add New →
 Upload Plugin, then activate. Do not replace Bulletin Publisher or Parish Forms.
 `make plugins` builds all three separately; CI runs all suites and uploads each
 ZIP. The tests use the observed Home Cover markup plus isolated WordPress/DB
