@@ -45,7 +45,9 @@ jobs:
         run: make test-parish-forms
 
       - name: Run Church Site Controls tests
-        run: make test-church-site-controls
+        run: |
+          make test-church-site-controls
+          node --check church-site-controls/assets/mega-navigation.js
 
       - name: Build all plugin ZIPs
         id: build
