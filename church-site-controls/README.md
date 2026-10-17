@@ -1,3 +1,18 @@
+# Church Site Controls v0.3.4 — Worship responsive layout (cutover #26)
+
+This release adds **staging-only, page-specific front-end CSS** to the live-tested v0.3.3 Church Site Controls plugin. Nothing changes Gutenberg blocks, Kadence theme mods, menu assignments, or Bulletin Publisher's dynamic schedule data.
+
+- Site: `https://stpeterpr.org/design-demo` **only**; current theme must be Kadence; applies only to Worship page ID `23`.
+- Stylesheet: `assets/worship-responsive.css`, enqueued by `CSC_Page_Polish`. It is versioned with the plugin and absent on all other pages and production.
+- At widths up to 1024px: the approved bulletin-powered Mass / Devotions schedule cards become a single comfortable column; the Worship cover's fixed 46px heading, 64px paddings, and 360px min-height become fluid/compact.
+- Up to 600px: the hero typography, eyebrow, subtitle, cards, and buttons adapt to narrow phones. Native WordPress title hierarchy, links, and accessible content order remain unchanged.
+- Above 1024px: no styles are applied; desktop layout is unchanged.
+- Run `make test-church-site-controls` and full GitHub Actions build before stage deploy. Target is CSC 0.3.3 → 0.3.4 using CPD v0.2 (MCP prepare then administrator's click under Tools → Church Plugin Deployer).
+- Validate at ~320/375/600/768/960/1280px on live staging: no clipping, horizontal scroll, obscured controls, or collapsed desktop behavior. Use actual content, including the week-navigation links and long Mass intentions. The code regression tests are **not** browser layout proof.
+- On any visual regression, recover with the private code-only ZIP prepared by CPD (or restore the earlier plugin build); never overwrite the full site or production.
+
+---
+
 # Church Site Controls 0.2.2 — experimental staging build
 
 ## v0.2 global editors

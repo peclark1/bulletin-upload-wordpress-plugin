@@ -1,0 +1,85 @@
+/*
+ * Cutover issue #26 — Worship responsive layout.
+ * Limited to the staging installation's published Worship page (ID 23).
+ * Desktop above 1024px is untouched; Gutenberg content and approved
+ * bulletin-derived schedules are not modified.
+ */
+
+/* A narrow desktop/tablet should show one comfortable worship card per row. */
+@media (max-width: 1024px) {
+    body.page-id-23 .cbp-worship-week .cbp-site-grid--two {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 22px;
+    }
+
+    body.page-id-23 .cbp-worship-week .cbp-site-card,
+    body.page-id-23 .cbp-worship-week .cbp-site-days,
+    body.page-id-23 .cbp-worship-week .cbp-site-item {
+        min-width: 0;
+    }
+
+    body.page-id-23 .wp-block-cover.alignfull {
+        box-sizing: border-box;
+        padding: clamp(36px, 5vw, 54px) 20px !important;
+        min-height: 0 !important;
+    }
+
+    body.page-id-23 .wp-block-cover.alignfull > .wp-block-cover__inner-container {
+        box-sizing: border-box;
+        min-width: 0;
+        max-width: min(100%, 56rem);
+        margin-inline: auto;
+    }
+
+    body.page-id-23 .wp-block-cover.alignfull h1 {
+        font-size: clamp(2rem, 4.6vw, 2.875rem) !important;
+        line-height: 1.17 !important;
+        overflow-wrap: break-word;
+    }
+}
+
+/* Phone-sized layouts: reduce fixed hero typography and allow all actions to wrap. */
+@media (max-width: 600px) {
+    body.page-id-23 .wp-block-cover.alignfull {
+        padding: 34px 18px !important;
+    }
+
+    body.page-id-23 .wp-block-cover.alignfull h1 {
+        font-size: clamp(1.75rem, 7.2vw, 2.25rem) !important;
+        line-height: 1.15 !important;
+        margin-inline: auto;
+        max-width: 20ch;
+    }
+
+    body.page-id-23 .wp-block-cover.alignfull .wp-block-cover__inner-container > p:first-child {
+        font-size: 0.85rem !important;
+        letter-spacing: 1px !important;
+        line-height: 1.5 !important;
+        overflow-wrap: break-word;
+    }
+
+    body.page-id-23 .wp-block-cover.alignfull .wp-block-cover__inner-container > p:last-child {
+        font-size: clamp(1rem, 4.4vw, 1.2rem) !important;
+        line-height: 1.5 !important;
+        overflow-wrap: break-word;
+    }
+
+    body.page-id-23 .cbp-worship-week .cbp-site-card {
+        padding: 20px;
+    }
+
+    body.page-id-23 .cbp-worship-week .cbp-site-card h3 {
+        font-size: clamp(1.35rem, 5.5vw, 1.55rem);
+        overflow-wrap: break-word;
+    }
+
+    body.page-id-23 .wp-block-buttons {
+        flex-wrap: wrap;
+    }
+
+    body.page-id-23 .wp-block-button__link {
+        white-space: normal;
+        overflow-wrap: anywhere;
+        text-align: center;
+    }
+}
