@@ -246,4 +246,59 @@ check(strpos($js,"nav.classList.add('csc-mega-ready')")!==false &&
     strpos($js,"window.matchMedia('(min-width: 1025px)')")!==false,
     'JS readiness marker and desktop-only breakpoint remain aligned with chevron CSS');
 
+
+/* #26 responsive Worship styling is page-scoped, staging-only and does not
+ * alter the worship shortcode output or stored Gutenberg content. */
+function is_admin() { return !empty($GLOBALS['mock_is_admin']); }
+function is_page($id) { return ($GLOBALS['mock_page_id'] ?? 0) === $id; }
+function plugin_dir_url($path) { return 'https://stpeterpr.org/design-demo/wp-content/plugins/church-site-controls/'; }
+function wp_enqueue_style($handle,$src,$deps,$version) {
+    $GLOBALS['captured_styles'][]=array('handle'=>$handle,'src'=>$src,'version'=>$version);
+}
+function add_action($name,$callable,$priority=10) {
+    $GLOBALS['registered_hooks'][]=array($name,$priority);
+}
+require __DIR__.'/../includes/class-csc-page-polish.php';
+$GLOBALS['url']='https://stpeterpr.org/design-demo';
+$GLOBALS['template']='kadence';
+$GLOBALS['mock_page_id']=23;
+$GLOBALS['mock_is_admin']=false;
+$GLOBALS['captured_styles']=array();
+CSC_Page_Polish::enqueue();
+check(count($GLOBALS['captured_styles'])===1 &&
+    $GLOBALS['captured_styles'][0]['handle']==='csc-worship-responsive' &&
+    strpos($GLOBALS['captured_styles'][0]['src'],'assets/worship-responsive.css')!==false &&
+    $GLOBALS['captured_styles'][0]['version']===CSC_Controls::VERSION,
+    'staging Worship page enqueues versioned responsive stylesheet');
+$GLOBALS['mock_page_id']=3724;
+$GLOBALS['captured_styles']=array();
+CSC_Page_Polish::enqueue();
+check(count($GLOBALS['captured_styles'])===0,'other staging pages load no Worship stylesheet');
+$GLOBALS['mock_page_id']=23;
+$GLOBALS['url']='https://stpeterpr.org';
+CSC_Page_Polish::enqueue();
+check(count($GLOBALS['captured_styles'])===0,'production does not load Worship stylesheet');
+$GLOBALS['url']='https://stpeterpr.org/design-demo';
+$GLOBALS['template']='other';
+CSC_Page_Polish::enqueue();
+check(count($GLOBALS['captured_styles'])===0,'non-Kadence theme does not load Worship stylesheet');
+$GLOBALS['template']='kadence';
+$GLOBALS['mock_is_admin']=true;
+CSC_Page_Polish::enqueue();
+check(count($GLOBALS['captured_styles'])===0,'WordPress admin pages load no Worship stylesheet');
+$GLOBALS['mock_is_admin']=false;
+$worship_css=file_get_contents(__DIR__.'/../assets/worship-responsive.css');
+check(strpos($worship_css,'@media (max-width: 1024px)')!==false &&
+    strpos($worship_css,'@media (max-width: 600px)')!==false &&
+    strpos($worship_css,'.cbp-worship-week .cbp-site-grid--two')!==false &&
+    strpos($worship_css,'grid-template-columns: minmax(0, 1fr)')!==false,
+    'narrow desktop, tablet and phone responsive selectors exist');
+check(strpos($worship_css,'body.page-id-23 .wp-block-cover.alignfull h1')!==false &&
+    strpos($worship_css,'font-size: clamp(')!==false &&
+    strpos($worship_css,'min-height: 0 !important')!==false,
+    'worship hero overrides fixed typography and height on narrow screens');
+check(strpos($worship_css,'body.page-id-23 .wp-block-button__link')!==false &&
+    strpos($worship_css,'overflow-wrap: anywhere')!==false,
+    'narrow-screen Worship buttons can wrap without horizontal overflow');
+
 echo "$count tests passed. Local fakes only; live MCP verification remains separate.\n";
