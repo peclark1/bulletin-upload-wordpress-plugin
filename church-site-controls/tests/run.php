@@ -289,14 +289,17 @@ check(count($GLOBALS['captured_styles'])===1 &&
     'other staging pages load global card CSS but no Worship-only CSS');
 $GLOBALS['mock_page_id']=23;
 $GLOBALS['url']='https://stpeterpr.org';
+$GLOBALS['captured_styles']=array();
 CSC_Page_Polish::enqueue();
 check(count($GLOBALS['captured_styles'])===0,'production does not load Worship stylesheet');
 $GLOBALS['url']='https://stpeterpr.org/design-demo';
 $GLOBALS['template']='other';
+$GLOBALS['captured_styles']=array();
 CSC_Page_Polish::enqueue();
 check(count($GLOBALS['captured_styles'])===0,'non-Kadence theme does not load Worship stylesheet');
 $GLOBALS['template']='kadence';
 $GLOBALS['mock_is_admin']=true;
+$GLOBALS['captured_styles']=array();
 CSC_Page_Polish::enqueue();
 check(count($GLOBALS['captured_styles'])===0,'WordPress admin pages load no Worship stylesheet');
 $GLOBALS['mock_is_admin']=false;
