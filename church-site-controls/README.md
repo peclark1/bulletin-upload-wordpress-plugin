@@ -164,3 +164,44 @@ Upload Plugin, then activate. Do not replace Bulletin Publisher or Parish Forms.
 ZIP. The tests use the observed Home Cover markup plus isolated WordPress/DB
 fakes to check boundaries, permissions, races, audit failures, exact sibling
 preservation and undo. They are not real WordPress/MCP integration evidence.
+
+## v0.3.5 — Equal-height card rows as a site-wide design standard
+
+The `assets/equal-height-cards.css` stylesheet is loaded through
+`CSC_Page_Polish` on **all public pages of the designated `/design-demo`
+staging installation** only, provided Kadence is active. It never loads on
+production, another theme or the WordPress admin.
+
+When a Gutenberg Columns row has **at least two adjacent columns whose
+direct children are background-colored Group blocks**, those Groups are
+considered a card row. At screen widths `>= 782px`, the columns stretch
+to the height of the tallest sibling card. Every directly nested card
+fills its column's height using CSS flex growth and border-box sizing.
+
+- Applies automatically to existing and future side-by-side Gutenberg
+  card groups; editors do not need to repeat manual height values.
+- Intentionally **excludes** ordinary text+image/story rows, and
+  vertically centered image/text layouts.
+- At narrower widths the WordPress Columns block stacks as usual,
+  and each card uses its natural content height; no fixed pixel
+  heights are imposed.
+- Card contents, PDF links, buttons, colors and event data remain
+  unchanged. This complements (rather than replaces) existing inline
+  Gutenberg card backgrounds/borders, including previously set
+  `min-height:100%` on some cards.
+- The standard currently covers card rows built using core
+  `wp-block-columns > wp-block-column > wp-block-group.has-background`.
+  Other structures, such as plugin shortcode grids, custom HTML cards
+  and entirely unstyled Groups, are outside this automatic rule and
+  should receive their own layout rules when needed.
+- Uses modern CSS `:has()` support. Unsupported legacy browsers keep
+  the original non-destructive column layout.
+
+Regression tests assert enqueue guards and the key responsive/structural
+selectors, but these are not computed browser-layout tests. After install,
+visually check Youth Faith Formation, Home, New Here, Catholic Resources,
+Adult Faith Formation and other multi-card pages at wide, mid-sized and
+stacked mobile widths. Check that card bottoms align and no overflow
+appears. User acceptance of issue #18 is separate from version/build
+checks.
+
