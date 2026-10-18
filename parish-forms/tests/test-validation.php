@@ -132,6 +132,11 @@ function get_bloginfo($field)
     return 'Parish Staging Test';
 }
 
+function apply_filters($hook, $value)
+{
+    return $value;
+}
+
 function wp_mail($recipients, $subject, $body, $headers)
 {
     $GLOBALS['pform_mail_log'][] = compact('recipients', 'subject', 'body', 'headers');
