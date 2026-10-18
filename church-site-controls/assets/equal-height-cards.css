@@ -1,0 +1,31 @@
+/*
+ * Church-wide standard: equal-height Gutenberg card rows on wide screens.
+ *
+ * Applies automatically when at least the first two columns each contain
+ * a directly nested background Group ("card"). This excludes the site's
+ * ordinary photo/text, story and icon columns, without an editor-only class.
+ *
+ * WordPress core Columns stack below 782px; at that size cards flow
+ * naturally, with content-driven height and no forced minimum.
+ *
+ * Site/active theme/front-end guards live in CSC_Page_Polish::enqueue().
+ * The selector is additionally scoped to main page/post entry content.
+ */
+@media (min-width: 782px) {
+    body:not(.wp-admin) .entry-content .wp-block-columns:not(.are-vertically-aligned-center):has(> .wp-block-column:first-child > .wp-block-group.has-background):has(> .wp-block-column:nth-child(2) > .wp-block-group.has-background) {
+        align-items: stretch;
+    }
+
+    body:not(.wp-admin) .entry-content .wp-block-columns:not(.are-vertically-aligned-center):has(> .wp-block-column:first-child > .wp-block-group.has-background):has(> .wp-block-column:nth-child(2) > .wp-block-group.has-background) > .wp-block-column:has(> .wp-block-group.has-background) {
+        display: flex;
+        flex-direction: column;
+        align-self: stretch;
+        min-width: 0;
+    }
+
+    body:not(.wp-admin) .entry-content .wp-block-columns:not(.are-vertically-aligned-center):has(> .wp-block-column:first-child > .wp-block-group.has-background):has(> .wp-block-column:nth-child(2) > .wp-block-group.has-background) > .wp-block-column > .wp-block-group.has-background {
+        box-sizing: border-box;
+        width: 100%;
+        flex: 1 1 auto;
+    }
+}
