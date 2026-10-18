@@ -737,6 +737,34 @@ if ($detail !== 'All Men are welcome (Call office before 4:00 pm for location)')
     exit(1);
 }
 
+// Cutover #24: the bulletin-derived Livestream note should link to the same
+// YouTube channel as the existing Worship-page button, without attempting to
+// interpret user-controlled bulletin text as HTML or changing the description.
+$livestream_link = $display_reflection->getMethod('livestream_watch_link');
+$livestream_link->setAccessible(true);
+$watch_markup = $livestream_link->invoke($display);
+$expected_channel = 'https://www.youtube.com/channel/UCveuE1nStVP36VFAc2MPFgA';
+if (substr_count($watch_markup, '<a ') !== 1
+    || strpos($watch_markup, 'href="' . $expected_channel . '"') === false
+    || strpos($watch_markup, 'Watch the livestream on YouTube</a>') === false
+    || strpos($watch_markup, 'target="_blank"') === false
+    || strpos($watch_markup, 'rel="noopener noreferrer"') === false) {
+    fwrite(STDERR, "Worship livestream regression: accessible YouTube link is missing or malformed.\n");
+    exit(1);
+}
+$worship_source = file_get_contents($root . '/includes/class-cbp-site-displays.php');
+if (substr_count($worship_source, '$this->livestream_watch_link()') !== 1
+    || strpos($worship_source, "esc_html(\$item['description'])") === false) {
+    fwrite(STDERR, "Worship livestream regression: note link is not rendered alongside escaped approved description.\n");
+    exit(1);
+}
+$worship_css = file_get_contents($root . '/assets/frontend.css');
+if (strpos($worship_css, '.cbp-site-note .cbp-site-watch a:focus-visible') === false
+    || strpos($worship_css, '.cbp-site-note .cbp-site-watch a:hover') === false) {
+    fwrite(STDERR, "Worship livestream regression: visible keyboard-focus/hover styling missing.\n");
+    exit(1);
+}
+
 // The homepage should show the regular Saturday vigil on First Saturday even
 // though the detailed weekly calendar correctly contains both Masses.
 $home_schedule = CBP_Home_Schedule::instance();

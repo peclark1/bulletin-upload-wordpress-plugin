@@ -48,6 +48,10 @@
 .cbp-site-detail{font-size:14px;line-height:1.45;color:var(--cbp-subtle);font-style:italic}
 .cbp-site-note{margin-top:24px;padding:18px 20px;border-left:4px solid var(--cbp-accent);background:var(--cbp-soft)}
 .cbp-site-note p{margin:5px 0 0}
+.cbp-site-note .cbp-site-watch{margin-top:10px}
+.cbp-site-note .cbp-site-watch a{color:var(--cbp-brand);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.cbp-site-note .cbp-site-watch a:hover{color:var(--cbp-strong);text-decoration-thickness:2px}
+.cbp-site-note .cbp-site-watch a:focus-visible{outline:3px solid var(--cbp-brand);outline-offset:3px;border-radius:2px}
 .cbp-site-empty{margin:0;color:var(--cbp-subtle);font-style:italic}
 .cbp-parish-events .cbp-site-days{gap:24px}
 .cbp-parish-events .cbp-site-day{padding:22px 24px;background:var(--cbp-surface);border:1px solid var(--cbp-border);border-radius:10px}

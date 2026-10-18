@@ -12,6 +12,9 @@ if (! defined('ABSPATH')) {
  */
 final class CBP_Site_Displays
 {
+    // Matches the existing "Live Stream Sunday Mass" button on the Worship page.
+    const LIVESTREAM_YOUTUBE_URL = 'https://www.youtube.com/channel/UCveuE1nStVP36VFAc2MPFgA';
+
     private static $instance;
 
     public static function instance()
@@ -79,11 +82,25 @@ final class CBP_Site_Displays
                             <p><?php echo esc_html($item['description']); ?></p>
                         <?php endif; ?>
                     <?php endforeach; ?>
+                    <?php echo $this->livestream_watch_link(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                 </div>
             <?php endif; ?>
         </div>
         <?php
         return ob_get_clean();
+    }
+
+    /**
+     * A clear, keyboard-accessible destination for the livestream note.
+     * Keep the approved bulletin description as text, and link to the same
+     * parish YouTube channel already used by the static Worship-page button.
+     */
+    private function livestream_watch_link()
+    {
+        return '<p class="cbp-site-watch"><a href="' . esc_url(self::LIVESTREAM_YOUTUBE_URL)
+            . '" target="_blank" rel="noopener noreferrer">'
+            . esc_html__('Watch the livestream on YouTube', 'church-bulletin-publisher')
+            . '</a></p>';
     }
 
     public function parish_events_shortcode($atts)
