@@ -56,6 +56,7 @@ final class PFORM_Plugin
         if (! get_option(self::OPTION)) {
             add_option(self::OPTION, array(
                 'notification_emails' => sanitize_email(get_option('admin_email')),
+                'prayer_notification_emails' => '',
             ));
         }
 
@@ -211,6 +212,8 @@ final class PFORM_Plugin
     {
         return wp_parse_args(get_option(self::OPTION, array()), array(
             'notification_emails' => sanitize_email(get_option('admin_email')),
+            // Deliberately no broad/global-recipient fallback for prayer intentions.
+            'prayer_notification_emails' => '',
         ));
     }
 
