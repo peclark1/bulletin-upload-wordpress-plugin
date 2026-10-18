@@ -112,11 +112,38 @@ class PFORM_Plugin
     {
         return hash('sha256', $form_id . '|' . $timestamp);
     }
+
+    public static function settings()
+    {
+        return isset($GLOBALS['pform_test_settings']) ? $GLOBALS['pform_test_settings'] : array(
+            'notification_emails' => 'other-forms@example.test',
+            'prayer_notification_emails' => '',
+        );
+    }
+}
+
+function wp_specialchars_decode($string, $quote_style = ENT_NOQUOTES)
+{
+    return html_entity_decode($string, $quote_style, 'UTF-8');
+}
+
+function get_bloginfo($field)
+{
+    return 'Parish Staging Test';
+}
+
+function wp_mail($recipients, $subject, $body, $headers)
+{
+    $GLOBALS['pform_mail_log'][] = compact('recipients', 'subject', 'body', 'headers');
+    return true;
 }
 
 require_once dirname(__DIR__) . '/includes/forms/class-pform-parish-registration.php';
 require_once dirname(__DIR__) . '/includes/forms/class-pform-pre-baptismal-questionnaire.php';
 require_once dirname(__DIR__) . '/includes/forms/class-pform-confirmation-interest.php';
+require_once dirname(__DIR__) . '/includes/forms/class-pform-prayer-request.php';
+require_once dirname(__DIR__) . '/includes/class-pform-notifications.php';
+require_once dirname(__DIR__) . '/includes/class-pform-admin.php';
 require_once dirname(__DIR__) . '/includes/class-pform-definition-sanitizer.php';
 require_once dirname(__DIR__) . '/includes/class-pform-validator.php';
 require_once dirname(__DIR__) . '/includes/class-pform-formatter.php';
@@ -400,5 +427,57 @@ assert_true(strpos($hostile_clean['title'], '<script>') === false, 'Editor metad
 assert_true($hostile_clean['sections'][0]['fields'][0]['type'] === 'text', 'Unsupported field types must fall back to text.');
 assert_true($hostile_clean['sections'][0]['fields'][0]['width'] === 'full', 'Unsupported field widths must fall back to full.');
 assert_true(! isset($hostile_clean['sections'][0]['fields'][2]['options']['<bad>']), 'Choice keys must be sanitized.');
+
+
+// Cutover #14: privacy-conscious one-field Prayer Request form.
+$prayer = PFORM_Definition_Sanitizer::sanitize(PFORM_Prayer_Request::definition(), 'prayer-request');
+assert_true($prayer['id'] === 'prayer-request', 'Prayer form has stable shortcode ID.');
+assert_true(count($prayer['sections']) === 1 && count($prayer['sections'][0]['fields']) === 1, 'Prayer form exposes just one input.');
+assert_true($prayer['sections'][0]['fields'][0]['type'] === 'textarea' && $prayer['sections'][0]['fields'][0]['required'], 'Required multiline intention field.');
+assert_true($prayer['sections'][0]['fields'][0]['max_length'] === 1500, 'Intention field has finite limit.');
+
+$sample_intention = 'Please pray for a family member.';
+$prayer_valid = PFORM_Validator::validate($prayer, array('intention' => $sample_intention, 'unexpected' => 'ignored'));
+assert_true($prayer_valid['errors'] === array(), 'Valid prayer request accepted.');
+assert_true($prayer_valid['data'] === array('intention' => $sample_intention), 'Non-definition data ignored.');
+$prayer_blank = PFORM_Validator::validate($prayer, array('intention' => '  '));
+assert_true(isset($prayer_blank['errors']['intention']), 'Blank prayer intentions refused.');
+$prayer_long = PFORM_Validator::validate($prayer, array('intention' => str_repeat('x', 1501)));
+assert_true(isset($prayer_long['errors']['intention']), 'Prayer intention length limit enforced.');
+$prayer_bad = PFORM_Validator::validate($prayer, array('intention' => array('unexpected')));
+assert_true(isset($prayer_bad['errors']['intention']), 'Array input cannot bypass required validation.');
+
+$prayer_html = PFORM_Renderer::render($prayer, array('errors' => array(), 'values' => array(), 'success' => false));
+assert_true(strpos($prayer_html, 'pform-shell--prayer-request') !== false, 'Prayer form has scoped styling hook.');
+assert_true(strpos($prayer_html, 'name="pf[intention]"') !== false && strpos($prayer_html, '<textarea') !== false, 'Prayer uses multiline input.');
+assert_true(strpos($prayer_html, 'type="email"') === false && strpos($prayer_html, 'type="tel"') === false, 'Prayer form does not require identity or contact details.');
+assert_true(strpos($prayer_html, 'name="_pform_nonce"') !== false && strpos($prayer_html, 'name="pform_signature"') !== false, 'Shared secure submission controls remain in form.');
+assert_true(strpos($prayer_html, 'not automatically published') !== false, 'Prayer form discloses non-public handling.');
+$escaped_prayer = PFORM_Renderer::render($prayer, array('errors' => array(), 'values' => array('intention' => '<script>alert(1)</script>'), 'success' => false));
+assert_true(strpos($escaped_prayer, '&lt;script&gt;') !== false && strpos($escaped_prayer, '<script>alert(1)</script>') === false, 'Prayer field replay escaped.');
+
+$admin = (new ReflectionClass('PFORM_Admin'))->newInstanceWithoutConstructor();
+$sanitized_emails = $admin->sanitize_settings(array(
+    'notification_emails' => 'general@example.test',
+    'prayer_notification_emails' => 'prayers@example.test, invalid@@example  prayers@example.test',
+));
+assert_true($sanitized_emails['notification_emails'] === 'general@example.test', 'Global recipients preserved by settings sanitation.');
+assert_true($sanitized_emails['prayer_notification_emails'] === 'prayers@example.test', 'Prayer recipients separately sanitized and deduplicated.');
+assert_true($admin->sanitize_settings(array('notification_emails' => 'general@example.test'))['prayer_notification_emails'] === '', 'Absent prayer address stays empty.');
+
+$GLOBALS['pform_test_settings'] = array('notification_emails' => 'general@example.test', 'prayer_notification_emails' => '');
+$GLOBALS['pform_mail_log'] = array();
+$none = PFORM_Notifications::send(123, $prayer, array('intention' => $sample_intention));
+assert_true($none === false && count($GLOBALS['pform_mail_log']) === 0, 'No fallback to global notification recipients when prayer setting blank.');
+
+$GLOBALS['pform_test_settings']['prayer_notification_emails'] = 'prayers@example.test';
+$sent = PFORM_Notifications::send(123, $prayer, array('intention' => $sample_intention));
+assert_true($sent && count($GLOBALS['pform_mail_log']) === 1, 'Configured prayer notification queued in fake mail.');
+$notice = $GLOBALS['pform_mail_log'][0];
+assert_true($notice['recipients'] === array('prayers@example.test'), 'Prayer notification sent only to dedicated staff recipient.');
+assert_true(strpos($notice['body'], $sample_intention) === false && strpos($notice['body'], 'submission=123') !== false, 'Prayer notification provides private review link without sensitive text.');
+assert_true(strpos(implode(' ', $notice['headers']), 'Reply-To:') === false, 'Prayer notification cannot leak a reply-to identity.');
+
+unset($GLOBALS['pform_test_settings'], $GLOBALS['pform_mail_log']);
 
 echo "Validation tests passed.\n";
