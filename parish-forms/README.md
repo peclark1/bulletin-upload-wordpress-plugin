@@ -43,7 +43,11 @@ Activation or upgrade creates draft **Parish Registration** and **Pre-Baptismal 
 
 Open **Parish Forms > Forms** to manage form definitions. Existing code-defined forms are migrated into the Form Manager on upgrade. Use **Save Draft** to prepare changes, **Preview Saved Draft** to review them, and **Publish Changes** to create a new immutable form version. Open **Parish Forms > Settings** to set notification addresses and **Parish Forms > Submissions** to review or export submissions.
 
-## Prayer Request form (v0.4.1)
+## Prayer Request form (v0.4.2)
+
+The v0.4.2 maintenance update fixes a readability regression on the Prayer
+Request privacy note: the navy submit panel now renders that text in white
+instead of dark gray. No behavior or recipient settings are changed.
 
 The built-in **Prayer Request** is a simple, anonymous (no contact fields)
 long-text form compatible with the existing Parish Forms renderer,
