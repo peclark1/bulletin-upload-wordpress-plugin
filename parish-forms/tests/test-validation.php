@@ -485,4 +485,17 @@ assert_true(strpos(implode(' ', $notice['headers']), 'Reply-To:') === false, 'Pr
 
 unset($GLOBALS['pform_test_settings'], $GLOBALS['pform_mail_log']);
 
+// Prayer Request notice is on a navy submit panel. Keep paragraph text
+// bright enough for normal-size readers; never dark gray on navy.
+$prayer_css = file_get_contents(dirname(__DIR__) . '/assets/frontend.css');
+assert_true(
+    strpos($prayer_css, ".pform-shell--prayer-request .pform-submit p {\n    font-size: .95rem;\n    color: #ffffff;") !== false,
+    'Prayer privacy notice uses white text against navy submit panel.'
+);
+assert_true(
+    strpos($prayer_css, '.pform-shell--prayer-request') !== false &&
+    strpos($prayer_css, '--pform-blue-dark: #243b63;') !== false,
+    'Prayer contrast fix is scoped to intended parish navy form.'
+);
+
 echo "Validation tests passed.\n";
