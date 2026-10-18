@@ -265,15 +265,28 @@ $GLOBALS['mock_page_id']=23;
 $GLOBALS['mock_is_admin']=false;
 $GLOBALS['captured_styles']=array();
 CSC_Page_Polish::enqueue();
+check(count($GLOBALS['captured_styles'])===2 &&
+    $GLOBALS['captured_styles'][0]['handle']==='csc-equal-height-cards' &&
+    strpos($GLOBALS['captured_styles'][0]['src'],'assets/equal-height-cards.css')!==false &&
+    $GLOBALS['captured_styles'][0]['version']===CSC_Controls::VERSION &&
+    $GLOBALS['captured_styles'][1]['handle']==='csc-worship-responsive' &&
+    strpos($GLOBALS['captured_styles'][1]['src'],'assets/worship-responsive.css')!==false &&
+    $GLOBALS['captured_styles'][1]['version']===CSC_Controls::VERSION,
+    'staging Worship page enqueues sitewide equal cards and preserved scoped Worship CSS');
+$GLOBALS['mock_page_id']=2189;
+$GLOBALS['captured_styles']=array();
+CSC_Page_Polish::enqueue();
 check(count($GLOBALS['captured_styles'])===1 &&
-    $GLOBALS['captured_styles'][0]['handle']==='csc-worship-responsive' &&
-    strpos($GLOBALS['captured_styles'][0]['src'],'assets/worship-responsive.css')!==false &&
+    $GLOBALS['captured_styles'][0]['handle']==='csc-equal-height-cards' &&
+    strpos($GLOBALS['captured_styles'][0]['src'],'assets/equal-height-cards.css')!==false &&
     $GLOBALS['captured_styles'][0]['version']===CSC_Controls::VERSION,
-    'staging Worship page enqueues versioned responsive stylesheet');
+    'Youth Faith page enqueues global equal-height card standard');
 $GLOBALS['mock_page_id']=3724;
 $GLOBALS['captured_styles']=array();
 CSC_Page_Polish::enqueue();
-check(count($GLOBALS['captured_styles'])===0,'other staging pages load no Worship stylesheet');
+check(count($GLOBALS['captured_styles'])===1 &&
+    $GLOBALS['captured_styles'][0]['handle']==='csc-equal-height-cards',
+    'other staging pages load global card CSS but no Worship-only CSS');
 $GLOBALS['mock_page_id']=23;
 $GLOBALS['url']='https://stpeterpr.org';
 CSC_Page_Polish::enqueue();
@@ -300,5 +313,25 @@ check(strpos($worship_css,'body.page-id-23 .wp-block-cover.alignfull h1')!==fals
 check(strpos($worship_css,'body.page-id-23 .wp-block-button__link')!==false &&
     strpos($worship_css,'overflow-wrap: anywhere')!==false,
     'narrow-screen Worship buttons can wrap without horizontal overflow');
+
+/* #18 reusable equal-height card standard:
+ * Only rows with two direct background Group children (real card rows)
+ * should be stretched; ordinary story/image columns are out of scope.
+ * It is desktop/tablet-side-by-side only, with native mobile stacking. */
+$card_css=file_get_contents(__DIR__.'/../assets/equal-height-cards.css');
+check(strpos($card_css,'@media (min-width: 782px)')!==false &&
+    strpos($card_css,'.entry-content .wp-block-columns')!==false &&
+    strpos($card_css,':has(> .wp-block-column:first-child > .wp-block-group.has-background)')!==false &&
+    strpos($card_css,':has(> .wp-block-column:nth-child(2) > .wp-block-group.has-background)')!==false,
+    'card styles require two direct Gutenberg background card groups at nonstacking widths');
+check(strpos($card_css,':not(.are-vertically-aligned-center)')!==false &&
+    strpos($card_css,'align-items: stretch')!==false &&
+    strpos($card_css,'flex-direction: column')!==false &&
+    strpos($card_css,'flex: 1 1 auto')!==false &&
+    strpos($card_css,'box-sizing: border-box')!==false,
+    'card layout stretches sibling card heights without fixed pixel heights');
+check(strpos($card_css,'min-height: 200px')===false &&
+    strpos($card_css,'@media (max-width:')===false,
+    'mobile cards retain WordPress natural stacking/height and no fixed height override');
 
 echo "$count tests passed. Local fakes only; live MCP verification remains separate.\n";
