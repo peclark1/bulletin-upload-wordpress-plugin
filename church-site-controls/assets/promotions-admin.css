@@ -25,3 +25,14 @@
 .csc-promo-panel td small { display:block; color:#65718a; margin-top:4px; }
 @media(max-width:1050px) { .csc-promo-grid { grid-template-columns:1fr; } }
 @media(max-width:520px) { .csc-promo-dates { grid-template-columns:1fr; gap:0; } .csc-promo-panel { padding:14px; } }
+
+
+.csc-promo-card-preview { margin: 18px 0 22px; padding: 14px; background: #f7f8fb; border: 1px solid #d7dee8; border-radius: 8px; }
+.csc-promo-card-preview h3 { margin: 0 0 12px; }
+.csc-promo-card-inner { max-width: 470px; margin: 0 auto; padding: 10px; background: white; border: 1px solid #d7dee8; border-radius: 10px; }
+.csc-promo-card-image { display: flex; justify-content: center; align-items: center; background: #f7f5ef; min-height: 140px; max-height: 340px; border-radius: 5px; overflow: hidden; }
+.csc-promo-card-image img { display: block; width: auto; max-width: 100%; max-height: 340px; height: auto; object-fit: contain; }
+.csc-promo-card-buttons { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 12px 0 3px; }
+.csc-promo-card-link { border: 2px solid #243b63; border-radius: 5px; padding: 8px 14px; font-size: 14px; font-weight: 700; color: #243b63; }
+.csc-promo-card-link.is-primary { background: #243b63; color: #fff; }
+.csc-promo-card-link[hidden] { display:none; }
