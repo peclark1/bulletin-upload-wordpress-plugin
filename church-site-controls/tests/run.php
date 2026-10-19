@@ -246,6 +246,16 @@ check(strpos($js,"nav.classList.add('csc-mega-ready')")!==false &&
     strpos($js,"window.matchMedia('(min-width: 1025px)')")!==false,
     'JS readiness marker and desktop-only breakpoint remain aligned with chevron CSS');
 
+/* #2: the outer masthead scrolls out of view while Kadence's main row stays
+ * sticky; an orphaned fixed mega panel must never cover the blue header. */
+check(strpos($js,"const rect = nav.getBoundingClientRect();")!==false &&
+    strpos($js,"const header = document.querySelector('#masthead')")===false,
+    'mega panel position follows actual sticky navigation, not scrolling outer masthead');
+check(strpos($js,"rect.bottom <= 0 || rect.top >= window.innerHeight")!==false &&
+    strpos($js,"      close();\n      return;")!==false,
+    'mega panel closes instead of remaining pinned when navigation exits viewport');
+
+
 
 /* #26 responsive Worship styling is page-scoped, staging-only and does not
  * alter the worship shortcode output or stored Gutenberg content. */
