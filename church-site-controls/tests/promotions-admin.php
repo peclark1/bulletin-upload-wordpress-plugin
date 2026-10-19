@@ -2,7 +2,7 @@
 /* Isolated backend regression tests for Parish Promotions on staging. */
 class CSC_Controls {
     const SITE = 'https://stpeterpr.org/design-demo';
-    const VERSION = '0.4.0';
+    const VERSION = '0.4.1';
 }
 class WP_Error {
     private $message;
@@ -48,6 +48,8 @@ function wp_get_attachment_image_srcset($id, $size) { return ''; }
 function wp_date($format) { return '2026-10-18'; }
 function is_admin() { return false; }
 function wp_parse_url($url, $part) { return parse_url($url, $part); }
+function admin_url($path) { return 'https://stpeterpr.org/design-demo/wp-admin/' . $path; }
+function add_query_arg($args, $url) { return $url . '?' . http_build_query($args); }
 function esc_url_raw($url, $protocols = array()) { return preg_match('/^https?:\/\//i', $url) ? $url : ''; }
 function is_wp_error($value) { return $value instanceof WP_Error; }
 function absint($value) { return abs((int) $value); }
@@ -140,6 +142,31 @@ $_POST['info_url'] = '';
 $_POST['image_id'] = '12';
 try { CSC_Parish_Promotions::save(); check_backend(false, 'non-image must fail'); }
 catch (RuntimeException $e) { check_backend(strpos($e->getMessage(), 'Media Library') !== false, 'invalid media ID refused'); }
+
+// A newly created record must return to a blank Add form rather than
+// quietly editing it. Existing records must retain a clearly marked edit route.
+$created_url = CSC_Parish_Promotions::save_redirect_url(4217, true);
+check_backend(strpos($created_url, 'notice=created') !== false &&
+    strpos($created_url, 'saved_id=4217') !== false &&
+    strpos($created_url, 'edit=') === false,
+    'first save returns to blank Add form with edit link to created record');
+$updated_url = CSC_Parish_Promotions::save_redirect_url(4215, false);
+check_backend(strpos($updated_url, 'notice=updated') !== false &&
+    strpos($updated_url, 'edit=4215') !== false &&
+    strpos($updated_url, 'saved_id=') === false,
+    'saving an edited record keeps existing item in edit mode');
+
+// Guard the UI contract that avoids accidentally overwriting the last save.
+$source = file_get_contents(__DIR__ . '/../includes/class-csc-parish-promotions.php');
+check_backend(strpos($source, 'class="page-title-action csc-promo-add-new"') !== false &&
+    strpos($source, 'Add New Promotion') !== false,
+    'Add New action is prominent at the top of the admin screen');
+check_backend(strpos($source, 'Save Changes updates this record') !== false &&
+    strpos($source, 'After you save, it will reset') !== false,
+    'existing vs new promotion forms explicitly describe save behavior');
+check_backend(strpos($source, 'Edit this promotion') !== false &&
+    strpos($source, "self::save_redirect_url($saved_id, !$id)") !== false,
+    'created confirmation links to edit and save POST uses tested redirect helper');
 
 $js = file_get_contents(__DIR__ . '/../assets/promotions-preview.js');
 $admin = file_get_contents(__DIR__ . '/../assets/promotions-admin.js');
