@@ -80,6 +80,8 @@ church-site-controls:
 test-church-site-controls:
 	@find church-site-controls -name '*.php' -print0 | xargs -0 -n1 php -l
 	@php church-site-controls/tests/run.php
+	@php church-site-controls/tests/promotions-preview.php
+	@command -v node >/dev/null 2>&1 && node --check church-site-controls/assets/promotions-preview.js || true
 
 CPD_VERSION := $(shell sed -n 's/^[[:space:]]*\* Version:[[:space:]]*//p' church-plugin-deployer/church-plugin-deployer.php | head -n 1)
 CPD_ZIP_PATH := ../church-plugin-deployer-$(CPD_VERSION).zip
