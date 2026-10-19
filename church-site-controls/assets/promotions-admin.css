@@ -36,3 +36,27 @@
 .csc-promo-card-link { border: 2px solid #243b63; border-radius: 5px; padding: 8px 14px; font-size: 14px; font-weight: 700; color: #243b63; }
 .csc-promo-card-link.is-primary { background: #243b63; color: #fff; }
 .csc-promo-card-link[hidden] { display:none; }
+
+
+/* v0.4.1: make adding another record obvious after reviewing or editing. */
+.csc-promotions-admin .csc-promo-add-new {
+  display: inline-block;
+  font-weight: 700;
+  margin-left: 12px;
+}
+.csc-promotions-admin .csc-promo-edit-notice {
+  background: #f4f7fb;
+  border-left: 3px solid #243b63;
+  border-radius: 2px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.csc-promotions-admin .csc-promo-success a {
+  font-weight: 700;
+}
+@media (max-width: 520px) {
+  .csc-promotions-admin .csc-promo-add-new {
+    margin: 8px 0 2px;
+  }
+}
