@@ -1,3 +1,30 @@
+# Church Site Controls v0.4.1 — Add New Promotion workflow polish (#13)
+
+**Staging-only incremental update from v0.4.0.** Addresses user testing
+feedback: saving two promotions was successful, but the old save redirect
+left staff in Edit mode, making it easy to accidentally overwrite the last
+saved promotion while intending to create another.
+
+- Prominent **Add New Promotion** WordPress-native button beside the admin
+  page title, available whether editing or creating.
+- On first creation, redirect to the blank **Add a promotion** form with an
+  explicit success notice naming the new record and a safe **Edit this
+  promotion** link. Staff can immediately create a third/fourth entry.
+- When saving an existing entry, stay on its **Edit promotion: [title]**
+  form, show a distinct **Changes saved** notice and prominent Add New
+  action, and explain that **Save Changes updates this record**.
+- Saved records, WordPress Media Library media, dates, draft/published
+  states, external links, display order, public REST feed, existing carousel,
+  and homepage mode setting are unaffected. No migrations or schema changes.
+- Adds focused PHP regression checks for both redirect paths and
+  the new UI affordances. CI must pass before plugin ZIP preparation.
+- Deployment remains opt-in on /design-demo through Church Plugin Deployer.
+  Keep the existing v0.4.0 code rollback. Verify the admin workflow manually
+  by creating a third distinct test promotion; do not change site mode.
+  Never deploy to production without separate cutover approval.
+
+---
+
 # Church Site Controls v0.4.0 — Staff-managed Parish Promotions (#13)
 
 **Staging pilot.** Builds directly on the visually approved v0.3.7 carousel
