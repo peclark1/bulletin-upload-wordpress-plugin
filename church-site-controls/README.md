@@ -1,3 +1,48 @@
+# Church Site Controls v0.3.7 — Parish Promotions carousel design preview (#13)
+
+**Experimental visual pilot on staging Home (page 3498) only. Not a staff
+management interface, a scheduled-event system, or a production release.**
+
+Adds a shortcode [parish_promotions_preview] designed to be inserted once in
+a full-width Gutenberg Group immediately above Quick Links.
+
+- Three archived Media Library posters used strictly as sample artwork:
+  Alpha Fall 2026 (attachment 3487), The Bible Timeline (3449), and the
+  2026 Rummage Sale (3437). Historical event dates are not current promotions.
+  The carousel explicitly labels this as a design preview.
+- Entire images shown using object-fit: contain, never cropped, with
+  optional More Information and Sign Up controls below the graphic.
+  Because real destination URLs are not configured yet, those example controls
+  are disabled visual placeholders, not deceptive or broken links.
+- Desktop: featured centered card, smaller clickable previous/next posters,
+  gentle right-to-left rotation (~7 seconds), back/forward arrows, slide dots
+  and pause/play. Hover/focus pauses autoplay; keyboard arrows and touch swipe
+  select slides. Autoplay runs only while in view and the tab is visible.
+- Mobile up to 760 px: one focused card with controls, rather than squeezed
+  neighbor previews. Reduced-motion preference disables animation and autoplay.
+- If underlying images are missing, hide relevant slides; one image
+  becomes a static featured card, zero images hides the full section.
+- Only enqueues CSS and JS on /design-demo Home (Kadence). Does not modify
+  navigation, header settings, existing homepage content except the shortcode
+  insertion, bulletin schedule, parish forms, or production.
+
+**Staging deployment & validation:** Keep v0.3.6 rollback ZIP. CI must pass;
+prepare the CI artifact via Church Plugin Deployer; installation needs operator
+approval through the existing secured WordPress workflow. Insert shortcode above
+Quick Links only after plugin is active, read back exact Home content, inspect
+rendering and user-test on desktop/mobile. Remove just that shortcode Group to
+roll back page placement. Do not mark #13 done: this is the prototype-design gate.
+
+**Later phase (not delivered here):** a standalone Parish Promotions staff UI
+with records, image selection, display start/end dates in parish timezone,
+separate optional link targets, draft/published states, ordering, preview and
+expired history. Real entries should replace the hardcoded prototype assets;
+do not let past poster dates accidentally become active announcements.
+Check CDN/page caching against automatic expiry. Consider a separate plugin
+for the eventual reusable feature.
+
+---
+
 # Church Site Controls v0.3.6 — Sticky mega-menu anchoring (cutover #2)
 
 This maintenance release fixes a **staging-only** interaction between Kadence's
