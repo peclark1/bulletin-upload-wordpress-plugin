@@ -143,7 +143,7 @@ catch (RuntimeException $e) { check_backend(strpos($e->getMessage(), 'Media Libr
 $js = file_get_contents(__DIR__ . '/../assets/promotions-preview.js');
 $admin = file_get_contents(__DIR__ . '/../assets/promotions-admin.js');
 check_backend(strpos($js, "cache: 'no-store'") !== false && strpos($js, 'Date.now()') !== false, 'browser fetch avoids stale website caches');
-check_backend(strpos($js, 'response.json()') !== false && strpos($js, "feed.mode === 'managed'") !== false, 'carousel hydrates from public managed feed');
+check_backend(strpos($js, 'response.json()') !== false && strpos($js, "buildFeed(feed)") !== false, 'carousel hydrates from public managed feed');
 check_backend(strpos($js, "root.dataset.mode === 'managed'") !== false, 'fetch errors fail closed rather than display expired promotions');
 check_backend(strpos($admin, "wp.media") !== false && strpos($admin, "image.sizes") !== false, 'staff use native image library');
 echo $GLOBALS['count'] . " Parish Promotions admin/backend tests passed.\n";
