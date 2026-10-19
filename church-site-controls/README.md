@@ -1,3 +1,94 @@
+# Church Site Controls v0.4.0 — Staff-managed Parish Promotions (#13)
+
+**Staging pilot.** Builds directly on the visually approved v0.3.7 carousel
+and its existing `[parish_promotions_preview]` shortcode above Quick Links.
+Do not deploy to production or merge into main for this pilot.
+
+## Staff workflow
+
+In WordPress Admin, open **Parish Promotions** (requires `edit_pages`).
+
+1. Enter the event/promotion name, pick an existing graphic or upload one
+   through WordPress Media Library, and give a meaningful accessible
+   description if the artwork contains text.
+2. Set *Start showing* and *Stop showing after* dates. The end date is
+   inclusive, relative to the WordPress installation's own local timezone.
+   These are promotion-visibility dates, not necessarily event dates.
+3. Supply an optional More Information URL and/or Sign Up URL. A dropdown
+   of existing parish pages can fill either field; external `https://`
+   links are also supported. Empty URL = no button for that action.
+   Staff may customize either button label.
+4. Set a display order (0–999, lower goes first), choose **Draft** or
+   **Published (date-controlled)**, and click **Save Promotion**.
+5. The list on the same screen shows saved records, schedules and computed
+   **Draft / Scheduled / Active / Expired** statuses. Edit an entry later
+   to change dates, replace artwork, retire as Draft or reorder. Expired
+   entries are kept for future reuse; no automatic deletion.
+
+**Important launch gate:** the homepage initially continues showing the
+three approved *historical design samples*. Staff can create and review
+real records without exposing them. Once ready, select **Enable staff-managed
+promotions**. Then only Published entries whose *current local date* falls
+within the saved inclusive display window appear. Zero eligible entries hides
+the entire featured section. Use **Show design samples** to safely switch back.
+
+## Implementation
+
+- Private custom WordPress post type `csc_promotion`, not exposed through
+  standard WordPress REST or permalink routes. Admin menu and nonce-guarded
+  POST actions for authorized Editors/Administrators with `edit_pages`.
+  Staging host/site URL checks prevent initialization elsewhere. No hidden
+  credential, external paid service, database table or Gutenberg page edit.
+- Validations: required nonempty title, genuine Media Library image ID,
+  strict ISO calendar dates in proper order, permitted HTTP(S) destinations,
+  bounded display order and publication status; escaping on HTML output,
+  WP nonce, capabilities, stale edit guard (post_modified_gmt), no arbitrary
+  updates/deletions of other post types.
+- Public REST GET `/wp-json/parish-promotions/v1/carousel` returns **only
+  active published promotions' display data**, or the harmless historical
+  sample feed while demo mode is selected. Draft/future/expired records are
+  filtered server-side. The endpoint declares `Cache-Control: no-store`;
+  the frontend requests it with `cache: 'no-store'` and a cache-busting
+  query parameter on each load so event expiry is not defeated by HostGator
+  homepage or CDN caching.
+- The existing center slide, neighboring previews, full-image
+  `object-fit:contain`, CTA buttons underneath, ~7-second rotation,
+  arrows/dots/pause, keyboard/swipe, responsive mobile and reduced-motion
+  handling remain. Live links appear only when staff provides a valid URL;
+  no invented sign-up destinations.
+- If live mode is active but the feed is unavailable, the JS client
+  **fails closed** (hides the section, rather than displaying expired
+  promotions). The live mode's server-rendered shortcode is intentionally
+  a loading shell; it needs JavaScript to show current promotions because
+  cached WordPress page HTML cannot reliably enforce date-based expiry.
+  The design-demo prototype should be tested under HostGator page caching.
+
+## Staging QA and release gates
+
+1. CI: PHP lint, Bulletin Publisher/Parish Forms/CSC/deployer suites, JS
+   syntax and ZIP build all green. Preserve v0.3.7 plugin-code rollback.
+2. Prepare/install v0.4.0 through Church Plugin Deployer with explicit
+   operator approval. Read back the new installed plugin version and
+   confirm unchanged Home 3498 Gutenberg content (shortcode unchanged).
+3. In WordPress Admin → Parish Promotions, save a **Draft** test entry using
+   an actual existing media graphic and valid dates. Verify it appears in
+   the staff list but the public homepage still shows archived samples.
+4. Save a future-dated Published record and an eligible Published record;
+   confirm Draft/Future remain hidden. Only after review, deliberately
+   enable staff-managed promotions and visually test the active entry,
+   both optional buttons, ordering, desktop/mobile controls, and expired
+   date cutoff; recheck fresh REST feed with page caching enabled.
+5. Switch back to design samples if tests fail; do not publish historical
+   promotions accidentally. Staff approval is needed before production
+   migration. Existing Nov 2 cutover remains protected.
+
+No WordPress database backup is performed by Church Plugin Deployer; its
+rollback ZIP preserves plugin code only. The existing Oct 14 site backup is
+the separate wider restore point. Created `csc_promotion` records and
+options persist after plugin code rollback unless explicitly cleaned up.
+
+---
+
 # Church Site Controls v0.3.7 — Parish Promotions carousel design preview (#13)
 
 **Experimental visual pilot on staging Home (page 3498) only. Not a staff
