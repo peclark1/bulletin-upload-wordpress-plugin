@@ -218,12 +218,28 @@ final class CSC_Parish_Promotions {
         $today = wp_date('Y-m-d');
         $records = self::records();
         $notice = isset($_GET['notice']) ? sanitize_key(wp_unslash($_GET['notice'])) : '';
+        $saved_id = isset($_GET['saved_id']) ? absint($_GET['saved_id']) : 0;
+        $saved_post = $saved_id ? self::id_in_post($saved_id) : null;
         $pages = get_pages(array('sort_column' => 'post_title', 'sort_order' => 'asc'));
         ?>
         <div class="wrap csc-promotions-admin">
-          <h1>Parish Promotions</h1>
+          <h1 class="wp-heading-inline">Parish Promotions</h1>
+          <a href="<?php echo esc_url($base); ?>" class="page-title-action csc-promo-add-new">Add New Promotion</a>
+          <hr class="wp-header-end">
           <p>Manage the featured posters above Quick Links on the homepage. Artwork appears exactly as uploaded; the buttons are displayed below it.</p>
-          <?php if ($notice === 'saved') : ?><div class="notice notice-success is-dismissible"><p>Promotion saved. Its visibility follows the dates and publication status below.</p></div><?php endif; ?>
+          <?php if ($notice === 'created' && $saved_post) : ?>
+            <div class="notice notice-success is-dismissible csc-promo-success" role="status">
+              <p><strong><?php echo esc_html($saved_post->post_title); ?></strong> was saved as a new promotion.
+                <a href="<?php echo esc_url(add_query_arg('edit', $saved_id, $base)); ?>">Edit this promotion</a>
+                or keep using the empty <strong>Add a promotion</strong> form to create another.</p>
+            </div>
+          <?php endif; ?>
+          <?php if ($notice === 'updated' && $editing) : ?>
+            <div class="notice notice-success is-dismissible csc-promo-success" role="status">
+              <p>Changes to <strong><?php echo esc_html($row['title']); ?></strong> saved. You are still editing this promotion.
+                <a href="<?php echo esc_url($base); ?>">Add a different promotion</a>.</p>
+            </div>
+          <?php endif; ?>
           <?php if ($notice === 'mode') : ?><div class="notice notice-success is-dismissible"><p>Homepage promotion mode updated.</p></div><?php endif; ?>
           <div class="csc-promo-mode">
             <div>
@@ -243,7 +259,12 @@ final class CSC_Parish_Promotions {
 
           <div class="csc-promo-grid">
             <section class="csc-promo-panel">
-              <h2><?php echo $edit_id ? 'Edit promotion' : 'Add a promotion'; ?></h2>
+              <h2><?php echo $edit_id ? 'Edit promotion: ' . esc_html($row['title']) : 'Add a promotion'; ?></h2>
+              <?php if ($edit_id) : ?>
+                <p class="description csc-promo-edit-notice">You are editing an existing promotion. <strong>Save Changes updates this record</strong>; it will not create a new one. <a href="<?php echo esc_url($base); ?>">Add a new promotion instead</a>.</p>
+              <?php else : ?>
+                <p class="description csc-promo-edit-notice">This form creates a new promotion. After you save, it will reset so you can add the next one.</p>
+              <?php endif; ?>
               <form action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post" class="csc-promo-form">
                 <input type="hidden" name="action" value="csc_promotion_save">
                 <input type="hidden" name="promotion_id" value="<?php echo esc_attr((string) $row['id']); ?>">
@@ -317,7 +338,7 @@ final class CSC_Parish_Promotions {
                     </select></p>
                 </div>
                 <?php submit_button($edit_id ? 'Save Changes' : 'Save Promotion', 'primary', 'submit', true); ?>
-                <?php if ($edit_id) : ?><p><a href="<?php echo esc_url($base); ?>">Add another promotion</a></p><?php endif; ?>
+                <?php if ($edit_id) : ?><p><a class="button button-secondary" href="<?php echo esc_url($base); ?>">Add New Promotion</a></p><?php endif; ?>
               </form>
             </section>
 
@@ -345,6 +366,20 @@ final class CSC_Parish_Promotions {
           </div>
         </div>
         <?php
+    }
+
+    public static function save_redirect_url($saved_id, $is_new) {
+        $args = array('page' => self::MENU_SLUG);
+        if ($is_new) {
+            // Land back on a blank creation form, with an edit link to the saved item.
+            $args['notice'] = 'created';
+            $args['saved_id'] = absint($saved_id);
+        } else {
+            // Editing remains explicit and never silently creates a duplicate.
+            $args['edit'] = absint($saved_id);
+            $args['notice'] = 'updated';
+        }
+        return add_query_arg($args, admin_url('admin.php'));
     }
 
     public static function save() {
@@ -387,7 +422,7 @@ final class CSC_Parish_Promotions {
         );
         foreach ($meta as $key => $value) { update_post_meta($saved_id, self::META_PREFIX . $key, $value); }
         clean_post_cache($saved_id);
-        wp_safe_redirect(add_query_arg(array('page' => self::MENU_SLUG, 'edit' => $saved_id, 'notice' => 'saved'), admin_url('admin.php')));
+        wp_safe_redirect(self::save_redirect_url($saved_id, !$id));
         exit;
     }
 
