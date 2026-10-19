@@ -1,3 +1,30 @@
+# Church Site Controls v0.3.6 — Sticky mega-menu anchoring (cutover #2)
+
+This maintenance release fixes a **staging-only** interaction between Kadence's
+sticky desktop header and the Church Site Controls full-width mega navigation.
+
+Previously, the fixed mega panel used the outer `#masthead` bounding rectangle,
+even though Kadence can keep only the inner navigation row stuck in view. As the
+outer header scrolled away, the panel's top position could clamp to `0px`,
+covering the sticky navigation with its higher stacking order.
+
+The desktop panel now uses the **actual visible primary navigation** as its
+anchor. It keeps the panel under the sticky row and closes it if that navigation
+moves fully offscreen, instead of leaving an orphaned full-screen overlay.
+Internal scrolling *inside* the large menu still works; mouse hover, click,
+keyboard Escape and mobile hamburger behaviors are unchanged. This is not a
+general CSS override and does not change global Kadence settings or menu links.
+
+**Safe deployment:** only to `https://stpeterpr.org/design-demo`, after CI
+passes and administrator approval via Church Plugin Deployer, retaining the
+installed v0.3.5 as the rollback target. Test Home and Adult Faith Formation
+with Parish Life open before/after window scroll, and menu focus/escape,
+mobile viewport and short desktop heights. Source-level regression assertions
+are not evidence of a successful rendered staging test; keep cutover #2 open
+until post-install visual acceptance. Never deploy to production here.
+
+---
+
 # Church Site Controls v0.3.4 — Worship responsive layout (cutover #26)
 
 This release adds **staging-only, page-specific front-end CSS** to the live-tested v0.3.3 Church Site Controls plugin. Nothing changes Gutenberg blocks, Kadence theme mods, menu assignments, or Bulletin Publisher's dynamic schedule data.
