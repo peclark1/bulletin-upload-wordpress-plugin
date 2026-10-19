@@ -165,7 +165,7 @@ check_backend(strpos($source, 'Save Changes updates this record') !== false &&
     strpos($source, 'After you save, it will reset') !== false,
     'existing vs new promotion forms explicitly describe save behavior');
 check_backend(strpos($source, 'Edit this promotion') !== false &&
-    strpos($source, "self::save_redirect_url($saved_id, !$id)") !== false,
+    strpos($source, 'self::save_redirect_url($saved_id, !$id)') !== false,
     'created confirmation links to edit and save POST uses tested redirect helper');
 
 $js = file_get_contents(__DIR__ . '/../assets/promotions-preview.js');
