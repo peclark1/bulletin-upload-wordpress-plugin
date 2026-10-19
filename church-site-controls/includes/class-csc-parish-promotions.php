@@ -291,6 +291,21 @@ final class CSC_Parish_Promotions {
                       <?php foreach ($pages as $page) : ?><option value="<?php echo esc_url(get_permalink($page->ID)); ?>"><?php echo esc_html($page->post_title); ?></option><?php endforeach; ?>
                     </select></p>
                 </fieldset>
+                <div class="csc-promo-card-preview" aria-label="Promotion card preview">
+                  <h3>Preview before saving</h3>
+                  <div class="csc-promo-card-inner">
+                    <div id="csc-card-preview-image" class="csc-promo-card-image">
+                      <?php if ($row['image_id'] && wp_attachment_is_image($row['image_id'])) {
+                          echo wp_get_attachment_image($row['image_id'], 'medium', false, array('alt' => 'Promotion artwork preview'));
+                      } else { echo '<span>Choose a graphic to preview the promotion.</span>'; } ?>
+                    </div>
+                    <div class="csc-promo-card-buttons">
+                      <span id="csc-card-info" class="csc-promo-card-link" <?php if (!$row['info_url']) : ?>hidden<?php endif; ?>><?php echo esc_html($row['info_label']); ?></span>
+                      <span id="csc-card-signup" class="csc-promo-card-link is-primary" <?php if (!$row['signup_url']) : ?>hidden<?php endif; ?>><?php echo esc_html($row['signup_label']); ?></span>
+                    </div>
+                  </div>
+                  <p class="description">This is a local preview. It never publishes or activates a promotion.</p>
+                </div>
                 <div class="csc-promo-dates">
                   <p><label for="csc-sort"><strong>Display order</strong></label>
                     <input id="csc-sort" type="number" min="0" max="999" name="sort" value="<?php echo esc_attr((string) $row['sort']); ?>">
