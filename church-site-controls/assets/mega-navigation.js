@@ -99,10 +99,20 @@
   }
   function position() {
     if (!active) return;
-    const header = document.querySelector('#masthead') || document.querySelector('.site-header') || nav;
-    const rect = header.getBoundingClientRect();
-    // Position at bottom of visible header (sticky and non-sticky).
-    // Overlap by 2px to prevent underlying hero text peeking through at the seam.
+    // Kadence can keep the main navigation sticky while the outer #masthead
+    // scrolls out of view. Anchoring this fixed panel to #masthead instead of
+    // the actual nav causes it to jump to top:0 and cover the sticky header.
+    const rect = nav.getBoundingClientRect();
+    // If there is no visible navigation to anchor to, close rather than
+    // leave an orphaned mega menu covering the viewport.
+    if (!nav.getClientRects().length || rect.height <= 0 ||
+        rect.bottom <= 0 || rect.top >= window.innerHeight) {
+      close();
+      return;
+    }
+    // Keep the menu immediately below the visible navigation row, including
+    // when Kadence repositions that row during sticky scrolling.
+    // Overlap by 2px to avoid exposing underlying content at the seam.
     const bottom = Math.min(window.innerHeight - 60, Math.max(0, rect.bottom - 2));
     panel.style.top = bottom + 'px';
     panel.style.setProperty('--csc-mega-room', Math.max(170, window.innerHeight - bottom - 12) + 'px');
