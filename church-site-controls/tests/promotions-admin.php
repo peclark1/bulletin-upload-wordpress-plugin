@@ -52,6 +52,7 @@ function esc_url_raw($url, $protocols = array()) { return preg_match('/^https?:\
 function is_wp_error($value) { return $value instanceof WP_Error; }
 function absint($value) { return abs((int) $value); }
 function wp_unslash($value) { return stripslashes($value); }
+function esc_html($value) { return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8'); }
 function sanitize_text_field($s) { return trim(strip_tags($s)); }
 function sanitize_textarea_field($s) { return trim(strip_tags($s)); }
 function wp_die($message, $response = 500) { throw new RuntimeException($message, (int)$response); }
