@@ -2,7 +2,7 @@
 /* Isolated PHP regression checks for the staging-only carousel pilot. */
 class CSC_Controls {
     const SITE = 'https://stpeterpr.org/design-demo';
-    const VERSION = '0.3.7';
+    const VERSION = '0.4.0';
 }
 $GLOBALS['test_home'] = 3498;
 $GLOBALS['test_url'] = CSC_Controls::SITE;
@@ -27,6 +27,9 @@ function is_page($id) { return $id === $GLOBALS['test_home']; }
 function wp_attachment_is_image($id) { return in_array($id, $GLOBALS['available_media'], true); }
 function esc_attr($value) { return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8'); }
 function esc_html($value) { return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8'); }
+function esc_url($value) { return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8'); }
+function rest_url($path) { return CSC_Controls::SITE . '/wp-json/' . $path; }
+function get_option($key, $default = false) { return $GLOBALS['test_live'] ?? $default; }
 function wp_get_attachment_image($id, $size, $icon, $attrs) {
     return '<img src="test-' . (int)$id . '.jpg" alt="' . esc_attr($attrs['alt']) . '" class="' . esc_attr($attrs['class']) . '">';
 }
@@ -36,6 +39,7 @@ function wp_enqueue_script($handle, $url, $deps, $version, $footer) { $GLOBALS['
 function add_action($hook, $callback, $priority = 10) { /* WP supplies hooks on site. */ }
 function add_shortcode($name, $callback) { $GLOBALS['shortcodes'][$name] = $callback; }
 
+require __DIR__ . '/../includes/class-csc-parish-promotions.php';
 require __DIR__ . '/../includes/class-csc-promotions-preview.php';
 CSC_Promotions_Preview::register();
 assert_promo(isset($GLOBALS['shortcodes']['parish_promotions_preview']), 'WordPress shortcode is registered');
@@ -56,6 +60,15 @@ assert_promo(substr_count($html, 'class="csc-promo-slide ') === 1 && strpos($htm
 $GLOBALS['available_media'] = array();
 assert_promo(CSC_Promotions_Preview::shortcode() === '', 'no valid posters hides the section');
 $GLOBALS['available_media'] = array(3487, 3449, 3437);
+$GLOBALS['test_live'] = '1';
+$managed = CSC_Promotions_Preview::shortcode();
+assert_promo(strpos($managed, 'data-mode="managed"') !== false &&
+    strpos($managed, 'parish-promotions/v1/carousel') !== false,
+    'opted-in managed mode renders cache-safe feed shell');
+assert_promo(strpos($managed, 'Archived Alpha Fall') === false &&
+    strpos($managed, 'test-3487.jpg') === false,
+    'managed mode never inserts archived demo posters into current promotions');
+$GLOBALS['test_live'] = '0';
 $GLOBALS['test_url'] = 'https://stpeterpr.org';
 $GLOBALS['styles'] = array(); $GLOBALS['scripts'] = array();
 CSC_Promotions_Preview::enqueue();
