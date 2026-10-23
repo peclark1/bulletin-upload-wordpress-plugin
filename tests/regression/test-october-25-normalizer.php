@@ -75,3 +75,18 @@ if (count($negative['weekly']['masses']) !== 1 || ! empty($negative['weekly']['e
     fwrite(STDERR, "Oct 25 regression: an actual Mass was reclassified based only on its intention.\n");
     exit(1);
 }
+
+$intention_memorial = CBP_Weekly_Normalizer::normalize(array(
+    'bulletin_date' => '2026-06-14',
+    'weekly' => array(
+        'masses' => array(
+            array('date' => '2026-06-20', 'time' => '1:00 PM', 'location' => 'St. Peter', 'title' => 'Memorial Service', 'description' => '† Theresa Hauber'),
+        ),
+        'events' => array(),
+    ),
+), '');
+if (count($intention_memorial['weekly']['masses']) !== 1
+    || ! empty($intention_memorial['weekly']['events'])) {
+    fwrite(STDERR, "June 20 regression: intention-bearing Memorial Service was unexpectedly reclassified.\n");
+    exit(1);
+}
