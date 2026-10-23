@@ -57,6 +57,8 @@ foreach ($version_files as $file) {
     require_once $file;
 }
 
+require $root . '/tests/regression/test-october-25-normalizer.php';
+
 // Trusted parser context guard: REST requests are not wp-admin, but the
 // legacy repair stages must still run when invoked by the authenticated
 // production parser pipeline. Outside that explicit context they must remain
