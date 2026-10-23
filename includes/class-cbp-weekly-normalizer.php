@@ -29,6 +29,13 @@ final class CBP_Weekly_Normalizer
             : array();
 
         $masses = self::normalize_liturgy_mass_rows($masses);
+        $masses = self::recover_wrapped_family_intentions($masses, (string) $raw_text);
+        $memorial = self::reconcile_memorial_services($masses, $events);
+        $masses = $memorial['masses'];
+        $events = $memorial['events'];
+        if (! empty($memorial['moved']) && ! empty($parsed['warnings']) && is_array($parsed['warnings'])) {
+            $parsed['warnings'] = self::remove_false_memorial_schedule_warnings($parsed['warnings'], $memorial['moved']);
+        }
         $events = self::canonicalize_liturgy_events($events, $masses);
         $events = self::recover_after_mass_events(
             $events,
@@ -55,6 +62,150 @@ final class CBP_Weekly_Normalizer
         $parsed['source_lines'] = array_values(array_unique($parsed['source_lines']));
 
         return $parsed;
+    }
+
+    /**
+     * A dedicated schedule sometimes includes a timed prayer service among its
+     * Mass lines. This is a parish event, not a new Sunday Mass time. Reconcile
+     * these rows only when the heading actually says "Memorial Service" (or
+     * "Memorial Prayer Service"), preserving ordinary Masses and other events.
+     */
+    private static function reconcile_memorial_services(array $masses, array $events)
+    {
+        $kept_masses = array();
+        $moved = array();
+
+        foreach ($masses as $row) {
+            if (! is_array($row)) {
+                $kept_masses[] = $row;
+                continue;
+            }
+
+            $title = self::semantic_text((string) ($row['title'] ?? ''));
+            if (! preg_match('/^memorial(?: prayer)? service$/', $title)
+                || trim((string) ($row['date'] ?? '')) === ''
+                || trim((string) ($row['time'] ?? '')) === '') {
+                $kept_masses[] = $row;
+                continue;
+            }
+
+            $event = $row;
+            $event['title'] = 'Memorial Prayer Service';
+            $event['location'] = self::event_location((string) ($row['location'] ?? ''));
+            $moved[] = $event;
+        }
+
+        if (empty($moved)) {
+            return array('masses' => $kept_masses, 'events' => $events, 'moved' => array());
+        }
+
+        $clean_events = array();
+        foreach ($events as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $date = trim((string) ($row['date'] ?? ''));
+            $time = self::semantic_time((string) ($row['time'] ?? ''));
+            $location = trim((string) ($row['location'] ?? ''));
+            $title = self::semantic_text((string) ($row['title'] ?? ''));
+
+            $fragment = false;
+            foreach ($moved as $service) {
+                if ($date !== (string) $service['date'] || $time !== '' || $location !== '') {
+                    continue;
+                }
+                if (strpos($title, 'for a memorial service that will be prayed') === 0
+                    || strpos($title, 'who have had a loved one die and their funeral was celebrated') === 0) {
+                    $fragment = true;
+                    break;
+                }
+            }
+            if (! $fragment) {
+                $clean_events[] = $row;
+            }
+        }
+
+        foreach ($moved as $service) {
+            $found = false;
+            foreach ($clean_events as $event) {
+                if ((string) ($event['date'] ?? '') === (string) $service['date']
+                    && self::semantic_time((string) ($event['time'] ?? '')) === self::semantic_time((string) $service['time'])
+                    && self::semantic_text((string) ($event['location'] ?? '')) === self::semantic_text((string) $service['location'])
+                    && preg_match('/^memorial(?: prayer)? service$/', self::semantic_text((string) ($event['title'] ?? '')))) {
+                    $found = true;
+                    break;
+                }
+            }
+            if (! $found) {
+                $clean_events[] = $service;
+            }
+        }
+
+        return array('masses' => array_values($kept_masses), 'events' => $clean_events, 'moved' => $moved);
+    }
+
+    private static function remove_false_memorial_schedule_warnings(array $warnings, array $moved)
+    {
+        return array_values(array_filter($warnings, function ($warning) use ($moved) {
+            if (! is_array($warning) || ($warning['type'] ?? '') !== 'schedule_change') {
+                return true;
+            }
+            $source = (string) ($warning['source'] ?? '');
+            $text = self::semantic_text($source);
+            if (strpos($text, 'memorial') === false || strpos($text, 'service') === false) {
+                return true;
+            }
+            foreach ($moved as $service) {
+                if (strpos($source, (string) $service['date']) !== false
+                    && strpos($source, (string) $service['time']) !== false) {
+                    return false;
+                }
+            }
+            return true;
+        }));
+    }
+
+    /**
+     * Some two-column PDFs wrap the final word of a Mass intention onto its
+     * own left-column line while right-column prose falls between the lines.
+     * Restore "Members" only when the original PDF text shows it immediately
+     * after the intention (allowing at most three interleaved lines).
+     */
+    private static function recover_wrapped_family_intentions(array $masses, $raw_text)
+    {
+        $lines = preg_split('/\r\n|\n|\r/u', (string) $raw_text);
+        if (! is_array($lines)) {
+            return $masses;
+        }
+
+        foreach ($masses as $index => $mass) {
+            if (! is_array($mass) || strcasecmp(trim((string) ($mass['title'] ?? '')), 'Mass') !== 0) {
+                continue;
+            }
+            $description = trim((string) ($mass['description'] ?? ''));
+            if (! preg_match('/\bFamily$/iu', $description)) {
+                continue;
+            }
+            $needle = preg_replace('/^[†+]\s*/u', '', $description);
+            if (! is_string($needle) || $needle === '') {
+                continue;
+            }
+
+            foreach ($lines as $line_index => $line) {
+                if (stripos((string) $line, $needle) === false) {
+                    continue;
+                }
+                for ($i = $line_index + 1; $i <= $line_index + 4 && isset($lines[$i]); $i++) {
+                    if (preg_match('/^\s*Members\b/iu', (string) $lines[$i])) {
+                        $masses[$index]['description'] = $description . ' Members';
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        return $masses;
     }
 
     private static function normalize_liturgy_mass_rows(array $rows)
