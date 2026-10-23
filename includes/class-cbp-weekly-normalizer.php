@@ -82,7 +82,12 @@ final class CBP_Weekly_Normalizer
             }
 
             $title = self::semantic_text((string) ($row['title'] ?? ''));
-            if (! preg_match('/^memorial(?: prayer)? service$/', $title)
+            $description = self::semantic_text((string) ($row['description'] ?? ''));
+            // A "Memorial Service" with a named intention appears in older
+            // reviewed bulletins; reclassify only an explicit *prayer* service.
+            $is_prayer_service = $title === 'memorial prayer service'
+                || ($title === 'memorial service' && strpos($description, 'memorial prayer') !== false);
+            if (! $is_prayer_service
                 || trim((string) ($row['date'] ?? '')) === ''
                 || trim((string) ($row['time'] ?? '')) === '') {
                 $kept_masses[] = $row;
