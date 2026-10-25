@@ -2,7 +2,14 @@
 /* Isolated backend regression tests for Parish Promotions on staging. */
 class CSC_Controls {
     const SITE = 'https://stpeterpr.org/design-demo';
-    const VERSION = '0.4.1';
+    const VERSION = '0.4.2';
+    public static function site_identity() {
+        return untrailingslashit(home_url()) === self::SITE &&
+            untrailingslashit(site_url()) === self::SITE ? self::SITE : false;
+    }
+    public static function is_staging_site() {
+        return self::site_identity() === self::SITE;
+    }
 }
 class WP_Error {
     private $message;
