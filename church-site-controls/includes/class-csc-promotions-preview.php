@@ -11,8 +11,7 @@ final class CSC_Promotions_Preview {
 
     private static function is_staging_home() {
         return !is_admin() &&
-            untrailingslashit(home_url()) === CSC_Controls::SITE &&
-            untrailingslashit(site_url()) === CSC_Controls::SITE &&
+            CSC_Controls::site_identity() !== false &&
             get_template() === 'kadence' &&
             is_page(self::HOME_ID);
     }
@@ -51,6 +50,9 @@ final class CSC_Promotions_Preview {
                 '<div class="csc-promo-intro"><p class="csc-promo-eyebrow">Parish life</p><h2 id="csc-promo-heading">Featured at Our Parishes</h2></div>' .
                 '<p class="csc-promo-loading">Loading current promotions…</p><div class="csc-promo-stage"></div></section>';
         }
+        // Do not show historical demo posters on the live production homepage.
+        // Production shows staff-managed promotions only when explicitly enabled.
+        if (!CSC_Controls::is_staging_site()) { return ''; }
         $items = self::samples();
         if (!$items) { return ''; }
         $count = count($items);
