@@ -424,3 +424,11 @@ Audit revisions and change records use the exact authorized site identity;
 previous staging change IDs must not be applicable to production. After cloning,
 revalidate the HTTP REST endpoint, editor access, fresh undo records and
 frontend display. Neither production nor staging is changed by this Git branch.
+
+**Separate production display approval:** even when staging's cloned option `csc_parish_promotions_live` is `1`, the root site will not display staff promotions until the production-only configuration includes:
+
+```php
+define('CSC_PRODUCTION_PROMOTIONS_ENABLED', true);
+```
+
+This second constant authorizes the production *public feed and homepage carousel* only when the existing mode option is also on. Staging does not need or inherit this constant. This must be set only after reviewing the actual published records, dates and destinations during candidate acceptance; do not set it as an automatic side effect of cloning.
