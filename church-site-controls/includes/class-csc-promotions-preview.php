@@ -44,7 +44,7 @@ final class CSC_Promotions_Preview {
         // The approved sample carousel remains until staff explicitly switch
         // to managed promotions. In managed mode a cache-safe public feed
         // populates this shell and rechecks local display dates on every visit.
-        if ((string) get_option(CSC_Parish_Promotions::MODE_OPTION, '0') === '1') {
+        if (CSC_Parish_Promotions::enabled()) {
             return '<section class="csc-promotions-preview" aria-labelledby="csc-promo-heading" aria-roledescription="carousel" data-mode="managed" data-feed-url="' .
                 esc_url(rest_url('parish-promotions/v1/carousel')) . '" data-interval="7000">' .
                 '<div class="csc-promo-intro"><p class="csc-promo-eyebrow">Parish life</p><h2 id="csc-promo-heading">Featured at Our Parishes</h2></div>' .
