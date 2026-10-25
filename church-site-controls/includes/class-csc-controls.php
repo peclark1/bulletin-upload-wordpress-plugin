@@ -2,15 +2,33 @@
 final class CSC_Controls {
     const VERSION = '0.4.1';
     const SITE = 'https://stpeterpr.org/design-demo';
+    const LIVE_SITE = 'https://stpeterpr.org';
     const PREFIX = 'csc_change_';
 
+    // Staging remains authorized. Production is only authorized by an explicit
+    // wp-config.php opt-in AND the exact canonical URL AND no staging marker.
+    // Do not infer production mode merely because the path is the document root.
+    public static function is_staging_site() {
+        return untrailingslashit(home_url()) === self::SITE &&
+            untrailingslashit(site_url()) === self::SITE;
+    }
+    public static function site_identity() {
+        if (self::is_staging_site()) { return self::SITE; }
+        if (untrailingslashit(home_url()) !== self::LIVE_SITE ||
+            untrailingslashit(site_url()) !== self::LIVE_SITE) { return false; }
+        if (!defined('CSC_PRODUCTION_SITE_ENABLED') || CSC_PRODUCTION_SITE_ENABLED !== true) {
+            return false;
+        }
+        if (get_option('wpstg_is_staging_site', null) !== null) { return false; }
+        return self::LIVE_SITE;
+    }
     public static function permission() {
         return current_user_can('manage_options');
     }
     private static function guard() {
         if (!self::permission()) { return new WP_Error('csc_forbidden', 'Administrator manage_options capability required.', array('status' => 403)); }
-        if (untrailingslashit(home_url()) !== self::SITE || untrailingslashit(site_url()) !== self::SITE) {
-            return new WP_Error('csc_wrong_site', 'This experimental plugin operates only on the designated staging installation.');
+        if (self::site_identity() === false) {
+            return new WP_Error('csc_wrong_site', 'This plugin is not authorized for this WordPress installation.');
         }
         return true;
     }
@@ -92,7 +110,7 @@ final class CSC_Controls {
         return $page;
     }
     private static function revision($page) {
-        return hash('sha256', self::SITE . ':' . $page->ID . ':' . $page->post_content);
+        return hash('sha256', self::site_identity() . ':' . $page->ID . ':' . $page->post_content);
     }
     private static function hero($id) {
         $page = self::page($id);
@@ -131,7 +149,7 @@ final class CSC_Controls {
         $records = array();
         foreach ($names as $name) {
             $record = get_option($name);
-            if (is_array($record) && isset($record['site']) && $record['site'] === self::SITE) { $records[] = $record; }
+            if (is_array($record) && isset($record['site']) && $record['site'] === self::site_identity()) { $records[] = $record; }
         }
         return array('changes'=>$records);
     }
@@ -155,7 +173,7 @@ final class CSC_Controls {
         // Keep restoration within the same adapter's supported bounds.
         if ($hero['value'] > 200) { return new WP_Error('csc_unsupported_hero', 'Original padding exceeds reversible v0.1 range.'); }
         $next = clone $page; $next->post_content = $after;
-        $record = array('change_id'=>wp_generate_uuid4(),'version'=>self::VERSION,'site'=>self::SITE,'page_id'=>$page->ID,
+        $record = array('change_id'=>wp_generate_uuid4(),'version'=>self::VERSION,'site'=>self::site_identity(),'page_id'=>$page->ID,
             'field'=>'padding_top_px','before'=>$hero['value'],'after'=>$args['value'],'before_revision'=>self::revision($page),
             'after_revision'=>self::revision($next),'actor'=>get_current_user_id(),'created_at'=>gmdate('c'),'status'=>'prepared');
         // Durable minimal before state precedes any content mutation. No full page/user data in audit.
@@ -169,7 +187,7 @@ final class CSC_Controls {
     private static function undo($args) {
         $record = self::change($args['change_id']);
         if (is_wp_error($record)) { return $record; }
-        if ($record['site'] !== self::SITE || !in_array($record['status'], array('prepared','applied'), true)) {
+        if ($record['site'] !== self::site_identity() || !in_array($record['status'], array('prepared','applied'), true)) {
             return new WP_Error('csc_invalid_change', 'Change is not pending restoration on this site.');
         }
         if (isset($record['target_type'])) {
