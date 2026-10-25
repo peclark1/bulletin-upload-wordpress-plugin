@@ -395,3 +395,32 @@ stacked mobile widths. Check that card bottoms align and no overflow
 appears. User acceptance of issue #18 is separate from version/build
 checks.
 
+
+
+## Production candidate gate (v0.4.2 draft — not deployed)
+
+The existing `/design-demo` staging installation remains authorized by exact URL.
+A separate root production installation is **disabled by default**. To authorize
+Church Site Controls and Parish Promotions on the root site, an administrator
+must deliberately add to that installation's private `wp-config.php`:
+
+```php
+define('CSC_PRODUCTION_SITE_ENABLED', true);
+```
+
+This is accepted only when both WordPress `home` and `siteurl` equal
+`https://stpeterpr.org` **and** the `wpstg_is_staging_site` marker option is
+absent from the candidate DB. Never enable this constant in the original
+staging site or old-production site. The constant is an authorization gate,
+not a substitute for existing WordPress permissions, revisions, backups or
+deployment approval.
+
+Production will **not** show the archived Alpha / Bible Timeline / Rummage
+Sale demonstration images by default. It renders staff-managed promotions
+only if administrators separately enable the `csc_parish_promotions_live`
+option and qualifying published/date-window records exist.
+
+Audit revisions and change records use the exact authorized site identity;
+previous staging change IDs must not be applicable to production. After cloning,
+revalidate the HTTP REST endpoint, editor access, fresh undo records and
+frontend display. Neither production nor staging is changed by this Git branch.
