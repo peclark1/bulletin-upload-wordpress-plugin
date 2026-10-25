@@ -21,7 +21,10 @@ final class CSC_Parish_Promotions {
     }
 
     public static function enabled() {
-        return self::on_authorized_site() && (string) get_option(self::MODE_OPTION, '0') === '1';
+        return self::on_authorized_site() &&
+            (string) get_option(self::MODE_OPTION, '0') === '1' &&
+            (CSC_Controls::is_staging_site() ||
+                (defined('CSC_PRODUCTION_PROMOTIONS_ENABLED') && CSC_PRODUCTION_PROMOTIONS_ENABLED === true));
     }
 
     public static function register_type() {
