@@ -432,3 +432,9 @@ define('CSC_PRODUCTION_PROMOTIONS_ENABLED', true);
 ```
 
 This second constant authorizes the production *public feed and homepage carousel* only when the existing mode option is also on. Staging does not need or inherit this constant. This must be set only after reviewing the actual published records, dates and destinations during candidate acceptance; do not set it as an automatic side effect of cloning.
+
+## 0.4.3 — production-root navigation and responsive CSS (draft, Oct 28)
+
+The final site is authorized only through the existing exact-root `CSC_Controls::site_identity()` gate: `CSC_PRODUCTION_SITE_ENABLED===true`, matching `https://stpeterpr.org` home/siteurl, and no `wpstg_is_staging_site` marker. The original `/design-demo` remains allowed. `CSC_Mega_Navigation` and `CSC_Page_Polish` now enqueue their unchanged versioned CSS/JS on **either** authorized installation when Kadence is active and the request is not admin; the Worship-only responsive stylesheet still requires page 23. Other URLs (including `/parish-preview-2026`) are not implicitly authorized by this code. Production style assets require a separate rendered root acceptance test after installation; PHP unit tests alone do not prove that the menu displays correctly.
+
+This change does **not** authorize historical sample promotions on production. Managed Parish Promotions still require `CSC_PRODUCTION_PROMOTIONS_ENABLED===true`, the existing mode option and approved current published records; do not add that constant until staff have reviewed content. Frontend assets neither change menu items nor theme settings. Upgrade the **private** candidate from v0.4.2 to v0.4.3 using a newly verified build; never change staging or public root directly during prep. `make test-church-site-controls` adds `frontend-site-identity.php` which tests staging, root opt-in, marker, admin, mismatched URLs, other theme, and page scoping.
