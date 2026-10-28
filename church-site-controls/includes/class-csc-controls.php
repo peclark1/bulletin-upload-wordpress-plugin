@@ -1,6 +1,6 @@
 <?php
 final class CSC_Controls {
-    const VERSION = '0.4.2';
+    const VERSION = '0.4.3';
     const SITE = 'https://stpeterpr.org/design-demo';
     const LIVE_SITE = 'https://stpeterpr.org';
     const PREFIX = 'csc_change_';
