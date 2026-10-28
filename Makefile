@@ -83,6 +83,7 @@ test-church-site-controls:
 	@php church-site-controls/tests/promotions-preview.php
 	@php church-site-controls/tests/promotions-admin.php
 	@php church-site-controls/tests/production-site-guard.php
+	@php church-site-controls/tests/frontend-site-identity.php
 	@command -v node >/dev/null 2>&1 && node --check church-site-controls/assets/promotions-preview.js && node --check church-site-controls/assets/promotions-admin.js || true
 
 CPD_VERSION := $(shell sed -n 's/^[[:space:]]*\* Version:[[:space:]]*//p' church-plugin-deployer/church-plugin-deployer.php | head -n 1)
