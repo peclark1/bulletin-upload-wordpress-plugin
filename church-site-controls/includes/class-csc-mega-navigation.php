@@ -1,13 +1,12 @@
 <?php
 /**
- * Staging-only enhancement: safe, progressive desktop mega menus over Kadence's
- * existing classic menu links. No menu item writes or new theme settings.
+ * Progressive desktop mega menus for the explicitly authorized parish site
+ * (original staging or opted-in production root). No menu or theme writes.
  */
 final class CSC_Mega_Navigation {
     public static function enqueue() {
-        if (untrailingslashit(home_url()) !== CSC_Controls::SITE ||
-            untrailingslashit(site_url()) !== CSC_Controls::SITE ||
-            get_template() !== 'kadence' || is_admin()) {
+        if (is_admin() || CSC_Controls::site_identity() === false ||
+            get_template() !== 'kadence') {
             return;
         }
         $base = plugin_dir_url(dirname(__FILE__) . '/../church-site-controls.php');
