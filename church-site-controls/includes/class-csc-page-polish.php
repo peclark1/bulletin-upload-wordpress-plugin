@@ -1,22 +1,18 @@
 <?php
 /**
- * Cutover-specific, staging-only front-end polish.
- *
- * This is intentionally separate from the editable Kadence header/menu options,
- * and applies no global theme-mod changes.
+ * Front-end responsive parish styling on the explicitly authorized staging
+ * installation or production root, with no theme or post writes.
  */
 final class CSC_Page_Polish {
     public static function enqueue() {
-        if (is_admin() ||
-            untrailingslashit(home_url()) !== CSC_Controls::SITE ||
-            untrailingslashit(site_url()) !== CSC_Controls::SITE ||
+        if (is_admin() || CSC_Controls::site_identity() === false ||
             get_template() !== 'kadence') {
             return;
         }
 
         $base = plugin_dir_url(dirname(__FILE__) . '/../church-site-controls.php');
 
-        // Global card-row standard, but only on the designated staging site.
+        // Global card-row standard on either authorized parish installation.
         // CSS detects pairs of Gutenberg card groups; other columns are untouched.
         wp_enqueue_style(
             'csc-equal-height-cards',
@@ -25,7 +21,7 @@ final class CSC_Page_Polish {
             CSC_Controls::VERSION
         );
 
-        // Preserve the existing, Worship-only responsive refinements.
+        // Preserve existing Worship-only responsive refinements.
         if (!is_page(23)) {
             return;
         }
