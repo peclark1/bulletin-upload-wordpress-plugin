@@ -395,3 +395,46 @@ stacked mobile widths. Check that card bottoms align and no overflow
 appears. User acceptance of issue #18 is separate from version/build
 checks.
 
+
+
+## Production candidate gate (v0.4.2 draft — not deployed)
+
+The existing `/design-demo` staging installation remains authorized by exact URL.
+A separate root production installation is **disabled by default**. To authorize
+Church Site Controls and Parish Promotions on the root site, an administrator
+must deliberately add to that installation's private `wp-config.php`:
+
+```php
+define('CSC_PRODUCTION_SITE_ENABLED', true);
+```
+
+This is accepted only when both WordPress `home` and `siteurl` equal
+`https://stpeterpr.org` **and** the `wpstg_is_staging_site` marker option is
+absent from the candidate DB. Never enable this constant in the original
+staging site or old-production site. The constant is an authorization gate,
+not a substitute for existing WordPress permissions, revisions, backups or
+deployment approval.
+
+Production will **not** show the archived Alpha / Bible Timeline / Rummage
+Sale demonstration images by default. It renders staff-managed promotions
+only if administrators separately enable the `csc_parish_promotions_live`
+option and qualifying published/date-window records exist.
+
+Audit revisions and change records use the exact authorized site identity;
+previous staging change IDs must not be applicable to production. After cloning,
+revalidate the HTTP REST endpoint, editor access, fresh undo records and
+frontend display. Neither production nor staging is changed by this Git branch.
+
+**Separate production display approval:** even when staging's cloned option `csc_parish_promotions_live` is `1`, the root site will not display staff promotions until the production-only configuration includes:
+
+```php
+define('CSC_PRODUCTION_PROMOTIONS_ENABLED', true);
+```
+
+This second constant authorizes the production *public feed and homepage carousel* only when the existing mode option is also on. Staging does not need or inherit this constant. This must be set only after reviewing the actual published records, dates and destinations during candidate acceptance; do not set it as an automatic side effect of cloning.
+
+## 0.4.3 — production-root navigation and responsive CSS (draft, Oct 28)
+
+The final site is authorized only through the existing exact-root `CSC_Controls::site_identity()` gate: `CSC_PRODUCTION_SITE_ENABLED===true`, matching `https://stpeterpr.org` home/siteurl, and no `wpstg_is_staging_site` marker. The original `/design-demo` remains allowed. `CSC_Mega_Navigation` and `CSC_Page_Polish` now enqueue their unchanged versioned CSS/JS on **either** authorized installation when Kadence is active and the request is not admin; the Worship-only responsive stylesheet still requires page 23. Other URLs (including `/parish-preview-2026`) are not implicitly authorized by this code. Production style assets require a separate rendered root acceptance test after installation; PHP unit tests alone do not prove that the menu displays correctly.
+
+This change does **not** authorize historical sample promotions on production. Managed Parish Promotions still require `CSC_PRODUCTION_PROMOTIONS_ENABLED===true`, the existing mode option and approved current published records; do not add that constant until staff have reviewed content. Frontend assets neither change menu items nor theme settings. Upgrade the **private** candidate from v0.4.2 to v0.4.3 using a newly verified build; never change staging or public root directly during prep. `make test-church-site-controls` adds `frontend-site-identity.php` which tests staging, root opt-in, marker, admin, mismatched URLs, other theme, and page scoping.

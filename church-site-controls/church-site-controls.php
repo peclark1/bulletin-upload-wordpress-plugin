@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Church Site Controls
- * Description: Staging-only, reversible Kadence appearance, menu and hero edits via WordPress Abilities.
- * Version: 0.4.1
+ * Description: Reversible Kadence appearance, menu and hero edits for authorized parish installations.
+ * Version: 0.4.3
  * Requires at least: 6.9
  * Requires PHP: 7.4
  * License: GPL-2.0-or-later

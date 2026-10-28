@@ -10,18 +10,25 @@ final class CSC_Parish_Promotions {
     const MENU_SLUG = 'parish-promotions';
     const META_PREFIX = '_csc_promo_';
 
-    public static function on_staging() {
-        return untrailingslashit(home_url()) === CSC_Controls::SITE &&
-            untrailingslashit(site_url()) === CSC_Controls::SITE &&
+    public static function on_authorized_site() {
+        return CSC_Controls::site_identity() !== false &&
             get_template() === 'kadence';
     }
 
+    // Backward-compatible staging-only predicate for tests and old integrations.
+    public static function on_staging() {
+        return CSC_Controls::is_staging_site() && get_template() === 'kadence';
+    }
+
     public static function enabled() {
-        return self::on_staging() && (string) get_option(self::MODE_OPTION, '0') === '1';
+        return self::on_authorized_site() &&
+            (string) get_option(self::MODE_OPTION, '0') === '1' &&
+            (CSC_Controls::is_staging_site() ||
+                (defined('CSC_PRODUCTION_PROMOTIONS_ENABLED') && CSC_PRODUCTION_PROMOTIONS_ENABLED === true));
     }
 
     public static function register_type() {
-        if (!self::on_staging()) { return; }
+        if (!self::on_authorized_site()) { return; }
         register_post_type(self::TYPE, array(
             'label' => 'Parish Promotions',
             'public' => false,
@@ -36,7 +43,7 @@ final class CSC_Parish_Promotions {
     }
 
     private static function permission() {
-        if (!self::on_staging() || !current_user_can('edit_pages')) {
+        if (!self::on_authorized_site() || !current_user_can('edit_pages')) {
             wp_die('You are not authorized to manage parish promotions on this installation.', 403);
         }
     }
@@ -93,7 +100,7 @@ final class CSC_Parish_Promotions {
     }
 
     public static function records() {
-        if (!self::on_staging()) { return array(); }
+        if (!self::on_authorized_site()) { return array(); }
         $posts = get_posts(array(
             'post_type' => self::TYPE,
             'post_status' => array('publish', 'draft', 'pending'),
@@ -105,7 +112,7 @@ final class CSC_Parish_Promotions {
     }
 
     public static function active_records($today = null) {
-        if (!self::on_staging()) { return array(); }
+        if (!self::on_authorized_site()) { return array(); }
         if ($today === null) { $today = wp_date('Y-m-d'); } // WordPress site local day
         $active = array_values(array_filter(self::records(), static function ($row) use ($today) {
             return $row['status'] === 'publish' &&
@@ -151,7 +158,7 @@ final class CSC_Parish_Promotions {
     }
 
     public static function public_feed() {
-        if (!self::on_staging()) { return array('mode' => 'off', 'items' => array()); }
+        if (!self::on_authorized_site()) { return array('mode' => 'off', 'items' => array()); }
         $demo = !self::enabled();
         $rows = $demo ? self::sample_rows() : self::active_records();
         $items = array();
@@ -163,7 +170,7 @@ final class CSC_Parish_Promotions {
     }
 
     public static function rest_routes() {
-        if (!self::on_staging()) { return; }
+        if (!self::on_authorized_site()) { return; }
         register_rest_route('parish-promotions/v1', '/carousel', array(
             'methods' => 'GET',
             'callback' => array(__CLASS__, 'rest_feed'),
@@ -179,7 +186,7 @@ final class CSC_Parish_Promotions {
     }
 
     public static function admin_menu() {
-        if (!self::on_staging()) { return; }
+        if (!self::on_authorized_site()) { return; }
         add_menu_page(
             'Parish Promotions', 'Parish Promotions', 'edit_pages',
             self::MENU_SLUG, array(__CLASS__, 'admin_screen'),
@@ -188,7 +195,7 @@ final class CSC_Parish_Promotions {
     }
 
     public static function admin_assets($hook) {
-        if (!self::on_staging() || $hook !== 'toplevel_page_' . self::MENU_SLUG) { return; }
+        if (!self::on_authorized_site() || $hook !== 'toplevel_page_' . self::MENU_SLUG) { return; }
         wp_enqueue_media();
         $base = plugin_dir_url(dirname(__FILE__) . '/../church-site-controls.php');
         wp_enqueue_script('csc-promo-admin', $base . 'assets/promotions-admin.js', array('jquery'), CSC_Controls::VERSION, true);

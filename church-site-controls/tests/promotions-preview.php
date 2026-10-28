@@ -2,7 +2,14 @@
 /* Isolated PHP regression checks for the staging-only carousel pilot. */
 class CSC_Controls {
     const SITE = 'https://stpeterpr.org/design-demo';
-    const VERSION = '0.4.0';
+    const VERSION = '0.4.2';
+    public static function site_identity() {
+        return untrailingslashit(home_url()) === self::SITE &&
+            untrailingslashit(site_url()) === self::SITE ? self::SITE : false;
+    }
+    public static function is_staging_site() {
+        return self::site_identity() === self::SITE;
+    }
 }
 $GLOBALS['test_home'] = 3498;
 $GLOBALS['test_url'] = CSC_Controls::SITE;

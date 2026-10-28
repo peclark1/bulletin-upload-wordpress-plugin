@@ -11,8 +11,7 @@ final class CSC_Promotions_Preview {
 
     private static function is_staging_home() {
         return !is_admin() &&
-            untrailingslashit(home_url()) === CSC_Controls::SITE &&
-            untrailingslashit(site_url()) === CSC_Controls::SITE &&
+            CSC_Controls::site_identity() !== false &&
             get_template() === 'kadence' &&
             is_page(self::HOME_ID);
     }
@@ -45,12 +44,15 @@ final class CSC_Promotions_Preview {
         // The approved sample carousel remains until staff explicitly switch
         // to managed promotions. In managed mode a cache-safe public feed
         // populates this shell and rechecks local display dates on every visit.
-        if ((string) get_option(CSC_Parish_Promotions::MODE_OPTION, '0') === '1') {
+        if (CSC_Parish_Promotions::enabled()) {
             return '<section class="csc-promotions-preview" aria-labelledby="csc-promo-heading" aria-roledescription="carousel" data-mode="managed" data-feed-url="' .
                 esc_url(rest_url('parish-promotions/v1/carousel')) . '" data-interval="7000">' .
                 '<div class="csc-promo-intro"><p class="csc-promo-eyebrow">Parish life</p><h2 id="csc-promo-heading">Featured at Our Parishes</h2></div>' .
                 '<p class="csc-promo-loading">Loading current promotions…</p><div class="csc-promo-stage"></div></section>';
         }
+        // Do not show historical demo posters on the live production homepage.
+        // Production shows staff-managed promotions only when explicitly enabled.
+        if (!CSC_Controls::is_staging_site()) { return ''; }
         $items = self::samples();
         if (!$items) { return ''; }
         $count = count($items);
