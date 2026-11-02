@@ -80,7 +80,17 @@ final class CBP_Home_Schedule
                     <p class="cbp-home-mass-eyebrow"><?php esc_html_e('TWO INLETS', 'church-bulletin-publisher'); ?></p>
                     <h3><?php esc_html_e('St. Mary’s', 'church-bulletin-publisher'); ?></h3>
                     <p class="cbp-home-mass-times">
-                        <strong><?php esc_html_e('Sunday', 'church-bulletin-publisher'); ?> • <?php echo esc_html($schedule['st_mary_sunday']); ?></strong>
+                        <?php
+                        $st_mary_lines = ! empty($schedule['_st_mary_weekend_lines'])
+                            ? $schedule['_st_mary_weekend_lines']
+                            : array(array('day' => __('Sunday', 'church-bulletin-publisher'), 'time' => $schedule['st_mary_sunday']));
+                        foreach ($st_mary_lines as $index => $line) :
+                            if ($index > 0) {
+                                echo '<br>';
+                            }
+                            ?>
+                            <strong><?php echo esc_html($line['day']); ?> • <?php echo esc_html($line['time']); ?></strong>
+                        <?php endforeach; ?>
                     </p>
                 </section>
             </div>
@@ -123,6 +133,13 @@ final class CBP_Home_Schedule
         }
 
         $today = wp_date('Y-m-d');
+
+        // Only use dated exceptions for their own week. The normal Sunday
+        // schedule remains unchanged in the saved recurring schedule.
+        $st_mary_lines = $this->st_mary_weekend_lines($weekly, $today);
+        if (! empty($st_mary_lines)) {
+            $schedule['_st_mary_weekend_lines'] = $st_mary_lines;
+        }
 
         // First Saturday has an additional morning Mass plus the regular
         // Saturday vigil. The weekly calendar intentionally keeps both. For
@@ -206,6 +223,78 @@ final class CBP_Home_Schedule
         }
 
         return $schedule;
+    }
+
+    /**
+     * Homepage Mass lines for St. Mary's from the active approved week.
+     * Keep Saturday replacements visible through Sunday, and treat an
+     * explicit Sunday "No Mass" row as a cancellation, not another Mass.
+     */
+    private function st_mary_weekend_lines(array $weekly, $today)
+    {
+        $start = isset($weekly['week_start']) ? (string) $weekly['week_start'] : '';
+        $end = isset($weekly['week_end']) ? (string) $weekly['week_end'] : '';
+        if (! $this->valid_date($start) || ! $this->valid_date($end)
+            || ! $this->valid_date($today) || $today < $start || $today > $end) {
+            return array();
+        }
+
+        $saturday = array();
+        $sunday = array();
+        $sunday_cancelled = false;
+
+        foreach ($weekly['masses'] as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $date = isset($row['date']) ? sanitize_text_field($row['date']) : '';
+            if (! $this->valid_date($date) || $date < $start || $date > $end) {
+                continue;
+            }
+
+            $timestamp = strtotime($date . ' 12:00:00');
+            $day = $timestamp ? (int) wp_date('N', $timestamp) : 0;
+            if ($day !== 6 && $day !== 7) {
+                continue;
+            }
+
+            $location = isset($row['location']) ? sanitize_text_field($row['location']) : '';
+            $where = strtolower(str_replace(array('’', "'"), '', $location));
+            if (strpos($where, 'mary') === false) {
+                continue;
+            }
+
+            $title = isset($row['title']) ? sanitize_text_field($row['title']) : '';
+            if ($day === 7 && preg_match('/^\s*no\s+mass\b/i', $title)) {
+                $sunday_cancelled = true;
+                continue;
+            }
+
+            $time = isset($row['time']) ? sanitize_text_field($row['time']) : '';
+            $description = isset($row['description']) ? sanitize_text_field($row['description']) : '';
+            if ($time === '' || ! preg_match('/\bmass\b/i', $title)
+                || $this->is_special_mass($title, $description)) {
+                continue;
+            }
+
+            $line = array('day' => $day === 6 ? 'Saturday' : 'Sunday', 'time' => $time);
+            if ($day === 6) {
+                $saturday[] = $line;
+            } else {
+                $sunday[] = $line;
+            }
+        }
+
+        if (empty($saturday) && empty($sunday) && ! $sunday_cancelled) {
+            return array();
+        }
+
+        if ($sunday_cancelled) {
+            $sunday = array(array('day' => 'Sunday', 'time' => 'No Mass'));
+        }
+
+        return array_merge($saturday, $sunday);
     }
 
     private function is_special_mass($title, $description)
