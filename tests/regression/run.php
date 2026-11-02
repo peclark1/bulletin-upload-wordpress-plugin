@@ -20,6 +20,7 @@ require $root . '/includes/class-cbp-parser-context.php';
 require $root . '/includes/class-cbp-weekly-normalizer.php';
 require $root . '/includes/class-cbp-site-displays.php';
 require $root . '/includes/class-cbp-home-schedule.php';
+require $root . '/tests/regression/test-home-weekend-exceptions.php';
 
 // Smoke-test the front-end shortcode class structurally. PHP lint alone will
 // not catch a method call whose helper was accidentally removed from the class.
