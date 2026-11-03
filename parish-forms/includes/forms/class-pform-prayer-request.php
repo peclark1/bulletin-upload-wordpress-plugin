@@ -23,7 +23,7 @@ final class PFORM_Prayer_Request
             'submit_label' => __('Submit Prayer Request', 'parish-forms'),
             'success_title' => __('Prayer Request Received', 'parish-forms'),
             'confirmation' => __('Thank you for sharing your prayer intention. Your request has been received by the parish.', 'parish-forms'),
-            'privacy_note' => __('Please do not include last names, medical details, or other sensitive personal information. Your request is stored privately for authorized parish staff and is not automatically published. For urgent assistance, please call the parish office.', 'parish-forms'),
+            'privacy_note' => __('Please do not include last names, medical details, or other sensitive personal information. Your request is emailed to designated parish clergy and stored privately for authorized parish staff; it is not posted publicly. For urgent assistance, please call the parish office.', 'parish-forms'),
             'admin_primary_fields' => array(),
             'admin_contact_fields' => array(),
             'sections' => array(
