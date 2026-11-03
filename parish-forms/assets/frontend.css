@@ -512,3 +512,57 @@
         gap: .65rem;
     }
 }
+
+/*
+ * Prayer Request: a single, accessible text area inside the parish's
+ * existing white content card. Other Parish Forms keep their own layout.
+ */
+.pform-shell--prayer-request {
+    --pform-blue: #243b63;
+    --pform-blue-dark: #243b63;
+    --pform-gold: #a77d2f;
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.pform-shell--prayer-request .pform-intro {
+    margin-bottom: 1.25rem;
+}
+
+.pform-shell--prayer-request .pform-intro h2 {
+    font-size: clamp(1.75rem, 4.5vw, 2.25rem);
+    line-height: 1.2;
+}
+
+.pform-shell--prayer-request .pform-section {
+    margin: 0 0 1rem;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.pform-shell--prayer-request .pform-section__heading {
+    display: none;
+}
+
+.pform-shell--prayer-request .pform-field textarea {
+    min-height: 144px;
+    resize: vertical;
+}
+
+.pform-shell--prayer-request .pform-submit p {
+    font-size: .95rem;
+    color: #ffffff;
+    line-height: 1.55;
+}
+
+@media (max-width: 600px) {
+    .pform-shell--prayer-request {
+        max-width: 100%;
+    }
+    .pform-shell--prayer-request .pform-intro h2 {
+        font-size: 1.7rem;
+    }
+}

@@ -12,7 +12,7 @@ final class PFORM_Renderer
         $errors = isset($state['errors']) ? $state['errors'] : array();
         ob_start();
         ?>
-        <div id="parish-form" class="pform-shell">
+        <div id="parish-form" class="pform-shell pform-shell--<?php echo esc_attr(sanitize_html_class($definition['id'])); ?>">
             <?php if (! empty($state['success'])) : ?>
                 <div class="pform-notice pform-notice--success" role="status" tabindex="-1">
                     <h2><?php echo esc_html(! empty($definition['success_title']) ? $definition['success_title'] : __('Submission Received', 'parish-forms')); ?></h2>

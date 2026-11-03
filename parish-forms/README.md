@@ -43,6 +43,46 @@ Activation or upgrade creates draft **Parish Registration** and **Pre-Baptismal 
 
 Open **Parish Forms > Forms** to manage form definitions. Existing code-defined forms are migrated into the Form Manager on upgrade. Use **Save Draft** to prepare changes, **Preview Saved Draft** to review them, and **Publish Changes** to create a new immutable form version. Open **Parish Forms > Settings** to set notification addresses and **Parish Forms > Submissions** to review or export submissions.
 
+## Prayer Request form (v0.4.2)
+
+The v0.4.2 maintenance update fixes a readability regression on the Prayer
+Request privacy note: the navy submit panel now renders that text in white
+instead of dark gray. No behavior or recipient settings are changed.
+
+The built-in **Prayer Request** is a simple, anonymous (no contact fields)
+long-text form compatible with the existing Parish Forms renderer,
+server-side field validation, nonce, signed start-time check, honeypot,
+rate limit, private submission storage, administrator review, and
+POST/redirect/GET confirmation. Embed it using:
+
+```text
+[parish_form id="prayer-request"]
+```
+
+It has **one required textarea**, `intention`, capped at 1,500 characters.
+The public text asks visitors to omit last names, medical details, and
+other sensitive personal information. The form never posts intentions
+publicly, and staff access to submissions requires the existing
+`manage_parish_forms` permission.
+
+**Prayer notification routing is separate from all other forms.** In
+**Parish Forms → Settings**, enter explicitly approved staff recipients
+under **Prayer Request notification addresses** (comma-separated).
+By default this list is empty; there is deliberately **no fallback**
+to the global notification recipients for registrations and other forms.
+Submissions are stored privately even when notification addresses are
+empty or delivery fails. Prayer notifications provide a private
+administrator submission link, timestamp, and ID but do **not** include
+the submitted prayer text in email. Other form notifications retain
+their existing behavior.
+
+Before launching publicly, staff must approve the notification recipients,
+confirm who responds to intentions, decide a retention/deletion process
+for private submissions, and review the parish's public privacy notice.
+Do **not** test by sending real or sensitive prayer intentions through
+staging; automated tests use fake WordPress email functions and sample
+text, and verify routing and sanitization.
+
 ## Data handling
 
 Submissions are stored as private, non-public WordPress records. Access to the plugin screens and CSV exports requires the `manage_parish_forms` capability, which is added to the Administrator role on activation. The plugin does not expose submissions through the REST API.

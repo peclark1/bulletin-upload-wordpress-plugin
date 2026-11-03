@@ -56,6 +56,7 @@ final class PFORM_Plugin
         if (! get_option(self::OPTION)) {
             add_option(self::OPTION, array(
                 'notification_emails' => sanitize_email(get_option('admin_email')),
+                'prayer_notification_emails' => '',
             ));
         }
 
@@ -203,7 +204,7 @@ final class PFORM_Plugin
         }
         wp_add_privacy_policy_content(
             __('Parish Forms', 'parish-forms'),
-            wp_kses_post(__('<p>Parish form submissions may include household and parent contact information, dates of birth, sacramental-preparation information, ministry interests, and registration choices. Submissions are stored privately in WordPress for parish-office use and may be sent to configured parish staff email addresses.</p><p>Access is limited to WordPress users granted the Parish Forms management capability. Submissions remain stored until an authorized administrator moves them to the trash or permanently deletes them under the parish records-retention policy.</p>', 'parish-forms'))
+            wp_kses_post(__('<p>Parish form submissions may include household and parent contact information, dates of birth, sacramental-preparation information, ministry interests, registration choices, and prayer intentions. Submissions are stored privately in WordPress for parish-office use and may be sent to configured parish staff email addresses.</p><p>Access is limited to WordPress users granted the Parish Forms management capability. Submissions remain stored until an authorized administrator moves them to the trash or permanently deletes them under the parish records-retention policy.</p>', 'parish-forms'))
         );
     }
 
@@ -211,6 +212,8 @@ final class PFORM_Plugin
     {
         return wp_parse_args(get_option(self::OPTION, array()), array(
             'notification_emails' => sanitize_email(get_option('admin_email')),
+            // Deliberately no broad/global-recipient fallback for prayer intentions.
+            'prayer_notification_emails' => '',
         ));
     }
 

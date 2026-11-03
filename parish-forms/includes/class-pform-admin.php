@@ -89,16 +89,21 @@ final class PFORM_Admin
 
     public function sanitize_settings($input)
     {
-        $raw = isset($input['notification_emails']) ? $input['notification_emails'] : '';
-        $emails = preg_split('/[\s,;]+/', (string) $raw);
-        $clean = array();
-        foreach ($emails as $email) {
-            $email = sanitize_email($email);
-            if ($email && is_email($email)) {
-                $clean[] = $email;
+        $input = is_array($input) ? $input : array();
+        $result = array();
+        foreach (array('notification_emails', 'prayer_notification_emails') as $key) {
+            $raw = isset($input[$key]) && is_scalar($input[$key]) ? (string) $input[$key] : '';
+            $emails = preg_split('/[\\s,;]+/', $raw);
+            $clean = array();
+            foreach ($emails as $email) {
+                $email = sanitize_email($email);
+                if ($email && is_email($email)) {
+                    $clean[] = $email;
+                }
             }
+            $result[$key] = implode(', ', array_unique($clean));
         }
-        return array('notification_emails' => implode(', ', array_unique($clean)));
+        return $result;
     }
 
     public function render_forms()
@@ -635,6 +640,13 @@ final class PFORM_Admin
                             <p class="description"><?php esc_html_e('Separate multiple addresses with commas. Each address receives the complete submitted form data. Leave blank to disable email notifications; submissions will still be stored.', 'parish-forms'); ?></p>
                         </td>
                     </tr>
+                    <tr>
+                        <th scope="row"><label for="pform-prayer-notification-emails"><?php esc_html_e('Prayer Request notification addresses', 'parish-forms'); ?></label></th>
+                        <td>
+                            <textarea id="pform-prayer-notification-emails" class="large-text" rows="2" name="<?php echo esc_attr(PFORM_Plugin::OPTION); ?>[prayer_notification_emails]"><?php echo esc_textarea($settings['prayer_notification_emails']); ?></textarea>
+                            <p class="description"><?php esc_html_e('For the Prayer Request form only. Use approved staff addresses; separate with commas. No general-form fallback. Leave blank to store requests privately without sending email. Notifications contain a private review link, not the prayer text.', 'parish-forms'); ?></p>
+                        </td>
+                    </tr>
                 </table>
                 <?php submit_button(); ?>
             </form>
@@ -649,6 +661,7 @@ final class PFORM_Admin
                     <p><a class="button" href="<?php echo esc_url(get_edit_post_link($baptism_page_id)); ?>"><?php esc_html_e('Edit Draft Pre-Baptismal Page', 'parish-forms'); ?></a></p>
                 <?php endif; ?>
                 <p><strong><?php esc_html_e('Confirmation Interest Form:', 'parish-forms'); ?></strong> <code>[parish_form id="confirmation-interest"]</code></p>
+                <p><strong><?php esc_html_e('Prayer Request:', 'parish-forms'); ?></strong> <code>[parish_form id="prayer-request"]</code></p>
             </section>
         </div>
         <?php
