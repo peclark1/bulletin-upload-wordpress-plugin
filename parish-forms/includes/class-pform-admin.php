@@ -644,7 +644,7 @@ final class PFORM_Admin
                         <th scope="row"><label for="pform-prayer-notification-emails"><?php esc_html_e('Prayer Request notification addresses', 'parish-forms'); ?></label></th>
                         <td>
                             <textarea id="pform-prayer-notification-emails" class="large-text" rows="2" name="<?php echo esc_attr(PFORM_Plugin::OPTION); ?>[prayer_notification_emails]"><?php echo esc_textarea($settings['prayer_notification_emails']); ?></textarea>
-                            <p class="description"><?php esc_html_e('For the Prayer Request form only. Use approved staff addresses; separate with commas. No general-form fallback. Leave blank to store requests privately without sending email. Notifications contain a private review link, not the prayer text.', 'parish-forms'); ?></p>
+                            <p class="description"><?php esc_html_e('For the Prayer Request form only. Use approved staff addresses; separate with commas. No general-form fallback. Leave blank to store requests privately without sending email. Each email contains the prayer request itself so clergy can read it without logging in. Email may be forwarded or retained outside WordPress; use approved recipients only.', 'parish-forms'); ?></p>
                         </td>
                     </tr>
                 </table>
