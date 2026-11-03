@@ -13,3 +13,5 @@ jobs:
         run: find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
       - name: Check Parish Forms validation and rendering
         run: php parish-forms/tests/test-validation.php
+      - name: Check Parish Forms email notifications
+        run: php parish-forms/tests/test-notifications.php
