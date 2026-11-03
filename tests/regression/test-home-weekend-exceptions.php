@@ -109,8 +109,8 @@ if ($format_method->invoke($home, '2026-11-07') !== 'Saturday, Nov 7'
     exit(1);
 }
 
-// An already-approved bulletin for NEXT week must not change this week's
-// homepage times prematurely, even if the next Saturday is in the future.
+// Keep the established behavior for future approved Saturday exceptions,
+// but carry their actual date so the rendered label never implies this week.
 $this_weekend = $date_method->invoke($home, wp_date('Y-m-d'));
 $next_saturday = (new DateTimeImmutable($this_weekend['saturday']))->modify('+7 days')->format('Y-m-d');
 $GLOBALS['cbp_regression_options'][CBP_Schedule::WEEKLY_OPTION] = array(
@@ -125,8 +125,9 @@ $apply_method->setAccessible(true);
 $standing = CBP_Schedule::defaults();
 $standing['st_peter_saturday'] = '5:00 PM';
 $not_early = $apply_method->invoke($home, $standing);
-if ($not_early['st_peter_saturday'] !== '5:00 PM') {
-    fwrite(STDERR, "Next week's approved Saturday time replaced this week's Mass prematurely.\n");
+if ($not_early['st_peter_saturday'] !== '7:15 PM'
+    || ($not_early['_st_peter_saturday_date'] ?? '') !== $next_saturday) {
+    fwrite(STDERR, "Approved future Saturday Mass lost its true date or approved time.\n");
     exit(1);
 }
 
