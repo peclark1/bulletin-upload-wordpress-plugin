@@ -56,6 +56,12 @@ final class CBP_Home_Schedule
         );
         $schedule = $this->apply_upcoming_weekend_masses($schedule);
         $weekend_dates = $this->weekend_dates_for(wp_date('Y-m-d'));
+        // A specific approved dated Mass may be from an upcoming week. Use
+        // the row's own date rather than the recurring weekend fallback date.
+        $peter_saturday_date = ! empty($schedule['_st_peter_saturday_date'])
+            ? $schedule['_st_peter_saturday_date'] : $weekend_dates['saturday'];
+        $peter_sunday_date = ! empty($schedule['_st_peter_sunday_date'])
+            ? $schedule['_st_peter_sunday_date'] : $weekend_dates['sunday'];
 
         wp_enqueue_style(
             'cbp-site-displays',
@@ -73,11 +79,11 @@ final class CBP_Home_Schedule
                     <h3><?php esc_html_e('St. Peter’s', 'church-bulletin-publisher'); ?></h3>
                     <div class="cbp-home-mass-times">
                         <div class="cbp-home-mass-entry">
-                            <span class="cbp-home-mass-date"><?php echo esc_html($this->format_mass_date($weekend_dates['saturday'])); ?></span>
+                            <span class="cbp-home-mass-date"><?php echo esc_html($this->format_mass_date($peter_saturday_date)); ?></span>
                             <strong><?php echo esc_html($schedule['st_peter_saturday']); ?></strong>
                         </div>
                         <div class="cbp-home-mass-entry">
-                            <span class="cbp-home-mass-date"><?php echo esc_html($this->format_mass_date($weekend_dates['sunday'])); ?></span>
+                            <span class="cbp-home-mass-date"><?php echo esc_html($this->format_mass_date($peter_sunday_date)); ?></span>
                             <strong><?php echo esc_html($schedule['st_peter_sunday']); ?></strong>
                         </div>
                     </div>
@@ -175,7 +181,6 @@ final class CBP_Home_Schedule
         }
 
         $today = wp_date('Y-m-d');
-        $weekend_dates = $this->weekend_dates_for($today);
 
         // Only use dated exceptions for their own week. The normal Sunday
         // schedule remains unchanged in the saved recurring schedule.
@@ -218,8 +223,7 @@ final class CBP_Home_Schedule
                 continue;
             }
 
-            if ($time === '' || ! $this->valid_date($date) || $date < $today
-                || $date > $weekend_dates['sunday']) {
+            if ($time === '' || ! $this->valid_date($date) || $date < $today) {
                 continue;
             }
 
@@ -250,12 +254,14 @@ final class CBP_Home_Schedule
 
             if ($day === 6 && $is_peter && ! $found['st_peter_saturday']) {
                 $schedule['st_peter_saturday'] = $time;
+                $schedule['_st_peter_saturday_date'] = $date;
                 $found['st_peter_saturday'] = true;
                 continue;
             }
 
             if ($day === 7 && $is_peter && ! $found['st_peter_sunday']) {
                 $schedule['st_peter_sunday'] = $time;
+                $schedule['_st_peter_sunday_date'] = $date;
                 $found['st_peter_sunday'] = true;
                 continue;
             }
