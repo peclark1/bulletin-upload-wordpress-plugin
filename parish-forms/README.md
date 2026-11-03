@@ -32,7 +32,7 @@ From the repository root, build the installable plugin ZIP:
 make parish-forms
 ```
 
-Install the resulting `parish-forms-0.4.0.zip` in **Plugins > Add New > Upload Plugin**, then activate it.
+Install the resulting `parish-forms-0.4.3.zip` in **Plugins > Add New > Upload Plugin**, then activate it.
 
 Activation or upgrade creates draft **Parish Registration** and **Pre-Baptismal Questionnaire** pages. Review and publish those pages, or place either shortcode on another page:
 
@@ -43,7 +43,7 @@ Activation or upgrade creates draft **Parish Registration** and **Pre-Baptismal 
 
 Open **Parish Forms > Forms** to manage form definitions. Existing code-defined forms are migrated into the Form Manager on upgrade. Use **Save Draft** to prepare changes, **Preview Saved Draft** to review them, and **Publish Changes** to create a new immutable form version. Open **Parish Forms > Settings** to set notification addresses and **Parish Forms > Submissions** to review or export submissions.
 
-## Prayer Request form (v0.4.2)
+## Prayer Request form (v0.4.3)
 
 The v0.4.2 maintenance update fixes a readability regression on the Prayer
 Request privacy note: the navy submit panel now renders that text in white
@@ -71,10 +71,19 @@ under **Prayer Request notification addresses** (comma-separated).
 By default this list is empty; there is deliberately **no fallback**
 to the global notification recipients for registrations and other forms.
 Submissions are stored privately even when notification addresses are
-empty or delivery fails. Prayer notifications provide a private
-administrator submission link, timestamp, and ID but do **not** include
-the submitted prayer text in email. Other form notifications retain
-their existing behavior.
+empty or delivery fails. Starting in v0.4.3, prayer notifications contain
+the complete prayer intention in the email body, plus timestamp and request
+ID, with no need for a WordPress login. They go **only** to addresses
+explicitly entered in the dedicated Prayer Request setting; no global
+recipients are added. Emails may be forwarded or retained outside WordPress,
+so approved clergy should handle them confidentially. Other forms retain
+their existing recipient routing and message content.
+
+The built-in prayer form privacy notice now mentions email delivery.
+**Existing published Form Manager definitions are saved in WordPress and are
+not silently overwritten on plugin upgrade.** After installing, staff should
+edit Prayer Request under **Parish Forms → Forms**, update its public privacy
+note to disclose emailing to designated clergy, and publish the form change.
 
 Before launching publicly, staff must approve the notification recipients,
 confirm who responds to intentions, decide a retention/deletion process
