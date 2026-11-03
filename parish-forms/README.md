@@ -2,6 +2,8 @@
 
 Parish Forms is a small, purpose-built WordPress plugin for St. Peter the Apostle and St. Mary's Two Inlets. Version 0.4 adds a constrained Form Manager so authorized parish staff can make routine form changes and create new forms without editing PHP, while retaining the secure rendering, validation, storage, email, administration, and CSV infrastructure.
 
+Version 0.4.1 adds per-form notification recipients and a direct-to-clergy prayer-request email layout.
+
 ## Features
 
 - Responsive parish-branded frontend forms
@@ -13,7 +15,7 @@ Parish Forms is a small, purpose-built WordPress plugin for St. Peter the Apostl
 - Repeatable child sections (up to 10 children)
 - Schema-based server validation and sanitization
 - Non-public WordPress submission storage
-- Configurable staff email notifications containing the submitted data
+- Configurable site-wide or per-form staff email notifications containing the submitted data
 - Administrator-only submission review, status, trash, restore, and deletion tools
 - UTF-8 CSV export with spreadsheet-formula protection
 - Draft registration page created on activation
@@ -40,6 +42,8 @@ Activation or upgrade creates draft **Parish Registration** and **Pre-Baptismal 
 [parish_form id="parish-registration"]
 [parish_form id="pre-baptismal-questionnaire"]
 ```
+
+For the **Prayer Request** form (`prayer-request`), enter Father Joe's and Deacon John's addresses under **Notification emails for this form**, then publish the form changes. Each will receive the full request in the email body; no WordPress login is needed to read it. Leave clergy addresses out of the site-wide list unless they should receive every other form too. If a form's notification field is blank, it uses the site-wide recipients.
 
 Open **Parish Forms > Forms** to manage form definitions. Existing code-defined forms are migrated into the Form Manager on upgrade. Use **Save Draft** to prepare changes, **Preview Saved Draft** to review them, and **Publish Changes** to create a new immutable form version. Open **Parish Forms > Settings** to set notification addresses and **Parish Forms > Submissions** to review or export submissions.
 
