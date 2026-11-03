@@ -9,7 +9,9 @@ final class PFORM_Notifications
     public static function send($submission_id, $definition, $data)
     {
         $settings = PFORM_Plugin::settings();
-        $recipients = self::recipients($settings['notification_emails']);
+        // A form can route its own notifications; otherwise keep the site-wide default.
+        $source = ! empty($definition['notification_emails']) ? $definition['notification_emails'] : $settings['notification_emails'];
+        $recipients = self::recipients($source);
         $recipients = apply_filters('pform_notification_recipients', $recipients, $definition['id'], $submission_id);
         if (! $recipients) {
             return false;
@@ -17,7 +19,13 @@ final class PFORM_Notifications
 
         $site_name = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
         $subject = sprintf('[%s] New %s #%d', $site_name, $definition['title'], $submission_id);
-        $body = sprintf("A new %s was submitted.\n\nSubmission ID: %d\nReceived: %s\nAdmin: %s\n\n%s\n", $definition['title'], $submission_id, wp_date('F j, Y g:i a'), PFORM_Admin::submission_url($submission_id), PFORM_Formatter::plain_text($definition, $data));
+        $details = PFORM_Formatter::plain_text($definition, $data);
+        if ($definition['id'] === 'prayer-request') {
+            // Clergy should be able to read the entire request without a WordPress login.
+            $body = sprintf("A new prayer request was received.\n\n%s\n\nReceived: %s\nRequest ID: %d\n", $details, wp_date('F j, Y g:i a'), $submission_id);
+        } else {
+            $body = sprintf("A new %s was submitted.\n\nSubmission ID: %d\nReceived: %s\nAdmin: %s\n\n%s\n", $definition['title'], $submission_id, wp_date('F j, Y g:i a'), PFORM_Admin::submission_url($submission_id), $details);
+        }
         $headers = array('Content-Type: text/plain; charset=UTF-8');
 
         $reply_to_field = ! empty($definition['reply_to_field']) ? $definition['reply_to_field'] : 'primary_email';
