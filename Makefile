@@ -61,6 +61,7 @@ parish-forms:
 test-parish-forms:
 	@find parish-forms -name '*.php' -print0 | xargs -0 -n1 php -l
 	@php parish-forms/tests/test-validation.php
+	@php parish-forms/tests/test-notifications.php
 	@command -v node >/dev/null 2>&1 && node --check parish-forms/assets/frontend.js && node --check parish-forms/assets/form-editor.js || true
 
 clean:
