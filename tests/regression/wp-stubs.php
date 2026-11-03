@@ -65,6 +65,7 @@ function remove_action($hook = '', $callback = null, $priority = 10)
 }
 function add_filter() { return true; }
 function add_shortcode() { return true; }
+function wp_enqueue_style() { return true; }
 
 function wp_register_ability_category($name, $args)
 {
