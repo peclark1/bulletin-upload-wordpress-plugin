@@ -21,6 +21,7 @@ require $root . '/includes/class-cbp-weekly-normalizer.php';
 require $root . '/includes/class-cbp-site-displays.php';
 require $root . '/includes/class-cbp-home-schedule.php';
 require $root . '/tests/regression/test-home-weekend-exceptions.php';
+require $root . '/tests/regression/test-mobile-trigger-contrast.php';
 require $root . '/tests/regression/test-livestream-card.php';
 
 // Smoke-test the front-end shortcode class structurally. PHP lint alone will
