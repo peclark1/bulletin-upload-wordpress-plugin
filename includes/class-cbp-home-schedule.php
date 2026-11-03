@@ -55,6 +55,7 @@ final class CBP_Home_Schedule
             CBP_Schedule::defaults()
         );
         $schedule = $this->apply_upcoming_weekend_masses($schedule);
+        $weekend_dates = $this->weekend_dates_for(wp_date('Y-m-d'));
 
         wp_enqueue_style(
             'cbp-site-displays',
@@ -70,28 +71,38 @@ final class CBP_Home_Schedule
                 <section class="cbp-home-mass-card">
                     <p class="cbp-home-mass-eyebrow"><?php esc_html_e('PARK RAPIDS', 'church-bulletin-publisher'); ?></p>
                     <h3><?php esc_html_e('St. Peter’s', 'church-bulletin-publisher'); ?></h3>
-                    <p class="cbp-home-mass-times">
-                        <strong><?php esc_html_e('Saturday', 'church-bulletin-publisher'); ?> • <?php echo esc_html($schedule['st_peter_saturday']); ?></strong><br>
-                        <strong><?php esc_html_e('Sunday', 'church-bulletin-publisher'); ?> • <?php echo esc_html($schedule['st_peter_sunday']); ?></strong>
-                    </p>
+                    <div class="cbp-home-mass-times">
+                        <div class="cbp-home-mass-entry">
+                            <span class="cbp-home-mass-date"><?php echo esc_html($this->format_mass_date($weekend_dates['saturday'])); ?></span>
+                            <strong><?php echo esc_html($schedule['st_peter_saturday']); ?></strong>
+                        </div>
+                        <div class="cbp-home-mass-entry">
+                            <span class="cbp-home-mass-date"><?php echo esc_html($this->format_mass_date($weekend_dates['sunday'])); ?></span>
+                            <strong><?php echo esc_html($schedule['st_peter_sunday']); ?></strong>
+                        </div>
+                    </div>
                 </section>
 
                 <section class="cbp-home-mass-card cbp-home-mass-card--warm">
                     <p class="cbp-home-mass-eyebrow"><?php esc_html_e('TWO INLETS', 'church-bulletin-publisher'); ?></p>
                     <h3><?php esc_html_e('St. Mary’s', 'church-bulletin-publisher'); ?></h3>
-                    <p class="cbp-home-mass-times">
+                    <div class="cbp-home-mass-times">
                         <?php
                         $st_mary_lines = ! empty($schedule['_st_mary_weekend_lines'])
                             ? $schedule['_st_mary_weekend_lines']
                             : array(array('day' => __('Sunday', 'church-bulletin-publisher'), 'time' => $schedule['st_mary_sunday']));
-                        foreach ($st_mary_lines as $index => $line) :
-                            if ($index > 0) {
-                                echo '<br>';
-                            }
+                        foreach ($st_mary_lines as $line) :
+                            $day_key = strtolower((string) $line['day']);
+                            $line_date = isset($weekend_dates[$day_key]) ? $weekend_dates[$day_key] : '';
                             ?>
-                            <strong><?php echo esc_html($line['day']); ?> • <?php echo esc_html($line['time']); ?></strong>
+                            <div class="cbp-home-mass-entry">
+                                <?php if ($line_date !== '') : ?>
+                                    <span class="cbp-home-mass-date"><?php echo esc_html($this->format_mass_date($line_date)); ?></span>
+                                <?php endif; ?>
+                                <strong><?php echo esc_html($line['time']); ?></strong>
+                            </div>
                         <?php endforeach; ?>
-                    </p>
+                    </div>
                 </section>
             </div>
 
@@ -108,6 +119,37 @@ final class CBP_Home_Schedule
         </div>
         <?php
         return ob_get_clean();
+    }
+
+    /**
+     * Keep the Saturday and Sunday dates together through the end of Sunday.
+     * Switch to next weekend on Monday in the WordPress site's timezone.
+     * Accept a date argument so the boundaries can be regression tested.
+     */
+    private function weekend_dates_for($today)
+    {
+        if (! $this->valid_date($today)) {
+            return array('saturday' => '', 'sunday' => '');
+        }
+
+        $date = DateTimeImmutable::createFromFormat('!Y-m-d', $today);
+        $monday = $date->modify('-' . ((int) $date->format('N') - 1) . ' days');
+
+        return array(
+            'saturday' => $monday->modify('+5 days')->format('Y-m-d'),
+            'sunday' => $monday->modify('+6 days')->format('Y-m-d'),
+        );
+    }
+
+    private function format_mass_date($date)
+    {
+        if (! $this->valid_date($date)) {
+            return '';
+        }
+
+        // Noon avoids date rollover when converting to the site's timezone.
+        $timestamp = strtotime($date . ' 12:00:00');
+        return $timestamp ? wp_date('l, M j', $timestamp) : '';
     }
 
     private function apply_upcoming_weekend_masses(array $schedule)
@@ -133,6 +175,7 @@ final class CBP_Home_Schedule
         }
 
         $today = wp_date('Y-m-d');
+        $weekend_dates = $this->weekend_dates_for($today);
 
         // Only use dated exceptions for their own week. The normal Sunday
         // schedule remains unchanged in the saved recurring schedule.
@@ -175,7 +218,8 @@ final class CBP_Home_Schedule
                 continue;
             }
 
-            if ($time === '' || ! $this->valid_date($date) || $date < $today) {
+            if ($time === '' || ! $this->valid_date($date) || $date < $today
+                || $date > $weekend_dates['sunday']) {
                 continue;
             }
 
