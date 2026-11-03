@@ -65,7 +65,10 @@
 .cbp-home-mass-card--warm{background:var(--cbp-surface);border-color:var(--cbp-border)}
 .cbp-home-mass-eyebrow{margin:0 0 32px;color:var(--cbp-accent);font-size:13px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase}
 .cbp-home-mass-card h3{margin:0 0 23px;color:var(--cbp-brand);font-size:28px;line-height:1.2}
-.cbp-home-mass-times{margin:0;font-size:20px;line-height:1.65;color:var(--cbp-brand)}
+.cbp-home-mass-times{display:grid;gap:16px;margin:0;color:var(--cbp-brand)}
+.cbp-home-mass-entry{display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.4}
+.cbp-home-mass-date{color:var(--cbp-muted);font-size:15px;font-weight:600;line-height:1.4}
+.cbp-home-mass-entry strong{color:var(--cbp-brand);font-size:20px;line-height:1.45}
 .cbp-home-prayer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:34px;margin-top:34px}
 .cbp-home-prayer-item{text-align:center;font-size:17px;line-height:1.5;color:var(--cbp-brand)}
 .cbp-home-prayer-item strong,.cbp-home-prayer-item span{display:block}
