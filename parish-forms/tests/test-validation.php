@@ -457,7 +457,7 @@ assert_true(strpos($prayer_html, 'pform-shell--prayer-request') !== false, 'Pray
 assert_true(strpos($prayer_html, 'name="pf[intention]"') !== false && strpos($prayer_html, '<textarea') !== false, 'Prayer uses multiline input.');
 assert_true(strpos($prayer_html, 'type="email"') === false && strpos($prayer_html, 'type="tel"') === false, 'Prayer form does not require identity or contact details.');
 assert_true(strpos($prayer_html, 'name="_pform_nonce"') !== false && strpos($prayer_html, 'name="pform_signature"') !== false, 'Shared secure submission controls remain in form.');
-assert_true(strpos($prayer_html, 'not automatically published') !== false, 'Prayer form discloses non-public handling.');
+assert_true(strpos($prayer_html, 'emailed to designated parish clergy') !== false, 'Prayer form discloses direct email to clergy.');
 $escaped_prayer = PFORM_Renderer::render($prayer, array('errors' => array(), 'values' => array('intention' => '<script>alert(1)</script>'), 'success' => false));
 assert_true(strpos($escaped_prayer, '&lt;script&gt;') !== false && strpos($escaped_prayer, '<script>alert(1)</script>') === false, 'Prayer field replay escaped.');
 
@@ -480,7 +480,15 @@ $sent = PFORM_Notifications::send(123, $prayer, array('intention' => $sample_int
 assert_true($sent && count($GLOBALS['pform_mail_log']) === 1, 'Configured prayer notification queued in fake mail.');
 $notice = $GLOBALS['pform_mail_log'][0];
 assert_true($notice['recipients'] === array('prayers@example.test'), 'Prayer notification sent only to dedicated staff recipient.');
-assert_true(strpos($notice['body'], $sample_intention) === false && strpos($notice['body'], 'submission=123') !== false, 'Prayer notification provides private review link without sensitive text.');
+assert_true(strpos($notice['body'], $sample_intention) !== false, 'Prayer email must contain the complete intention for clergy.');
+assert_true(strpos($notice['body'], 'submission=123') === false, 'Prayer email must not require a private admin URL or login.');
+assert_true(strpos($notice['body'], 'Request ID: 123') !== false, 'Prayer email includes the saved request ID.');
+$general_form = PFORM_Definition_Sanitizer::sanitize(PFORM_Parish_Registration::definition(), 'parish-registration');
+$general_sent = PFORM_Notifications::send(124, $general_form, array('family_name' => 'Sample Family'));
+assert_true($general_sent && count($GLOBALS['pform_mail_log']) === 2, 'General notification is sent separately.');
+$general_notice = $GLOBALS['pform_mail_log'][1];
+assert_true($general_notice['recipients'] === array('general@example.test'), 'Non-prayer forms still use global recipients.');
+assert_true(strpos($general_notice['body'], 'Sample Family') !== false && strpos($general_notice['body'], 'submission=124') !== false, 'General forms retain complete content and admin link.');
 assert_true(strpos(implode(' ', $notice['headers']), 'Reply-To:') === false, 'Prayer notification cannot leak a reply-to identity.');
 
 unset($GLOBALS['pform_test_settings'], $GLOBALS['pform_mail_log']);

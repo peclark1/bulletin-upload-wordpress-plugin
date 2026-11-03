@@ -26,13 +26,14 @@ final class PFORM_Notifications
         $headers = array('Content-Type: text/plain; charset=UTF-8');
 
         if ($is_prayer) {
-            // Notification-only email: the intention is available solely in
-            // the capability-protected WordPress submission interface.
+            // Send the intention in the message body to the exclusively configured
+            // prayer recipients; no WordPress login or broader-form fallback.
+            // Do not include any user-supplied data in mail headers.
             $body = sprintf(
-                "A new prayer request was submitted.\n\nSubmission ID: %d\nReceived: %s\nReview privately: %s\n\nThe prayer intention is not included in this email for privacy.\n",
-                $submission_id,
+                "A new prayer request was submitted.\n\n%s\n\nReceived: %s\nRequest ID: %d\n\nPlease treat this prayer intention as confidential.\n",
+                PFORM_Formatter::plain_text($definition, $data),
                 wp_date('F j, Y g:i a'),
-                PFORM_Admin::submission_url($submission_id)
+                $submission_id
             );
         } else {
             $body = sprintf("A new %s was submitted.\n\nSubmission ID: %d\nReceived: %s\nAdmin: %s\n\n%s\n", $definition['title'], $submission_id, wp_date('F j, Y g:i a'), PFORM_Admin::submission_url($submission_id), PFORM_Formatter::plain_text($definition, $data));
