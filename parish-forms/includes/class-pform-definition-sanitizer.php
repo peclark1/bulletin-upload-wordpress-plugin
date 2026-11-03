@@ -28,6 +28,7 @@ final class PFORM_Definition_Sanitizer
             'success_title' => self::text(isset($raw['success_title']) ? $raw['success_title'] : __('Submission Received', 'parish-forms'), 160),
             'confirmation' => self::textarea(isset($raw['confirmation']) ? $raw['confirmation'] : __('Thank you. Your form has been received.', 'parish-forms'), 2000),
             'privacy_note' => self::textarea(isset($raw['privacy_note']) ? $raw['privacy_note'] : __('Information submitted through this form is intended for parish-office follow-up.', 'parish-forms'), 1000),
+            'notification_emails' => self::email_list(isset($raw['notification_emails']) ? $raw['notification_emails'] : ''),
             'reply_to_field' => sanitize_key(isset($raw['reply_to_field']) ? $raw['reply_to_field'] : ''),
             'admin_primary_fields' => self::key_list(isset($raw['admin_primary_fields']) ? $raw['admin_primary_fields'] : array()),
             'admin_contact_fields' => self::key_list(isset($raw['admin_contact_fields']) ? $raw['admin_contact_fields'] : array()),
@@ -186,6 +187,19 @@ final class PFORM_Definition_Sanitizer
         $field = sanitize_key(isset($raw['field']) ? $raw['field'] : '');
         $equals = sanitize_key(isset($raw['equals']) ? $raw['equals'] : '');
         return $field && $equals ? array('field' => $field, 'equals' => $equals) : null;
+    }
+
+    private static function email_list($raw)
+    {
+        $emails = preg_split('/[\\s,;]+/', is_scalar($raw) ? (string) $raw : '');
+        $clean = array();
+        foreach ($emails as $email) {
+            $email = sanitize_email($email);
+            if ($email && is_email($email)) {
+                $clean[] = $email;
+            }
+        }
+        return implode(', ', array_unique($clean));
     }
 
     private static function key_list($raw)
