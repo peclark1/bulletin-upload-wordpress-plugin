@@ -164,7 +164,7 @@ $formatted_saturday = $format_method->invoke($home, $now_dates['saturday']);
 $formatted_sunday = $format_method->invoke($home, $now_dates['sunday']);
 if (substr_count($html, '>' . $formatted_saturday . '</span>') !== 2
     || substr_count($html, '>' . $formatted_sunday . '</span>') !== 2
-    || strpos($html, '>' . $formatted_saturday . '</span>\n                                <strong>8:00 PM</strong>') === false) {
+    || ! preg_match('/' . preg_quote($formatted_saturday, '/') . '<\\/span>\\s*<strong>8:00 PM<\\/strong>/', $html)) {
     fwrite(STDERR, "Homepage dated Mass entries do not align with their actual times.\n");
     exit(1);
 }
