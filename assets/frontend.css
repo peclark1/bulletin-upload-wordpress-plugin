@@ -48,6 +48,11 @@
 .cbp-site-detail{font-size:14px;line-height:1.45;color:var(--cbp-subtle);font-style:italic}
 .cbp-site-note{margin-top:24px;padding:18px 20px;border-left:4px solid var(--cbp-accent);background:var(--cbp-soft)}
 .cbp-site-note p{margin:5px 0 0}
+.cbp-site-note--link{display:block;color:var(--cbp-body);text-decoration:none;border-radius:0 8px 8px 0;transition:background-color .15s ease,border-color .15s ease}
+.cbp-site-note--link strong{color:var(--cbp-brand)}
+.cbp-site-note--link:hover,.cbp-site-note--link:focus{color:var(--cbp-body);background:var(--cbp-warm);text-decoration:none}
+.cbp-site-note--link:focus-visible{outline:3px solid var(--cbp-brand);outline-offset:3px}
+.cbp-site-note__action{display:inline-block;margin-top:12px;color:var(--cbp-brand);font-size:15px;font-weight:700;text-decoration:underline;text-underline-offset:3px}
 .cbp-site-empty{margin:0;color:var(--cbp-subtle);font-style:italic}
 .cbp-parish-events .cbp-site-days{gap:24px}
 .cbp-parish-events .cbp-site-day{padding:22px 24px;background:var(--cbp-surface);border:1px solid var(--cbp-border);border-radius:10px}
