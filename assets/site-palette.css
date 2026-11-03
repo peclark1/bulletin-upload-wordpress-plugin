@@ -88,3 +88,36 @@ body [style*="border-color:#e7dfd0"],
 body [style*="border-color:#e8e2d7"] {
     border-color: var(--global-palette7, #e3ddd1) !important;
 }
+
+/*
+ * Mobile hamburger contrast: the Kadence mobile trigger may sit over either
+ * the light header or a dark/transparent hero. Give the trigger its own
+ * high-contrast surface in both normal and sticky header states.
+ * This does not change the off-canvas drawer or desktop navigation.
+ */
+.site-header #mobile-toggle.menu-toggle-open {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px;
+    border: 2px solid #ffffff !important;
+    border-radius: 8px;
+    background-color: #243b63 !important;
+    color: #ffffff !important;
+    box-shadow: 0 1px 5px rgba(0,0,0,.24);
+}
+.site-header #mobile-toggle.menu-toggle-open .menu-toggle-icon,
+.site-header #mobile-toggle.menu-toggle-open .menu-toggle-icon svg {
+    color: #ffffff !important;
+}
+.site-header #mobile-toggle.menu-toggle-open:hover,
+.site-header #mobile-toggle.menu-toggle-open[aria-expanded="true"] {
+    background-color: #172b4d !important;
+    color: #ffffff !important;
+}
+.site-header #mobile-toggle.menu-toggle-open:focus-visible {
+    outline: 3px solid #c69b49;
+    outline-offset: 3px;
+}
