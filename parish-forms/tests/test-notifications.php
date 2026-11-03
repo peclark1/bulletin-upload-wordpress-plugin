@@ -4,6 +4,11 @@
 define('ABSPATH', __DIR__ . '/');
 $GLOBALS['pform_mail_calls'] = array();
 
+function sanitize_text_field($value) { return trim(strip_tags((string) $value)); }
+function sanitize_textarea_field($value) { return trim(strip_tags((string) $value)); }
+function sanitize_key($value) { return preg_replace('/[^a-z0-9_\\-]/', '', strtolower((string) $value)); }
+function absint($value) { return abs((int) $value); }
+function wp_generate_password($length = 12) { return str_repeat('a', $length); }
 function sanitize_email($value) { return filter_var((string) $value, FILTER_SANITIZE_EMAIL); }
 function is_email($value) { return (bool) filter_var($value, FILTER_VALIDATE_EMAIL); }
 function __($value) { return $value; }
