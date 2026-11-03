@@ -12,6 +12,9 @@ if (! defined('ABSPATH')) {
  */
 final class CBP_Site_Displays
 {
+    // Match the existing "Live Stream Mass" destination on the homepage.
+    const LIVESTREAM_URL = 'https://www.youtube.com/channel/UCveuE1nStVP36VFAc2MPFgA';
+
     private static $instance;
 
     public static function instance()
@@ -72,14 +75,18 @@ final class CBP_Site_Displays
                 </section>
             </div>
             <?php if ($mode === 'full' && ! empty($livestream)) : ?>
-                <div class="cbp-site-note">
+                <a class="cbp-site-note cbp-site-note--link"
+                   href="<?php echo esc_url(self::LIVESTREAM_URL); ?>"
+                   target="_blank" rel="noopener noreferrer"
+                   aria-label="<?php echo esc_attr(__('Watch the Mass livestream on YouTube (opens in a new tab)', 'church-bulletin-publisher')); ?>">
                     <strong><?php esc_html_e('Livestream', 'church-bulletin-publisher'); ?></strong>
                     <?php foreach ($livestream as $item) : ?>
                         <?php if (! empty($item['description'])) : ?>
                             <p><?php echo esc_html($item['description']); ?></p>
                         <?php endif; ?>
                     <?php endforeach; ?>
-                </div>
+                    <span class="cbp-site-note__action"><?php esc_html_e('Watch Mass Livestream on YouTube', 'church-bulletin-publisher'); ?> <span aria-hidden="true">&rarr;</span></span>
+                </a>
             <?php endif; ?>
         </div>
         <?php
