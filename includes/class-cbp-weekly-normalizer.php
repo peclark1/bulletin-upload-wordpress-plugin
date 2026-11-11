@@ -61,6 +61,10 @@ final class CBP_Weekly_Normalizer
         $parsed['source_lines'][] = '[normalize] Reconciled weekly worship/event rows before saving the pending review.';
         $parsed['source_lines'] = array_values(array_unique($parsed['source_lines']));
 
+        $parsed = CBP_Weekly_Calendar_Reconciler::reconcile($parsed, (string) $raw_text);
+        if (class_exists('CBP_Schedule_V30')) {
+            $parsed['weekly'] = CBP_Schedule_V30::sort_weekly($parsed['weekly']);
+        }
         return $parsed;
     }
 
