@@ -181,6 +181,17 @@ final class CBP_Schedule_V26
 
             $date_info = $this->date_info($line, $bulletin);
             if (is_array($date_info)) {
+                // The printed daily calendar restarts at Monday after the
+                // chronological Monday-Sunday Mass schedule. On multi-column
+                // PDFs, Reconciliation may be read *after* that calendar
+                // heading, so do not parse Bible Study and other parish
+                // events as additional Mass intentions.
+                if ($current_date !== '' && $date_info['date'] < $current_date) {
+                    $this->finish_pending($pending, $masses, $special);
+                    if ($this->has_weekend_anchors($masses)) {
+                        break;
+                    }
+                }
                 $dt = DateTimeImmutable::createFromFormat('!Y-m-d', $date_info['date']);
                 if ($dt && ($dt < $first_allowed || $dt > $last_allowed)) {
                     if ($current_date !== '') {
