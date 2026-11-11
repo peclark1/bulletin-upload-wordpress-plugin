@@ -75,7 +75,11 @@ final class CBP_Weekly_Calendar_Reconciler
         $in_calendar = false;
 
         foreach ($lines as $i => $raw) {
-            $line = trim((string) preg_replace('/\s+/u', ' ', $raw));
+            // A PDF's unrelated right-hand column may share this line.
+            // Do not append Stewardship/announcement prose to event titles.
+            $columns = preg_split('/\\h{3,}/u', ltrim((string) $raw), 2);
+            $left = isset($columns[0]) ? $columns[0] : (string) $raw;
+            $line = trim((string) preg_replace('/\\s+/u', ' ', $left));
             if ($line === '') {
                 continue;
             }
