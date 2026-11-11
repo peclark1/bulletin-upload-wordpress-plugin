@@ -17,6 +17,7 @@ require $root . '/tests/regression/wp-stubs.php';
 require $root . '/vendor/autoload.php';
 require $root . '/includes/class-cbp-schedule.php';
 require $root . '/includes/class-cbp-parser-context.php';
+require $root . '/includes/class-cbp-weekly-calendar-reconciler.php';
 require $root . '/includes/class-cbp-weekly-normalizer.php';
 require $root . '/includes/class-cbp-site-displays.php';
 require $root . '/includes/class-cbp-home-schedule.php';
