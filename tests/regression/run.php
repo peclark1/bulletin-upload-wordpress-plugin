@@ -1106,6 +1106,26 @@ function cbp_compare_fixture(array $expected, array $actual)
     return $errors;
 }
 
+// A real two-column PDF can return the left calendar and unrelated right
+// column on one text line. Preserve only the explicitly prefixed event.
+$column_test = CBP_Weekly_Calendar_Reconciler::reconcile(
+    array(
+        'bulletin_date' => '2026-11-15',
+        'week_start' => '2026-11-16',
+        'week_end' => '2026-11-22',
+        'weekly' => array('masses' => array(), 'events' => array()),
+    ),
+    "Monday, November 16       Adoration is held at St. Peter's\\n"
+        . "SP: 10:00 am Bible Study                 PARISH FINANCIAL STEWARDSHIP\\n"
+);
+$column_events = $column_test['weekly']['events'] ?? array();
+if (count($column_events) !== 1
+    || ($column_events[0]['title'] ?? '') !== 'Bible Study'
+    || ($column_events[0]['time'] ?? '') !== '10:00 AM') {
+    fwrite(STDERR, "Two-column daily calendar regression: unrelated prose leaked into Bible Study.\\n");
+    exit(1);
+}
+
 $fixture_root = $root . '/tests/fixtures';
 $fixture_dirs = array_values(array_filter(glob($fixture_root . '/*'), 'is_dir'));
 sort($fixture_dirs, SORT_STRING);
