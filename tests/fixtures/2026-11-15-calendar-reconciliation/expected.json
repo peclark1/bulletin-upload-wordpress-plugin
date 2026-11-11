@@ -1,0 +1,178 @@
+{
+  "name": "November 15 2026 source-grounded daily calendar, funeral and cross-page events",
+  "bulletin_date": "2026-11-15",
+  "notes": "Hand-reviewed against the original Sunday Bulletin 2026.pdf sent by Lynn on November 11. The text fixture transcribes the relevant PDF content and intentionally puts the daily calendar before Reconciliation to exercise a real multi-column extraction ordering failure. Mary Ann Muller's 1 PM funeral classification is pending confirmation; assertions protect its date/time/location rather than asserting Mass vs service. AM/PM for Quilt Group is not specified. Preserve both Sunday Turkey Bingo events at different parishes.",
+  "current_schedule": {
+    "st_peter_saturday": "5:00 PM",
+    "st_peter_sunday": "9:00 AM",
+    "st_mary_sunday": "11:00 AM",
+    "reconciliation": "Saturday 4:00 PM–4:30 PM",
+    "adoration": "Wednesday 5:30 PM–8:00 PM; Thursday 6:00 AM–5:00 PM"
+  },
+  "expected": {
+    "counts": {
+      "masses": 8
+    },
+    "masses_required": [
+      {
+        "date": "2026-11-16",
+        "time": "1:00 PM",
+        "location": "St. Peter"
+      },
+      {
+        "date": "2026-11-17",
+        "title": "No Mass",
+        "location": "St. Peter"
+      },
+      {
+        "date": "2026-11-18",
+        "time": "12:10 PM",
+        "location": "St. Peter",
+        "description": "Bishop Balke"
+      },
+      {
+        "date": "2026-11-19",
+        "time": "9:00 AM",
+        "location": "St. Mary’s"
+      },
+      {
+        "date": "2026-11-20",
+        "time": "9:00 AM",
+        "location": "St. Peter"
+      },
+      {
+        "date": "2026-11-21",
+        "time": "5:00 PM",
+        "location": "St. Peter"
+      },
+      {
+        "date": "2026-11-22",
+        "time": "9:00 AM",
+        "location": "St. Peter"
+      },
+      {
+        "date": "2026-11-22",
+        "time": "11:00 AM",
+        "location": "St. Mary’s"
+      }
+    ],
+    "masses_forbidden": [
+      {
+        "date": "2026-11-16",
+        "time": "10:00 AM",
+        "title": "Funeral Mass"
+      }
+    ],
+    "events_required": [
+      {
+        "date": "2026-11-16",
+        "time": "10:00 AM",
+        "location": "St. Peter",
+        "title_contains": "Bible Study"
+      },
+      {
+        "date": "2026-11-16",
+        "time": "1:00 PM",
+        "location": "St. Peter",
+        "title_contains": "Mary Ann Muller Funeral"
+      },
+      {
+        "date": "2026-11-16",
+        "time": "6:00 PM–8:30 PM",
+        "location": "St. Peter",
+        "title_contains": "Civil Air Patrol"
+      },
+      {
+        "date": "2026-11-16",
+        "time": "6:30 PM",
+        "location": "St. Peter",
+        "title_contains": "Bible Study"
+      },
+      {
+        "date": "2026-11-17",
+        "time": "9:00",
+        "location": "St. Peter",
+        "title_contains": "Quilt Group"
+      },
+      {
+        "date": "2026-11-17",
+        "time": "",
+        "title": "NO Ladies lunch"
+      },
+      {
+        "date": "2026-11-17",
+        "time": "1:00 PM",
+        "location": "St. Peter",
+        "title_contains": "Hymnal Cover Volunteer Work"
+      },
+      {
+        "date": "2026-11-18",
+        "time": "10:30 AM",
+        "location": "Crystal Brook Senior Living Center",
+        "title": "Liturgy of the Word"
+      },
+      {
+        "date": "2026-11-18",
+        "time": "1:00 PM–3:00 PM",
+        "location": "St. Peter",
+        "title_contains": "Faith Formation Grades 1"
+      },
+      {
+        "date": "2026-11-18",
+        "time": "6:00 PM",
+        "location": "St. Peter",
+        "title_contains": "Alpha"
+      },
+      {
+        "date": "2026-11-21",
+        "time": "9:00 AM–3:00 PM",
+        "location": "St. Peter",
+        "title_contains": "Fall Bazaar"
+      },
+      {
+        "date": "2026-11-22",
+        "time": "After Mass",
+        "location": "St. Mary’s",
+        "title": "Soup & Sandwich"
+      },
+      {
+        "date": "2026-11-22",
+        "time": "After Soup & Sandwich",
+        "location": "St. Mary’s",
+        "title": "Parish Meeting"
+      },
+      {
+        "date": "2026-11-22",
+        "time": "2:00 PM",
+        "location": "St. Mary’s",
+        "title_contains": "Knights of Columbus Bingo"
+      },
+      {
+        "date": "2026-11-22",
+        "time": "2:00 PM",
+        "location": "St. Peter",
+        "title_contains": "Knights of Columbus Bingo"
+      }
+    ],
+    "events_forbidden": [
+      {
+        "date": "2026-11-16",
+        "time": "",
+        "title_contains": "Mary Ann Muller Funeral"
+      },
+      {
+        "date": "2026-11-16",
+        "time": "8:30 PM",
+        "title_contains": "Civil Air Patrol Meeting"
+      },
+      {
+        "date": "2026-11-16",
+        "time": "6:00 PM",
+        "title": "Civil Air Patrol"
+      }
+    ],
+    "livestream_contains": [
+      "Sunday Mass & Rosary are live streamed at stpeterpr.org"
+    ]
+  }
+}
