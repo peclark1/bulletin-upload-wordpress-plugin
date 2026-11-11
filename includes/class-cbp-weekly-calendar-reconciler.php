@@ -79,7 +79,7 @@ final class CBP_Weekly_Calendar_Reconciler
             if ($line === '') {
                 continue;
             }
-            $day = self::day_heading($line, $bulletin);
+            $day = self::day_heading((string) $raw, $bulletin);
             if ($day !== '' && $day >= $start && $day <= $end) {
                 $date = $day;
                 $in_calendar = true;
