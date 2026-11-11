@@ -181,6 +181,11 @@ final class CBP_Weekly_Calendar_Reconciler
         $at = self::meaning((string) ($a['title'] ?? ''));
         $bt = self::meaning((string) ($b['title'] ?? ''));
         $same_title = $at !== '' && $at === $bt;
+        // Two time tokens extracted from the same Civil Air Patrol interval
+        // can have slightly different titles (with or without "Meeting").
+        if (strpos($at, 'civil air patrol') !== false && strpos($bt, 'civil air patrol') !== false) {
+            $same_title = true;
+        }
         $same_funeral = false;
         if (preg_match('/^(.+?)\s+funeral$/u', $bt, $m)
             && strpos($at . ' ' . self::meaning((string) ($a['description'] ?? '')), $m[1]) !== false
@@ -193,6 +198,12 @@ final class CBP_Weekly_Calendar_Reconciler
         $old_time = self::meaning((string) ($a['time'] ?? ''));
         $new_time = self::meaning((string) ($b['time'] ?? ''));
         if ($old_time === '' || $new_time === $old_time) {
+            return true;
+        }
+        // An unqualified printed time (9:00 Quilt Group) outranks a guessed
+        // AM/PM in an earlier heuristic extraction.
+        if (preg_match('/^\\d{1,2} \\d{2}$/', $new_time)
+            && ($old_time === $new_time . ' am' || $old_time === $new_time . ' pm')) {
             return true;
         }
         // A split time range is a single meeting, not two timed events.
