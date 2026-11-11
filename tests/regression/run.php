@@ -1115,14 +1115,14 @@ $column_test = CBP_Weekly_Calendar_Reconciler::reconcile(
         'week_end' => '2026-11-22',
         'weekly' => array('masses' => array(), 'events' => array()),
     ),
-    "Monday, November 16       Adoration is held at St. Peter's\\n"
-        . "SP: 10:00 am Bible Study                 PARISH FINANCIAL STEWARDSHIP\\n"
+    "Monday, November 16       Adoration is held at St. Peter's\n"
+        . "SP: 10:00 am Bible Study                 PARISH FINANCIAL STEWARDSHIP\n"
 );
 $column_events = $column_test['weekly']['events'] ?? array();
 if (count($column_events) !== 1
     || ($column_events[0]['title'] ?? '') !== 'Bible Study'
     || ($column_events[0]['time'] ?? '') !== '10:00 AM') {
-    fwrite(STDERR, "Two-column daily calendar regression: unrelated prose leaked into Bible Study.\\n");
+    fwrite(STDERR, "Two-column daily calendar regression: unrelated prose leaked into Bible Study.\n");
     exit(1);
 }
 
