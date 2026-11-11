@@ -17,6 +17,7 @@ require $root . '/tests/regression/wp-stubs.php';
 require $root . '/vendor/autoload.php';
 require $root . '/includes/class-cbp-schedule.php';
 require $root . '/includes/class-cbp-parser-context.php';
+require $root . '/includes/class-cbp-weekly-calendar-reconciler.php';
 require $root . '/includes/class-cbp-weekly-normalizer.php';
 require $root . '/includes/class-cbp-site-displays.php';
 require $root . '/includes/class-cbp-home-schedule.php';
@@ -1027,7 +1028,7 @@ function cbp_compare_fixture(array $expected, array $actual)
         }
     }
 
-    foreach (array('devotions_required' => 'devotions', 'events_required' => 'events') as $expect_key => $actual_key) {
+    foreach (array('masses_required' => 'masses', 'devotions_required' => 'devotions', 'events_required' => 'events') as $expect_key => $actual_key) {
         if (empty($expect[$expect_key]) || ! is_array($expect[$expect_key])) {
             continue;
         }
@@ -1046,7 +1047,7 @@ function cbp_compare_fixture(array $expected, array $actual)
         }
     }
 
-    foreach (array('devotions_forbidden' => 'devotions', 'events_forbidden' => 'events') as $expect_key => $actual_key) {
+    foreach (array('masses_forbidden' => 'masses', 'devotions_forbidden' => 'devotions', 'events_forbidden' => 'events') as $expect_key => $actual_key) {
         if (empty($expect[$expect_key]) || ! is_array($expect[$expect_key])) {
             continue;
         }
@@ -1103,6 +1104,26 @@ function cbp_compare_fixture(array $expected, array $actual)
     }
 
     return $errors;
+}
+
+// A real two-column PDF can return the left calendar and unrelated right
+// column on one text line. Preserve only the explicitly prefixed event.
+$column_test = CBP_Weekly_Calendar_Reconciler::reconcile(
+    array(
+        'bulletin_date' => '2026-11-15',
+        'week_start' => '2026-11-16',
+        'week_end' => '2026-11-22',
+        'weekly' => array('masses' => array(), 'events' => array()),
+    ),
+    "Monday, November 16       Adoration is held at St. Peter's\n"
+        . "SP: 10:00 am Bible Study                 PARISH FINANCIAL STEWARDSHIP\n"
+);
+$column_events = $column_test['weekly']['events'] ?? array();
+if (count($column_events) !== 1
+    || ($column_events[0]['title'] ?? '') !== 'Bible Study'
+    || ($column_events[0]['time'] ?? '') !== '10:00 AM') {
+    fwrite(STDERR, "Two-column daily calendar regression: unrelated prose leaked into Bible Study.\n");
+    exit(1);
 }
 
 $fixture_root = $root . '/tests/fixtures';
