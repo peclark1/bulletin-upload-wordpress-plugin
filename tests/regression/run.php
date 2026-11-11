@@ -1047,7 +1047,7 @@ function cbp_compare_fixture(array $expected, array $actual)
         }
     }
 
-    foreach (array('devotions_forbidden' => 'devotions', 'events_forbidden' => 'events') as $expect_key => $actual_key) {
+    foreach (array('masses_forbidden' => 'masses', 'devotions_forbidden' => 'devotions', 'events_forbidden' => 'events') as $expect_key => $actual_key) {
         if (empty($expect[$expect_key]) || ! is_array($expect[$expect_key])) {
             continue;
         }
