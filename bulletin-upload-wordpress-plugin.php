@@ -56,6 +56,7 @@ require_once CBP_DIR . 'includes/class-cbp-parser-context.php';
 require_once CBP_DIR . 'includes/class-cbp-schedule-v2.php';
 require_once CBP_DIR . 'includes/class-cbp-schedule-v3.php';
 require_once CBP_DIR . 'includes/class-cbp-schedule-v4.php';
+require_once CBP_DIR . 'includes/class-cbp-weekly-calendar-reconciler.php';
 require_once CBP_DIR . 'includes/class-cbp-weekly-normalizer.php';
 require_once CBP_DIR . 'includes/class-cbp-schedule-v5.php';
 require_once CBP_DIR . 'includes/class-cbp-schedule-v6.php';
