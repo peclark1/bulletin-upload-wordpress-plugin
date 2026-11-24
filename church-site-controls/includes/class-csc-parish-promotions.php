@@ -276,6 +276,7 @@ final class CSC_Parish_Promotions {
                 <input type="hidden" name="action" value="csc_promotion_save">
                 <input type="hidden" name="promotion_id" value="<?php echo esc_attr((string) $row['id']); ?>">
                 <input type="hidden" name="modified_gmt" value="<?php echo esc_attr($row['modified_gmt']); ?>">
+                <input type="hidden" name="revision" value="<?php echo esc_attr($editing ? self::revision($row) : ''); ?>">
                 <?php wp_nonce_field('csc_promotion_save'); ?>
                 <p><label for="csc-title"><strong>Event or promotion title *</strong></label>
                   <input required class="large-text" id="csc-title" name="title" maxlength="160"
@@ -396,16 +397,36 @@ final class CSC_Parish_Promotions {
             return isset($_POST[$key]) && is_scalar($_POST[$key]) ? trim((string) wp_unslash($_POST[$key])) : '';
         };
         $id = absint($v('promotion_id'));
-        $post = $id ? self::id_in_post($id) : null;
-        if ($id && !$post) { wp_die('Cannot edit a nonexistent parish promotion.', 404); }
-        if ($post && $v('modified_gmt') !== $post->post_modified_gmt) {
-            wp_die('Someone else edited this promotion. Reload the form before saving to avoid overwriting their work.', 409);
+        $saved = self::with_write_lock(static function () use ($id, $v) {
+            $post = $id ? self::id_in_post($id) : null;
+            if ($id && !$post) { return new WP_Error('csc_missing_promotion', 'Cannot edit a nonexistent parish promotion.', array('status'=>404)); }
+            if ($post && ($v('modified_gmt') !== $post->post_modified_gmt ||
+                !hash_equals(self::revision(self::row($post)), $v('revision')))) {
+                return new WP_Error('csc_stale_revision', 'Someone else edited this promotion. Reload the form before saving to avoid overwriting their work.', array('status'=>409));
+            }
+            return self::persist($id, $v);
+        });
+        if (is_wp_error($saved)) {
+            $error_data = $saved->get_error_data();
+            wp_die(esc_html($saved->get_error_message()), '', array('response' => $error_data['status'] ?? 400));
         }
-        $saved = self::persist($id, $v);
-        if (is_wp_error($saved)) { wp_die(esc_html($saved->get_error_message()), 400); }
         $saved_id = $saved['id'];
         wp_safe_redirect(self::save_redirect_url($saved_id, !$id));
         exit;
+    }
+
+    public static function revision($row) {
+        return hash('sha256', CSC_Controls::site_identity() . ':' . wp_json_encode($row));
+    }
+
+    public static function with_write_lock($callback) {
+        global $wpdb;
+        $lock = 'csc-promo-' . substr(hash('sha256', CSC_Controls::site_identity() . ':' . $wpdb->prefix), 0, 48);
+        if ((string) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 0)', $lock)) !== '1') {
+            return new WP_Error('csc_busy', 'Promotion writes are busy; reload and retry.', array('status'=>409));
+        }
+        try { return $callback(); }
+        finally { $wpdb->get_var($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock)); }
     }
 
     // Shared staff/MCP validation and storage. Callers enforce their own authorization
