@@ -276,6 +276,7 @@ final class CSC_Parish_Promotions {
                 <input type="hidden" name="action" value="csc_promotion_save">
                 <input type="hidden" name="promotion_id" value="<?php echo esc_attr((string) $row['id']); ?>">
                 <input type="hidden" name="modified_gmt" value="<?php echo esc_attr($row['modified_gmt']); ?>">
+                <input type="hidden" name="revision" value="<?php echo esc_attr($editing ? self::revision($row) : ''); ?>">
                 <?php wp_nonce_field('csc_promotion_save'); ?>
                 <p><label for="csc-title"><strong>Event or promotion title *</strong></label>
                   <input required class="large-text" id="csc-title" name="title" maxlength="160"
@@ -396,27 +397,53 @@ final class CSC_Parish_Promotions {
             return isset($_POST[$key]) && is_scalar($_POST[$key]) ? trim((string) wp_unslash($_POST[$key])) : '';
         };
         $id = absint($v('promotion_id'));
-        $post = $id ? self::id_in_post($id) : null;
-        if ($id && !$post) { wp_die('Cannot edit a nonexistent parish promotion.', 404); }
-        if ($post && $v('modified_gmt') !== $post->post_modified_gmt) {
-            wp_die('Someone else edited this promotion. Reload the form before saving to avoid overwriting their work.', 409);
+        $saved = self::with_write_lock(static function () use ($id, $v) {
+            $post = $id ? self::id_in_post($id) : null;
+            if ($id && !$post) { return new WP_Error('csc_missing_promotion', 'Cannot edit a nonexistent parish promotion.', array('status'=>404)); }
+            if ($post && ($v('modified_gmt') !== $post->post_modified_gmt ||
+                !hash_equals(self::revision(self::row($post)), $v('revision')))) {
+                return new WP_Error('csc_stale_revision', 'Someone else edited this promotion. Reload the form before saving to avoid overwriting their work.', array('status'=>409));
+            }
+            return self::persist($id, $v);
+        });
+        if (is_wp_error($saved)) {
+            $error_data = $saved->get_error_data();
+            wp_die(esc_html($saved->get_error_message()), '', array('response' => $error_data['status'] ?? 400));
         }
+        $saved_id = $saved['id'];
+        wp_safe_redirect(self::save_redirect_url($saved_id, !$id));
+        exit;
+    }
+
+    public static function revision($row) {
+        return hash('sha256', CSC_Controls::site_identity() . ':' . wp_json_encode($row));
+    }
+
+    public static function with_write_lock($callback) {
+        global $wpdb;
+        $lock = 'csc-promo-' . substr(hash('sha256', CSC_Controls::site_identity() . ':' . $wpdb->prefix), 0, 48);
+        if ((string) $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 0)', $lock)) !== '1') {
+            return new WP_Error('csc_busy', 'Promotion writes are busy; reload and retry.', array('status'=>409));
+        }
+        try { return $callback(); }
+        finally { $wpdb->get_var($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock)); }
+    }
+
+    // Shared staff/MCP validation and storage. Callers enforce their own authorization
+    // and revision checks before entering this method.
+    public static function persist($id, $v) {
         $title = sanitize_text_field($v('title'));
         $image_id = absint($v('image_id'));
         $start = $v('start'); $end = $v('end');
         $status = $v('status') === 'publish' ? 'publish' : 'draft';
         $sort = filter_var($v('sort'), FILTER_VALIDATE_INT);
         $info = self::url($v('info_url')); $signup = self::url($v('signup_url'));
-        if (!$title || strlen($title) > 160) { wp_die('Enter a promotion title of 160 characters or less.', 400); }
-        if (!$image_id || !wp_attachment_is_image($image_id)) { wp_die('Select a valid image from the Media Library.', 400); }
-        if (!self::valid_window($start, $end)) { wp_die('Enter valid display start and end dates (end date may not precede start).', 400); }
-        if (is_wp_error($info)) { wp_die(esc_html($info->get_error_message()), 400); }
-        if (is_wp_error($signup)) { wp_die(esc_html($signup->get_error_message()), 400); }
-        if ($sort === false || $sort < 0 || $sort > 999) { wp_die('Display order must be between 0 and 999.', 400); }
-        $data = array('post_type' => self::TYPE, 'post_title' => $title, 'post_status' => $status);
-        if ($id) { $data['ID'] = $id; }
-        $saved_id = $id ? wp_update_post(wp_slash($data), true) : wp_insert_post(wp_slash($data), true);
-        if (is_wp_error($saved_id) || !$saved_id) { wp_die('WordPress could not save the promotion.', 500); }
+        if (!$title || strlen($title) > 160) { return new WP_Error('csc_promotion_save', 'Enter a promotion title of 160 characters or less.', array('status' => 400)); }
+        if (!$image_id || !wp_attachment_is_image($image_id)) { return new WP_Error('csc_promotion_save', 'Select a valid image from the Media Library.', array('status' => 400)); }
+        if (!self::valid_window($start, $end)) { return new WP_Error('csc_promotion_save', 'Enter valid display start and end dates (end date may not precede start).', array('status' => 400)); }
+        if (is_wp_error($info)) { return $info; }
+        if (is_wp_error($signup)) { return $signup; }
+        if ($sort === false || $sort < 0 || $sort > 999) { return new WP_Error('csc_promotion_save', 'Display order must be between 0 and 999.', array('status' => 400)); }
         $meta = array(
             'image_id' => $image_id,
             'alt' => sanitize_textarea_field($v('alt')),
@@ -427,10 +454,30 @@ final class CSC_Parish_Promotions {
             'signup_label' => sanitize_text_field($v('signup_label')) ?: 'Sign Up',
             'sort' => $sort,
         );
-        foreach ($meta as $key => $value) { update_post_meta($saved_id, self::META_PREFIX . $key, $value); }
+        $data = array('post_type' => self::TYPE, 'post_title' => $title, 'post_status' => $status, 'meta_input' => array());
+        foreach ($meta as $key => $value) { $data['meta_input'][self::META_PREFIX . $key] = $value; }
+        if ($id) { $data['ID'] = $id; }
+        // WordPress writes meta_input before transition_post_status hooks.
+        // New records are initially drafts so an incomplete write cannot publish a poster.
+        if (!$id) { $data['post_status'] = 'draft'; }
+        $saved_id = $id ? wp_update_post(wp_slash($data), true) : wp_insert_post(wp_slash($data), true);
+        if (is_wp_error($saved_id) || !$saved_id) { return new WP_Error('csc_promotion_save', 'WordPress could not save the promotion.', array('status' => 500)); }
         clean_post_cache($saved_id);
-        wp_safe_redirect(self::save_redirect_url($saved_id, !$id));
-        exit;
+        $stored = self::row(get_post($saved_id));
+        foreach ($meta as $key => $value) {
+            if ((string) $stored[$key] !== (string) $value) {
+                return new WP_Error('csc_promotion_readback', 'Promotion metadata did not save completely; inspect the record before retrying.', array('status' => 500, 'id' => $saved_id));
+            }
+        }
+        if ($stored['title'] !== $title) { return new WP_Error('csc_promotion_readback', 'Promotion title differs from request.', array('status' => 500, 'id' => $saved_id)); }
+        if (!$id && $status === 'publish') {
+            $published = wp_update_post(array('ID' => $saved_id, 'post_status' => 'publish'), true);
+            if (is_wp_error($published) || !$published) { return new WP_Error('csc_promotion_save', 'Draft saved but publishing failed; inspect it before retrying.', array('status' => 500, 'id' => $saved_id)); }
+        }
+        clean_post_cache($saved_id);
+        $stored = self::row(get_post($saved_id));
+        if ($stored['status'] !== $status) { return new WP_Error('csc_promotion_readback', 'Promotion status differs from request.', array('status' => 500, 'id' => $saved_id)); }
+        return $stored;
     }
 
     public static function set_mode() {

@@ -438,3 +438,41 @@ This second constant authorizes the production *public feed and homepage carouse
 The final site is authorized only through the existing exact-root `CSC_Controls::site_identity()` gate: `CSC_PRODUCTION_SITE_ENABLED===true`, matching `https://stpeterpr.org` home/siteurl, and no `wpstg_is_staging_site` marker. The original `/design-demo` remains allowed. `CSC_Mega_Navigation` and `CSC_Page_Polish` now enqueue their unchanged versioned CSS/JS on **either** authorized installation when Kadence is active and the request is not admin; the Worship-only responsive stylesheet still requires page 23. Other URLs (including `/parish-preview-2026`) are not implicitly authorized by this code. Production style assets require a separate rendered root acceptance test after installation; PHP unit tests alone do not prove that the menu displays correctly.
 
 This change does **not** authorize historical sample promotions on production. Managed Parish Promotions still require `CSC_PRODUCTION_PROMOTIONS_ENABLED===true`, the existing mode option and approved current published records; do not add that constant until staff have reviewed content. Frontend assets neither change menu items nor theme settings. Upgrade the **private** candidate from v0.4.2 to v0.4.3 using a newly verified build; never change staging or public root directly during prep. `make test-church-site-controls` adds `frontend-site-identity.php` which tests staging, root opt-in, marker, admin, mismatched URLs, other theme, and page scoping.
+
+
+## v0.4.4 — Agent-assisted Parish Promotions
+
+The existing staff editor and homepage carousel remain the source of truth. An
+authenticated administrator on the authorized installation can use:
+
+- `church-site-controls/list-promotions`: read records, revision tokens, image
+  URLs, editor links, site-local date, managed mode and active IDs.
+- `church-site-controls/create-promotion`: create a record using existing media,
+  inclusive dates and explicit draft/publish status. Defaults: sort 100,
+  More Information and Sign Up labels, empty optional links. Reject overlapping
+  title or image duplicates.
+- `church-site-controls/update-promotion`: change only supplied fields using
+  the ID and revision from a fresh list. Set status to draft to withdraw a
+  promotion, or change its end date to expire it. No permanent deletion.
+
+Production retains both existing opt-ins; the abilities do not change display
+mode. Writes require manage_options, edit_pages and publish_pages, and updates
+also require edit_post on the record. Staff and agent saves share validation,
+a database advisory lock and full-row revision checks. Reload any staff edit
+form opened before the upgrade. Audit options named csc_promotion_change_*
+retain before/requested/after values for MCP writes; no automated undo yet.
+If a write reports incomplete readback, inspect the record and audit before
+retrying. Advisory locking requires GET_LOCK support on the database connection;
+if unavailable writes fail closed. It does not cover unrelated database tools.
+
+Standard workflow: upload the original flyer (or find its media ID), add its
+card and unique anchor to Parish Weekly Events, verify the destination,
+then list promotions and create the published image-based promotion with the
+More Information URL pointing at that anchor. Verify the returned active
+state and the public carousel feed; the response is not a visual browser test.
+Media upload is separate. Never change the global mode as part of adding a
+promotion.
+
+Run `make test-church-site-controls` before building the separate ZIP.
+Test on staging before installing on production, including a draft, duplicate
+rejection, stale browser/agent edits, publish/withdraw and public feed verification.

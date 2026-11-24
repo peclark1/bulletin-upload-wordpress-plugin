@@ -7,13 +7,15 @@ class CSC_Controls {
         return untrailingslashit(home_url()) === self::SITE &&
             untrailingslashit(site_url()) === self::SITE ? self::SITE : false;
     }
+    public static function permission() { return current_user_can('manage_options'); }
     public static function is_staging_site() {
         return self::site_identity() === self::SITE;
     }
 }
 class WP_Error {
-    private $message;
-    public function __construct($code, $message) { $this->message = $message; }
+    private $message; private $data;
+    public function __construct($code, $message, $data = array()) { $this->message = $message; $this->data = $data; }
+    public function get_error_data() { return $this->data; }
     public function get_error_message() { return $this->message; }
 }
 class WP_REST_Response {
@@ -39,7 +41,7 @@ function site_url() { return $GLOBALS['url']; }
 function untrailingslashit($s) { return rtrim($s, '/'); }
 function get_template() { return $GLOBALS['template']; }
 function get_option($key, $default = false) { return $key === CSC_Parish_Promotions::MODE_OPTION ? $GLOBALS['live_mode'] : $default; }
-function current_user_can($cap) { return $cap === 'edit_pages' && $GLOBALS['can_edit']; }
+function current_user_can($cap, $id = 0) { return in_array($cap, array('edit_pages','manage_options','publish_pages','edit_post'), true) && $GLOBALS['can_edit']; }
 function register_post_type($type, $options) { $GLOBALS['registered'][$type] = $options; }
 function register_rest_route($ns, $route, $options) { $GLOBALS['registered']['rest'] = array($ns, $route, $options); }
 function add_action($name, $callback) { $GLOBALS['hooks'][$name] = $callback; }
@@ -64,13 +66,40 @@ function wp_unslash($value) { return stripslashes($value); }
 function esc_html($value) { return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8'); }
 function sanitize_text_field($s) { return trim(strip_tags($s)); }
 function sanitize_textarea_field($s) { return trim(strip_tags($s)); }
-function wp_die($message, $response = 500) { throw new RuntimeException($message, (int)$response); }
+function wp_die($message, $response = 500, $args = array()) { throw new RuntimeException($message, (int)($args['response'] ?? $response)); }
 function check_admin_referer($action) {
     if (!isset($_POST['_wpnonce']) || $_POST['_wpnonce'] !== $action) {
         throw new RuntimeException('Nonce mismatch');
     }
 }
+class Test_Promo_DB {
+    public $prefix = 'wp_';
+    public $busy = false;
+    public function prepare($sql, $key) { return $sql; }
+    public function get_var($sql) { return $this->busy && strpos($sql,'GET_LOCK')!==false ? '0' : '1'; }
+}
+$wpdb = new Test_Promo_DB();
+function wp_json_encode($v) { return json_encode($v); }
+function wp_generate_uuid4() { static $n=0; return 'test-change-'.++$n; }
+function get_current_user_id() { return 1; }
+function add_option($k,$v,$unused='',$autoload=false) { $GLOBALS['audit'][$k]=$v; return true; }
+function update_option($k,$v,$autoload=false) { $GLOBALS['audit'][$k]=$v; return true; }
+function wp_slash($v) { return $v; }
+function clean_post_cache($id) {}
+function wp_insert_post($data,$error=false) {
+    $id=6000+count($GLOBALS['posts']);
+    $GLOBALS['posts'][]=(object)array('ID'=>$id,'post_type'=>$data['post_type'],'post_title'=>$data['post_title'],'post_status'=>$data['post_status'],'post_modified_gmt'=>'2026-10-18 12:00:00');
+    $GLOBALS['meta'][$id]=$data['meta_input'];
+    return $id;
+}
+function wp_update_post($data,$error=false) {
+    $p=get_post($data['ID']);
+    foreach (array('post_title','post_status') as $k) { if (isset($data[$k])) $p->$k=$data[$k]; }
+    if (isset($data['meta_input'])) $GLOBALS['meta'][$p->ID]=$data['meta_input'];
+    return $p->ID;
+}
 require __DIR__ . '/../includes/class-csc-parish-promotions.php';
+require __DIR__ . '/../includes/class-csc-promotion-abilities.php';
 
 CSC_Parish_Promotions::register_type();
 check_backend(isset($GLOBALS['registered'][CSC_Parish_Promotions::TYPE]), 'registers private promotion post type');
@@ -181,4 +210,33 @@ check_backend(strpos($js, "cache: 'no-store'") !== false && strpos($js, 'Date.no
 check_backend(strpos($js, 'response.json()') !== false && strpos($js, "buildFeed(feed)") !== false, 'carousel hydrates from public managed feed');
 check_backend(strpos($js, "root.dataset.mode === 'managed'") !== false, 'fetch errors fail closed rather than display expired promotions');
 check_backend(strpos($admin, "wp.media") !== false && strpos($admin, "image.sizes") !== false, 'staff use native image library');
+// MCP and staff share the existing validation and data model.
+$call = static function ($name,$args=array()) { return CSC_Promotion_Abilities::dispatch($name,$args); };
+$input=array('title'=>'Advent prayer','image_id'=>5001,'start'=>'2026-10-18','end'=>'2026-10-20','status'=>'publish','info_url'=>'https://stpeterpr.org/design-demo/?page_id=22#prayer');
+$GLOBALS['can_edit']=false;
+check_backend(is_wp_error($call('list-promotions')), 'MCP list requires authorization');
+$GLOBALS['can_edit']=true;
+$GLOBALS['url']='https://example.org';
+check_backend(is_wp_error($call('create-promotion',$input)), 'MCP wrong site blocked');
+$GLOBALS['url']=CSC_Controls::SITE;
+$wpdb->busy=true;
+check_backend(is_wp_error($call('create-promotion',$input)), 'concurrent write blocked');
+$wpdb->busy=false;
+check_backend(is_wp_error($call('create-promotion',array_replace($input,array('image_id'=>-5001)))), 'invalid image ID rejected');
+check_backend(is_wp_error($call('create-promotion',array_replace($input,array('end'=>'2026-02-30')))), 'invalid date rejected');
+check_backend(is_wp_error($call('create-promotion',array_replace($input,array('info_url'=>'javascript:alert(1)')))), 'unsafe link rejected');
+check_backend(is_wp_error($call('create-promotion',array_replace($input,array('unknown'=>true)))), 'unknown field rejected');
+$created=$call('create-promotion',$input);
+check_backend(!is_wp_error($created) && $created['active']===true && $created['record']['status']==='publish', 'MCP create published and active');
+$id=$created['record']['id']; $rev=$created['record']['revision'];
+check_backend(count($call('list-promotions')['records'])===1, 'MCP list includes persisted promotion');
+check_backend(is_wp_error($call('create-promotion',$input)), 'overlapping duplicate rejected');
+check_backend(is_wp_error($call('update-promotion',array('id'=>$id,'expected_revision'=>str_repeat('0',64),'end'=>'2026-10-21'))), 'stale revision rejected');
+$changed=$call('update-promotion',array('id'=>$id,'expected_revision'=>$rev,'end'=>'2026-10-21'));
+check_backend(!is_wp_error($changed) && $changed['record']['end']==='2026-10-21' && $changed['record']['info_url']===$input['info_url'], 'partial update preserves other fields');
+check_backend($changed['record']['revision']!==$rev, 'metadata-only edit changes revision even in same second');
+$withdrawn=$call('update-promotion',array('id'=>$id,'expected_revision'=>$changed['record']['revision'],'status'=>'draft'));
+check_backend(!is_wp_error($withdrawn) && !$withdrawn['active'] && $withdrawn['record']['status']==='draft', 'withdraw without deleting');
+check_backend(count(CSC_Parish_Promotions::records())===1 && count(CSC_Parish_Promotions::active_records())===0, 'withdrawn record retained');
+check_backend($GLOBALS['audit']['csc_promotion_change_'.$changed['change_id']]['before']['end']==='2026-10-20', 'durable prior values recorded');
 echo $GLOBALS['count'] . " Parish Promotions admin/backend tests passed.\n";
