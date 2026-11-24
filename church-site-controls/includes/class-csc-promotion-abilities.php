@@ -42,7 +42,7 @@ final class CSC_Promotion_Abilities {
             wp_register_ability('church-site-controls/'.$name, array(
                 'label'=>ucwords(str_replace('-', ' ', $name)), 'description'=>$def[0],
                 'category'=>'church-site-controls',
-                'input_schema'=>array('type'=>'object','properties'=>(object)$def[2],'required'=>$def[3],'additionalProperties'=>false),
+                'input_schema'=>array('type'=>'object','properties'=>$def[2],'required'=>$def[3],'additionalProperties'=>false),
                 'output_schema'=>array('type'=>'object','additionalProperties'=>true),
                 'permission_callback'=>array(__CLASS__,'permission'),
                 'execute_callback'=>function ($args=array()) use ($name) { return self::dispatch($name,$args); },
@@ -53,7 +53,7 @@ final class CSC_Promotion_Abilities {
     }
 
     private static function revision($row) {
-        return hash('sha256', CSC_Controls::site_identity() . ':' . wp_json_encode($row));
+        return CSC_Parish_Promotions::revision($row);
     }
 
     private static function decorate($row) {
@@ -110,14 +110,9 @@ final class CSC_Promotion_Abilities {
         } elseif (array_diff(array('title','image_id','start','end','status'),array_keys($args))) {
             return self::error('csc_invalid_input','Creation requires title, image_id, start, end and explicit status.');
         }
-        // Serialize MCP writes for this site; do not wait indefinitely on another request.
-        global $wpdb;
-        $lock = 'csc-promo-' . substr(hash('sha256',CSC_Controls::site_identity() . ':' . $wpdb->prefix),0,48);
-        if ((string)$wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 0)',$lock)) !== '1') {
-            return self::error('csc_busy','Promotion writes are busy; inspect and retry.',409);
-        }
-        try { return self::write($args,$update,$fields); }
-        finally { $wpdb->get_var($wpdb->prepare('SELECT RELEASE_LOCK(%s)',$lock)); }
+        return CSC_Parish_Promotions::with_write_lock(static function () use ($args,$update,$fields) {
+            return self::write($args,$update,$fields);
+        });
     }
 
     private static function write($args,$update,$fields) {
